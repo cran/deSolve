@@ -1,0 +1,12 @@
+Package: deSolve
+Version: 1.1
+Title: General solvers for ordinary differential equations (ODE) and for differential algebraic equations (DAE)
+Author: Karline Soetaert <k.soetaert@nioo.knaw.nl>, Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>, R. Woodrow Setzer <setzer.woodrow@epa.gov> 
+Maintainer: R. Woodrow Setzer <setzer.woodrow@epa.gov> 
+Depends: R (>= 2.01)
+Description: Functions that solve a system of first-order ordinary differential equations (ODE) and of differential algebraic equations (DAE).
+    The functions provide an interface to the fortran functions \code{lsoda}, \code{lsodar}, \code{lsode}, \code{lsodes}, \code{dvode} and \code{daspk}. 
+    The package also contains routines designed for solving uni-and multicomponent 1-D and 2-D reactive transport models.
+License: GPL
+LazyData: yes
+Packaged: Fri May 30 04:45:45 2008; theussl
