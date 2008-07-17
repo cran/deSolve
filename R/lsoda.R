@@ -250,7 +250,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     storage.mode(y) <- storage.mode(times) <- "double"
     IN <-1
 
-    out <- .Call("call_lsoda",y,times,Func,as.double(initpar),
+    out <- .Call("call_lsoda",y,times,Func,initpar,
                  rtol, atol, rho, tcrit, JacFunc, ModelInit,  
                  as.integer(verbose), as.integer(itask), as.double(rwork),
                  as.integer(iwork), as.integer(jt),as.integer(Nglobal),

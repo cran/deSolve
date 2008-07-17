@@ -269,7 +269,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     IN <-4
     # KS: Func and Jacfunc rather than func and jacfunc; initpar rather than par
     # added itask,rwork, iwork,jt,Nglobal    removed hmin,hmax
-    out <- .Call("call_lsoda",y,times,Func,as.double(initpar),
+    out <- .Call("call_lsoda",y,times,Func,initpar,
                  rtol, atol, rho, tcrit, JacFunc, ModelInit,  
                  as.integer(verbose), as.integer(itask), as.double(rwork),
                  as.integer(iwork), as.integer(jt),as.integer(Nglobal),

@@ -306,7 +306,7 @@ vode          <- function(y, times, func, parms,
     #if (is.null(rpar)) rpar <- 0.
     #if (is.null(ipar)) ipar <- 0
     
-    out <- .Call("call_dvode", y, times, Func, as.double(initpar), rtol, atol,   # Karline: Func and JacFunc
+    out <- .Call("call_dvode", y, times, Func, initpar, rtol, atol,   # Karline: Func and JacFunc
         rho, tcrit, JacFunc, ModelInit, as.integer(verbose),as.integer(itask),
         as.double(rwork),as.integer(iwork), as.integer(imp),as.integer(Nglobal),
         as.integer(liw),as.integer(lrw),as.double (rpar), as.integer(ipar),

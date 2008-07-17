@@ -257,7 +257,7 @@
   
       \bold{iroot} is a vector, its length equal to the number of constraint functions; 
       it will have a value of 1 for the constraint function whose root that has been found and 0 otherwise.}
-\seealso{\code{\code{\link{ode}}, \link{lsoda}}, \code{\link{lsode}}, \code{\link{lsodes}}, 
+\seealso{\code{\link{ode}}, \code{\link{lsoda}}, \code{\link{lsode}}, \code{\link{lsodes}}, 
     \code{\link{vode}}, \code{\link{daspk}}, \code{\link{rk}}.}
 \keyword{math}
 

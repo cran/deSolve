@@ -26,17 +26,8 @@ rkMethod <- function(method = NULL, ...) {
           stage  = 4,
           Qerr   = 4
     ),
-#    ## Euler-Heun-Method
-#    rk12 = list(ID = "rk12",
-#         varstep = TRUE,
-#         A  = matrix(c(0, 0, 1, 0), 2, 2, byrow = TRUE),
-#         b1 = c(0.5, 0.5),
-#         b2 = c(1, 0),
-#         c  = c(0, 1),
-#         stage = 2,
-#         Qerr  = 1
-#    ),
-    rk23 = list(ID = "rk23",  ## One of the numerous RK23 formulae
+     ## One of the numerous RK23 formulae
+    rk23 = list(ID = "rk23",
       varstep = TRUE,
       FSAL    = FALSE,
       A  = matrix(c(0, 0, 0,
@@ -48,7 +39,8 @@ rkMethod <- function(method = NULL, ...) {
       stage = 3,
       Qerr  = 2
     ),
-    rk23bs = list(ID = "rk23bs",  ## Bogacki & Shampine 
+    ## Bogacki & Shampine
+    rk23bs = list(ID = "rk23bs",
       varstep = TRUE,
       FSAL    = TRUE,
       A  = matrix(c(0, 0, 0, 0,
@@ -168,7 +160,7 @@ rkMethod <- function(method = NULL, ...) {
 
   ## return the IDs of the methods if called with an empty argument list 
   if (is.null(method) & length(ldots) == 0) 
-  out <- as.vector(unlist(knownMethods))
+    out <- as.vector(unlist(knownMethods))
 
   out
 }

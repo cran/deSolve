@@ -388,7 +388,7 @@ daspk          <- function(y,               # state variables
     storage.mode(y) <- storage.mode(dy) <- storage.mode(times) <- "double"
     storage.mode(rtol) <- storage.mode(atol)  <- "double"
 
-    out <- .Call("call_daspk", y, dy, times, Res, as.double(initpar), 
+    out <- .Call("call_daspk", y, dy, times, Res, initpar, 
         rtol, atol,rho, tcrit, 
         JacRes, ModelInit, PsolFunc, as.integer(verbose),as.integer(info),
         as.integer(iwork),as.double(rwork), as.integer(Nglobal),as.integer(maxIt),

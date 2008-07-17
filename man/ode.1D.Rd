@@ -202,10 +202,10 @@
     \cr A[1],A[2],A[3],....B[1],B[2],B[3],.... (for species A, B)) 
 
 Two methods are implemented.
-\item The default method rearranges the state variables as A[1],B[1],...A[2],B[2],...A[3],B[3],.... This reformulation leads to a banded Jacobian with (upper and lower) half bandwith = number of species. 
+\item The default method rearranges the state variables as A[1],B[1],...A[2],B[2],...A[3],B[3],.... This reformulation leads to a banded Jacobian with (upper and lower) half bandwidth = number of species. 
 Then the selected integrator solves the banded problem.
 \item The second method uses \code{lsodes}. Based on the dimension of the problem, the method first calculates the sparsity pattern of the Jacobian, under the assumption 
-  that transport is onely occurring between adjacent layers. Then \code{lsodes} is called to solve the problem.
+  that transport is only occurring between adjacent layers. Then \code{lsodes} is called to solve the problem.
   \cr As \code{lsodes} is used to integrate, it may be necessary to specify the length of the real work array, \code{lrw}.
   \cr Although a reasonable guess of \code{lrw} is made, it is possible that this will be too low. 
   In this case, \code{ode.1D} will return with an error message telling
