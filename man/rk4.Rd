@@ -5,11 +5,11 @@
     Euler's Method or Classical Runge-Kutta 4th Order Integration.}
 \description{Solving initial value problems for 
     systems of first-order ordinary differential equations
-    (ODEs) using the classical Runge-Kutta 4th order integration.
+    (ODEs) using Euler's method or the classical Runge-Kutta 4th order integration.
     }
 \usage{
-rk4(y, times, func, parms, hini=min(diff(times)), ...)
 euler(y, times, func, parms, hini=min(diff(times)), ...)
+rk4(y, times, func, parms, hini=min(diff(times)), ...)
 }
 \arguments{
   \item{y }{the initial values for the ODE system.  If \code{y} has a
@@ -24,7 +24,7 @@ euler(y, times, func, parms, hini=min(diff(times)), ...)
       \code{yprime = func(t, y, parms,...)}.  \code{t} is the current time point
       in the integration, \code{y} is the current estimate of the variables
       in the ode system, and \code{parms} is a vector or list of parameters.
-      ... (optional) are any other arguments passed to the function.
+      \code{...} (optional) are any other arguments passed to the function.
         
       The return value of func should be a list, whose first element is a
       vector containing the derivatives of \code{y} with respect to
@@ -32,7 +32,7 @@ euler(y, times, func, parms, hini=min(diff(times)), ...)
       each point in \code{times}.}
   \item{parms }{vector or list holding the parameters used in \code{func}.}
   \item{hini}{length of the (fixed) internal time step.}
-  \item{... }{additional arguments, allowing this to be a generic function}
+  \item{... }{additional arguments, allowing this to be a generic function.}
 }
 \author{Thomas Petzoldt \email{thomas.petzoldt@tu-dresden.de}}
 
@@ -60,9 +60,10 @@ parms <- c(r = r, K = K)
 x<- c(N = N0)
 
 ## analytical solution
-plot(time, K/(1+(K/N0-1)*exp(-r*time)), ylim=c(0, 120), type="l", col="red", lwd=2)
+plot(time, K/(1+(K/N0-1)*exp(-r*time)), ylim=c(0, 120), 
+  type="l", col="red", lwd=2)
 
-## good solution
+## reasonable numerical solution
 out <- as.data.frame(rk4(x, time, logist, parms, hini=2))
 points(out$time, out$N, pch=16, col="blue", cex=0.5)
 

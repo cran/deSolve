@@ -32,7 +32,7 @@ rkAuto <- function(
     cat("hini=", hini, "\n")
   }
   t    <- min(times)
-  tmax <- max(times, tcrit) # NULL is handled automatically by max()
+  tmax <- max(times, tcrit)   # NULL is handled automatically by max()
   dt   <- min(hmax, hini)
   hmax <- min(hmax, tmax - t) # limit hmax to the time range (esp. if hmax = Inf)
 
@@ -78,7 +78,7 @@ rkAuto <- function(
 
     if (err == 0) {
        accept <- TRUE
-       dtnew <- hmax # hmax must not be Inf or NULL !!!
+       dtnew <- hmax       # hmax must not be Inf or NULL !!!
        if (verbose) cat("t=", t, " err=", err, " h=", dt, " +++ \n")
     } else if (err < 1) {  # accept
        accept <- TRUE
@@ -89,7 +89,7 @@ rkAuto <- function(
        accept <- FALSE
        dtnew  <- dt * max(0.9 * (err ^ -qerr), 0.2)
        if (verbose) cat("t=", t, " err=", err, " h=", dt, " - \n")
-    } else { # err == 1
+    } else {             # err == 1
        accept <- TRUE
        dtnew <- dt
        if (verbose) cat("t=", t, " err=", err, " h=", dt, " = \n")
@@ -110,7 +110,7 @@ rkAuto <- function(
           densr <- denspar(FF, y0, y1, dt, stage, dd)
           tdens <- times[times > t & times <= (t + dt)]
           if (length(tdens) > 0) {
-            newout <- densout(densr, t, tdens, dt) # ??t
+            newout <- densout(densr, t, tdens, dt)
             out <- rbind(out, cbind(tdens, newout))
           }
       }  else {

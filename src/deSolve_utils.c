@@ -55,3 +55,7 @@ void Initdeparms(int *N, double *parms)
     }
 }
   
+SEXP get_deSolve_gparms(void)
+{
+  return de_gparms;
+}

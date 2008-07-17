@@ -20,31 +20,33 @@
   appropriate modeling tool for non-linear models in \R such as
   \code{\link{optim}}, \code{\link[nls]{nls}}, \code{\link{nlm}} or
   \code{\link[nlme]{nlme}}
-    
 }
+
 \usage{
 rk(y, times, func, parms, rtol = 1e-06, atol = 1e-06, 
   tcrit = NULL, verbose = FALSE, hmin = 0, hmax = NULL, hini = hmax, 
   method = rkMethod("rk45dp7", ...), maxsteps = 5000, ...)
 }
-%- maybe also 'usage' for other objects documented here.
+
 \arguments{
-  \item{y }{the initial (state) values for the ODE system. If \code{y} has a name attribute, the names will be used to label the output matrix.}
-  \item{times }{times at which explicit estimates for \code{y} are desired.  The first value in \code{times} must be the initial time.}
+  \item{y }{the initial (state) values for the ODE system. If \code{y} has a 
+      name attribute, the names will be used to label the output matrix.}
+  \item{times }{times at which explicit estimates for \code{y} are desired.  
+      The first value in \code{times} must be the initial time.}
   \item{func }{an \R-function that computes the values of the
       derivatives in the ODE system (the \emph{model definition}) at time t.
   
       The \R-function  \code{func} must be defined as:
-      \code{yprime = func(t, y, parms,...)}.  \code{t} is the current time point
+      \code{yprime = func(t, y, parms, ...)}.  \code{t} is the current time point
       in the integration, \code{y} is the current estimate of the variables
       in the ode system, and \code{parms} is a vector or list of parameters.
-      ... (optional) are any other arguments passed to the function.
+      \code{...} (optional) are any other arguments passed to the function.
   
       The return value of \code{func} should be a list, whose first element is a
       vector containing the derivatives of \code{y} with respect to
       \code{time}, and whose next elements are global values that are required at
       each point in \code{times}.}
-  \item{parms }{any parameters used in \code{func}}
+  \item{parms }{vector or list of parameters used in \code{func}}
   \item{rtol }{relative error tolerance, either a scalar or an array as
       long as \code{y}. Only applicable to methods with variable time step, see details.}
   \item{atol }{absolute error tolerance, either a scalar or an array as
@@ -56,25 +58,24 @@ rk(y, times, func, parms, rtol = 1e-06, atol = 1e-06,
       integration should not proceed (perhaps because of a singularity),
       that should be provided in \code{tcrit}. }
   \item{verbose }{a logical value that, when TRUE, triggers more
-      verbose output from the ODE solver.  
-      %% Will output the settings of vectors *istate* and *rstate* - see details
-      }
+      verbose output from the ODE solver.}
   \item{hmin }{an optional minimum value of the integration
       stepsize. In special situations this parameter may speed up computations with
       the cost of precision. Don't use \code{hmin} if you don't know why!}
   \item{hmax }{an optional maximum value of the integration stepsize. If not specified, 
        \code{hmax} is set to the largest difference in \code{times}, to 
-       avoid that the simulation possibly ignores short-term events. If 0, no maximal size is specified}
-  \item{hini }{initial step size to be attempted; if 0, the initial step size is determined by the solver}
-
+       avoid that the simulation possibly ignores short-term events. If 0, no 
+       maximal size is specified.}
+  \item{hini }{initial step size to be attempted; if 0, the initial step size is 
+       determined by the solver.}
   \item{method}{the integrator to use. This can either be a string constant naming one of the
     pre-defined methods or a call to function \code{\link{rkMethod}} specifying a user-defined method.
     The most common methods are the fixed-step methods "euler", "rk2", "rk4" 
     or the variable step methods "rk23bs", "rk34f", "rk45f" or "rk45dp7".}
-  \item{maxsteps }{maximal number of steps during one call to the solver}
-  \item{... }{additional arguments passed to \code{func} allowing this to be a generic function}
-
+  \item{maxsteps }{maximal number of steps during one call to the solver.}
+  \item{... }{additional arguments passed to \code{func} allowing this to be a generic function.}
 }
+
 \details{
   The Runge-Kutta solvers are primarily provided for didactic reasons. 
   For most practical cases, solvers of the Livermore family 
@@ -113,18 +114,18 @@ rk(y, times, func, parms, rtol = 1e-06, atol = 1e-06,
   and whose second element contains output variables that are required at each 
   point in time. 
   \cr An example is given below:
-  
-    \code{model<-function(t,Y,parameters)}\cr
+
+ \code{model<-function(t,Y,parameters)}\cr
     \code{\{}\cr
-    \code{with (as.list(parameters),\{}\cr 
-       \code{dy1 = -k1*Y[1] + k2*Y[2]*Y[3]}\cr
+    \code{with(as.list(parameters),\{}\cr
+       \code{    dy1 = -k1*Y[1] + k2*Y[2]*Y[3]}\cr
        \code{dy3 = k3*Y[2]*Y[2]}\cr
        \code{dy2 = -dy1 - dy3}\cr
-      \code{list(c(dy1,dy2,dy3))}\cr         
+      \code{list(c(dy1,dy2,dy3))}\cr
       \code{\})}\cr
   \code{\}}\cr
- 
-}
+}    
+
 \value{
   A matrix with up to as many rows as elements in \code{times} and as
   many columns as elements in \code{y} plus the number of "global"
@@ -135,42 +136,42 @@ rk(y, times, func, parms, rtol = 1e-06, atol = 1e-06,
   attribute, it will be used to label the columns of the output value.
 
   The output will have the attributes \code{istate}, and \code{rstate}, 
-  two vectors with several useful elements. 
-  See details.
-
-  The output will have the \bold{attributes *istate*, and *rstate*}, 
   two vectors with several useful elements, whose interpretation is
   compatible with \code{\link{lsoda}}:
-  
-  \itemize{
-    \item{el 1:}{0 for normal return,  -2 means excess accuracy requested.}
-      (Tolerances too small),
-    \item{el 12:}{The number of steps taken for the problem so far.}
-    \item{el 13:}{The number of function evaluations for the problem so far.}
-    \item{el 15:}{The order of the method.}
-   }
+
+  \item{el 1:}{0 for normal return,  -2 means excess accuracy requested
+    (tolerances too small).}
+  \item{el 12:}{The number of steps taken for the problem so far.}
+  \item{el 13:}{The number of function evaluations for the problem so far.}
+  \item{el 15:}{The order of the method.}
+
 }
+
 \references{
-  Press, W. H.,  Teukolsky, S. A., Vetterling, W. T. and
-  Flannery, B. P. (2007) Numerical Recipes in C. Cambridge
-  University Press.
-  
   Butcher, J. C. (1987) The numerical analysis of ordinary differential equations,
   Runge-Kutta and general linear methods, Wiley, Chichester and New York.
   
   Engeln-Muellges, G. and Reutter, F. (1996) Numerik Algorithmen:
   Entscheidungshilfe zur Auswahl und Nutzung. VDI Verlag, Duesseldorf.
+  
+  Press, W. H.,  Teukolsky, S. A., Vetterling, W. T. and
+  Flannery, B. P. (2007) Numerical Recipes in C. Cambridge
+  University Press.
 }
+
 \author{Thomas Petzoldt \email{thomas.petzoldt@tu-dresden.de}}
 
 
-\seealso{\code{\link{rkMethod}}, \code{\link{ode}}, 
+\seealso{\code{\link{rkMethod}}, 
+         \code{\link{ode}}, 
          \code{\link{lsoda}}, 
          \code{\link{lsode}}, 
          \code{\link{lsodes}}, 
          \code{\link{lsodar}}, 
          \code{\link{vode}}, 
-         \code{\link{daspk}}}
+         \code{\link{daspk}}
+}
+
 \examples{
   #########################################
   ## Example: Lotka-volterra model
@@ -205,10 +206,10 @@ rk(y, times, func, parms, rtol = 1e-06, atol = 1e-06,
   signal$import[signal$times >= 10 & signal$times <=11] <- 0.2
   
   ## Parameters for steady state conditions
-  parms  <- list(b=0.0, c=0.1, d=0.1, e=0.1, f=0.1, g=0.0)
+  parms <- list(b=0.0, c=0.1, d=0.1, e=0.1, f=0.1, g=0.0)
   
   ## Start values for steady state
-  y<-xstart <- c(S=1, P=1, K=1)
+  y <-xstart <- c(S=1, P=1, K=1)
   
   ## Euler method
   out1  <- as.data.frame(rk(xstart, times, lvmodel, parms, 

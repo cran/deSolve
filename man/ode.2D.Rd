@@ -2,7 +2,7 @@
 \alias{ode.2D}
 \title{Solver for 2-Dimensional ordinary differential equations}
 \description{Solves a system of ordinary differential equations resulting from 
-2-Dimensional transport-recation models that include transport only between adjacent layers.}
+2-Dimensional reaction-transport models that include transport only between adjacent layers.}
 \usage{ode.2D(y, times, func, parms, nspec=NULL, dimens, ...)}
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If \code{y} has a name attribute, the names will be used to label the output matrix.}

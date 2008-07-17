@@ -10,7 +10,8 @@
   \item{... }{ any other parameters passed to the integrator ode (which solves the model)}
 }
 \author{R. Woodrow Setzer <setzer.woodrow@epa.gov>}
-\examples{##====================================
+\examples{
+  ##====================================
   ## parameter values
   ##====================================
   

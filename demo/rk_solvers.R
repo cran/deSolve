@@ -39,20 +39,19 @@ lvmodel <- function(t, x, parms, input)  {
 }
 
 ## vector of timesteps
-times  <- seq(0, 100, length=101)
+times  <- seq(0, 100, length=1001)
 
 ## external signal with rectangle impulse
 signal <- as.data.frame(list(times = times,
                           import = rep(0,length(times))))
 
-signal$import[signal$times >= 10 & signal$times <=11] <- 0.2
+signal$import[signal$times > 10 & signal$times <=11] <- 0.2
 
 sigimp <- approxfun(signal$times, signal$import, rule=2)
 
 
 ## Start values for steady state
 xstart <- c(S=1, P=1, K=1)
-
 
 
 ## Classical RK4 with fixed time step
@@ -80,7 +79,7 @@ system.time(out2 <- as.data.frame(rk(xstart, times, lvmodel, parms, hini=.1,
 
 plotIt("blue")
 
-## rk23bs
+# rk23bs
 system.time(out2 <- as.data.frame(rk(xstart, times, lvmodel, parms, hini=1,
   method = rkMethod("rk23bs"), input=sigimp)))
 
