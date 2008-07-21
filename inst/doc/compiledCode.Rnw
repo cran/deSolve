@@ -28,7 +28,7 @@ performance, FORTRAN, C}
 
 
 \author{K. Soetaert\\
-Centre for Estuarine and Marine Ecologoy\\
+Centre for Estuarine and Marine Ecology\\
 Netherlands Institute of Ecology\\
 The Netherlands
 \And
@@ -46,7 +46,7 @@ to solve models that are written in \proglang{FORTRAN} or
 %% in the following format:
 \Address{
   Karline Soetaert\\
-  Centre for Estuarine and Marine Ecologoy (CEME)\\
+  Centre for Estuarine and Marine Ecology (CEME)\\
   Netherlands Institute of Ecology (NIOO)\\
   4401 NT Yerseke, Netherlands
   E-mail: \email{k.soetaert@nioo.knaw.nl}\\
@@ -69,6 +69,7 @@ to solve models that are written in \proglang{FORTRAN} or
 <<preliminaries,echo=FALSE,results=hide>>=
 library("deSolve")
 options(prompt = "R> ")
+options(width=50)
 @ 
 
 \maketitle
@@ -154,7 +155,7 @@ is the current estimate of the variables in the ODE system, and
 values. ... (optional) are any other arguments passed to the function.
 The return value of \code{func} should be a list, whose first element
 is a vector containing the derivatives of \code{y} with respect to
-time, and whose second element contains output variables that are
+time, and whose next elements contain output variables that are
 required at each point in time.
 
 The \proglang{R} implementation of the simple ODE is given below:
@@ -175,7 +176,7 @@ model <- function(t, Y, parameters)
 @
 
 
-The Jacobian associated to the above example is:
+The Jacobian ($\frac{{\partial y'}}{{\partial y}}$) associated to the above example is:
 
 <<Jacobian_in_R>>=
 jac <- function (t, Y, parameters)
@@ -252,13 +253,14 @@ passed by parameter \code{rpar} when calling the integrator.  The key
 to the elements of \code{yout} is set in \code{*ip}
 
 \code{*ip} points to an integer vector whose length is at least 3; the
-first element (\code{IP[0]}) contains the number of output values
+first element (\code{ip[0]}) contains the number of output values
 (which should be equal or larger than \code{nout}), its second element
 contains the length of \code{*yout}, and the third element contains
 the length of \code{*ip}; next are integer values, as passed by
 parameter \code{ipar} when calling the integrator.\footnote{Readers
 familiar with the source code of the \pkg{ODEPACK} solvers may be
-surprised to find the two vectors \code{yout} and \code{nout} at the
+surprised to find the double precision vector \code{yout} and
+the integer vector \code{ip} at the
 end. Indeed none of the \pkg{ODEPACK} functions allow this, although
 it is standard in the \code{vode} and \code{daspk} codes.  To make all
 integrators compatible (and as we think the omission of these vectors
@@ -310,7 +312,7 @@ name (\code{k1},...).
 
 \subsection{Running ODE models implemented in compiled code}
 
-To run the models described aboove, the code in \code{mymod.f} and
+To run the models described above, the code in \code{mymod.f} and
 \code{mymod.c} must first be compiled.
 
 This can simply be done in \proglang{R} itself, using the
@@ -354,7 +356,7 @@ the shared library \emph{without extension}. This DLL should contain all
 the compiled function or subroutine definitions referred to in
 \code{func}, \code{jacfunc} and \code{initfunc}.
 
-Also, if \code{func} is specified in compiled code, then \code{jacfun}
+Also, if \code{func} is specified in compiled code, then \code{jacfunc}
 and \code{initfunc} (if present) should also be specified in a
 compiled language.  It is not allowed to mix \proglang{R}-functions
 and compiled functions
@@ -503,7 +505,7 @@ to an integer (not used). \code{yout} points to any other output
 variables (different from the state variables y), followed by the
 double precision values as passed via argument \code{rpar}; finally
 \code{*ip} is an integer vector containing at least 3 elements, its
-first value (\code{*ip[0}]) equals the number of output variables,
+first value (\code{*ip[0]}) equals the number of output variables,
 calculated in the function (and which should be equal to \code{nout}),
 its second element equals the total length of \code{*yout}, its third
 element equals the total length of \code{*ip}, and finally come the
@@ -610,9 +612,9 @@ For code written in \proglang{FORTRAN}, the calling sequence for
 \code{rootfunc} must be as in following example:
 
 \begin{verbatim}
-      subroutine myroot(neq, t, y, ng, gout)
-      integer :: neq, ng
-      double precision :: t, y(neq), gout(ng)
+      subroutine myroot(neq, t, y, ng, gout, out, ip)
+      integer :: neq, ng, ip(*)
+      double precision :: t, y(neq), gout(ng), out(*)
 
       gout(1) = y(1) - 1.e-4
       gout(2) = y(3) - 1e-2

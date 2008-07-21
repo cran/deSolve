@@ -1,5 +1,5 @@
 Package: deSolve
-Version: 1.2
+Version: 1.2-1
 Title: General solvers for ordinary differential equations 
        (ODE) and for differential algebraic equations (DAE)
 Author: Karline Soetaert <k.soetaert@nioo.knaw.nl>, 
@@ -16,4 +16,4 @@ Description: Functions that solve a system of first-order ordinary
              uni-and multicomponent 1-D and 2-D reactive transport models.
 License: GPL
 LazyData: yes
-Packaged: Thu Jul 17 13:01:47 2008; wsetzer
+Packaged: Mon Jul 21 09:23:02 2008; wsetzer
