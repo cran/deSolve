@@ -1,5 +1,10 @@
-## Generalized solver for Runge-Kutta methods with variable time step
-## This function is internal and not intended for the end user
+
+### rkAuto
+### Generalized solver for Runge-Kutta methods with variable time step
+### This function is internal and not intended to be called directly.
+
+
+
 rkAuto <- function(
   y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 	tcrit = NULL, verbose = FALSE,
@@ -15,8 +20,7 @@ rkAuto <- function(
   qerr  <- 1/method$Qerr
   FSAL  <- ifelse(is.null(method$FSAL), FALSE, method$FSAL)
 
-  ## track essential internal information
-  ## experimental! Do it similar like lsoda
+  ## track essential internal information similar to lsoda
   istate <- numeric(23)
 
   Nstates <- length(y)
@@ -32,7 +36,7 @@ rkAuto <- function(
     cat("hini=", hini, "\n")
   }
   t    <- min(times)
-  tmax <- max(times, tcrit)   # NULL is handled automatically by max()
+  tmax <- min(max(times), tcrit)   # NULL is handled automatically by min
   dt   <- min(hmax, hini)
   hmax <- min(hmax, tmax - t) # limit hmax to the time range (esp. if hmax = Inf)
 
@@ -131,8 +135,7 @@ rkAuto <- function(
     if (t >= tmax) break
   }
 
-  ## attach essential internal information
-  ## experimental! Codes similar like lsoda
+  ## attach essential internal information (codes are compatible to lsoda)
   istate[12] <- steps                   # number of steps
   istate[13] <- steps * (stage - FSAL)  # number of function evaluations
   istate[15] <- method$Qerr             # order of the method

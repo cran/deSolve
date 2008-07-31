@@ -52,7 +52,7 @@ method=c("lsoda","lsode","lsodes","lsodar","vode","daspk", "euler", "rk4",
 \examples{
 
 #########################################
-## Example1: Pred-Prey Lotka-volterra model
+## Example1: Pred-Prey Lotka-Volterra model
 #########################################
 
 LVmod <- function(Time,State,Pars)
@@ -90,7 +90,7 @@ matplot(out$time,out[,2:3],type="l",xlab="time",ylab="Conc",
 legend("topright",c("prey", "predator"),col=1:2, lty=1:2)
 
 #########################################
-## Example2: Resource-producer-consumer Lotka-volterra model
+## Example2: Resource-producer-consumer Lotka-Volterra model
 #########################################
 
   ## Note:
