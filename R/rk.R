@@ -1,6 +1,6 @@
 
 
-### rk4  Top level Function for solvers of the Runge-Kutta family
+### rk   Top level Function for solvers of the Runge-Kutta family
 ###      See help(rk) for a description of parameters
 ###
 ###
@@ -39,19 +39,18 @@ rk <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     
     if (is.character(method)) method <- rkMethod(method)
 
-    Ynames <- attr(y,"names")
-
-    rho <- environment(func)
-
     ## Pass state names to function
-    Func    <- function(time, state, parms) 
-    { attr(state,"names") <- Ynames
-         func(time, state, parms, ...)[[1]]}   
+    Ynames <- attr(y, "names")
 
-    Func2   <- function(time, state, parms) 
-    { attr(state,"names") <- Ynames
-         func(time, state, parms, ...)}    
- 
+    Func <- function(time, state, parms) {
+      attr(state, "names") <- Ynames
+      func(time, state, parms, ...)[[1]]
+    }   
+
+    Func2 <- function(time, state, parms) { 
+      attr(state, "names") <- Ynames
+      func(time, state, parms, ...)
+    }    
 
     ## Call func once to figure out whether and how many "global"
     ## results it wants to return and some other safety checks

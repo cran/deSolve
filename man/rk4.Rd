@@ -8,15 +8,15 @@
     (ODEs) using Euler's method or the classical Runge-Kutta 4th order integration.
     }
 \usage{
-euler(y, times, func, parms, hini=min(diff(times)), ...)
-rk4(y, times, func, parms, hini=min(diff(times)), ...)
+euler(y, times, func, parms, hini=min(diff(times)), verbose=FALSE, ...)
+rk4(y, times, func, parms, hini=min(diff(times)), verbose=FALSE, ...)
 }
 \arguments{
-  \item{y }{the initial values for the ODE system.  If \code{y} has a
+  \item{y}{the initial values for the ODE system.  If \code{y} has a
       name attribute, the names will be used to label the output matrix.}
-  \item{times }{times at which explicit estimates for \code{y} are
+  \item{times}{times at which explicit estimates for \code{y} are
       desired.  The first value in \code{times} must be the initial time.}
-  \item{func }{an \R-function that computes the values of the
+  \item{func}{an \R-function that computes the values of the
       derivatives in the ode system (the \emph{model defininition}) at time
       t.
       
@@ -28,11 +28,15 @@ rk4(y, times, func, parms, hini=min(diff(times)), ...)
         
       The return value of func should be a list, whose first element is a
       vector containing the derivatives of \code{y} with respect to
-      \code{time}, and whose second element is a vector of global values that are required at
-      each point in \code{times}.}
-  \item{parms }{vector or list holding the parameters used in \code{func}.}
-  \item{hini}{length of the (fixed) internal time step.}
-  \item{... }{additional arguments, allowing this to be a generic function.}
+      \code{time}, and whose second element is a vector of global values that are 
+      required at each point in \code{times}.}
+  \item{parms}{vector or list holding the parameters used in \code{func}.}
+  \item{hini}{length of the (fixed) internal time step. Setting \code{hini=0}, 
+    forces setting of internal time steps identically to external time steps 
+    provided by \code{times}.}
+  \item{verbose}{a logical value that, when TRUE, triggers more
+      verbose output from the ODE solver.} 
+  \item{...}{additional arguments, passed to \code{\link{rk}}}
 }
 \author{Thomas Petzoldt \email{thomas.petzoldt@tu-dresden.de}}
 
@@ -78,6 +82,10 @@ points(out$time, out$N, pch=8, cex=0.5)
 ## method with automatic time step
 out <- as.data.frame(lsoda(x, time, logist, parms))
 points(out$time, out$N, pch=1, col="green")
+legend("bottomright",
+  c("analytical","rk4, hini=2", "euler, hini=2", "euler, hini=4", "lsoda"),
+  lty=c(1, NA, NA, NA, NA), lwd=c(2, 1, 1, 1, 1), pch=c(NA, 16, 1, 8, 1),
+  col=c("red", "blue", "black", "black", "green"))
 }
 
 

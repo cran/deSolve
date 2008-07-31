@@ -63,11 +63,14 @@ rk(y, times, func, parms, rtol = 1e-06, atol = 1e-06,
       stepsize. In special situations this parameter may speed up computations with
       the cost of precision. Don't use \code{hmin} if you don't know why!}
   \item{hmax }{an optional maximum value of the integration stepsize. If not specified, 
-       \code{hmax} is set to the largest difference in \code{times}, to 
-       avoid that the simulation possibly ignores short-term events. If 0, no 
-       maximal size is specified.}
+       \code{hmax} is set to the maximum of \code{hini} and the largest difference 
+       in \code{times}, to avoid that the simulation possibly ignores short-term events. 
+       If 0, no maximal size is specified. Note that \code{hmin} and \code{hmax} 
+       are ignored by fixed step methods like "rk4" or "euler".}
   \item{hini }{initial step size to be attempted; if 0, the initial step size is 
-       determined by the solver.}
+       determined automatically by solvers with flexible time step. 
+       Setting \code{hini=0} for fixed step methods forces setting of internal 
+       time steps identically to external time steps provided by \code{times}.}
   \item{method}{the integrator to use. This can either be a string constant naming one of the
     pre-defined methods or a call to function \code{\link{rkMethod}} specifying a user-defined method.
     The most common methods are the fixed-step methods "euler", "rk2", "rk4" 
@@ -115,10 +118,10 @@ rk(y, times, func, parms, rtol = 1e-06, atol = 1e-06,
   point in time. 
   \cr An example is given below:
 
- \code{model<-function(t,Y,parameters)}\cr
+ \code{model <- function(t, Y, parameters)}\cr
     \code{\{}\cr
     \code{with(as.list(parameters),\{}\cr
-       \code{    dy1 = -k1*Y[1] + k2*Y[2]*Y[3]}\cr
+       \code{dy1 = -k1*Y[1] + k2*Y[2]*Y[3]}\cr
        \code{dy3 = k3*Y[2]*Y[2]}\cr
        \code{dy2 = -dy1 - dy3}\cr
       \code{list(c(dy1,dy2,dy3))}\cr
