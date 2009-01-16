@@ -273,7 +273,7 @@ daspk          <- function(y,               # state variables
             stop("Model function must return a list\n")
         if (length(tmp[[1]]) != length(y))
             stop(paste("The number of derivatives returned by func() (",
-                length(tmp[[1]]), "must equal the length of the initial conditions vector (",
+                length(tmp[[1]]), ") must equal the length of the initial conditions vector (",
                 length(y), ")", sep = ""))
 
         Nglobal <- if (length(tmp) > 1)

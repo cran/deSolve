@@ -201,7 +201,7 @@ vode          <- function(y, times, func, parms,
       if (length(tmp[[1]]) != length(y))
           stop(paste("The number of derivatives returned by func() (",
                 length(tmp[[1]]), 
-                "must equal the length of the initial conditions vector (",
+                ") must equal the length of the initial conditions vector (",
                 length(y), ")", sep = ""))
 
       # use "unlist" here because some output variables are vectors/arrays
