@@ -60,7 +60,7 @@ rk <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (length(tmp[[1]]) != length(y))
       stop(paste("The number of derivatives returned by func() (",
                  length(tmp[[1]]),
-                 "must equal the length of the initial conditions vector (",
+                 ") must equal the length of the initial conditions vector (",
                  length(y),")", sep="")
       )
     Nglobal <- if (length(tmp) > 1) length(unlist(tmp[-1])) else 0

@@ -8,7 +8,7 @@ rkMethod <- function(method = NULL, ...) {
           stage  = 1,
           Qerr   = 1
     ),
-    ## Heun's method (rk2)
+    ## Heun's method
     rk2 = list(ID = "rk2",
         varstep = FALSE,
           A      = c(0, 1),
@@ -26,7 +26,7 @@ rkMethod <- function(method = NULL, ...) {
           stage  = 4,
           Qerr   = 4
     ),
-     ## One of the numerous RK23 formulae
+    ## One of the numerous RK23 formulae
     rk23 = list(ID = "rk23",
       varstep = TRUE,
       FSAL    = FALSE,
@@ -138,7 +138,7 @@ rkMethod <- function(method = NULL, ...) {
          Qerr  = 4
     )
   )
-  ## look if the method is known, ode23 and ode34 are used as synonyms
+  ## look if the method is known; ode23 and ode45 are used as synonyms
   knownMethods <- c(lapply(methods,"[[", "ID"), "ode23", "ode45")
 
   if (!is.null(method)) {
