@@ -1,9 +1,9 @@
 ### ============================================================================
-### Interface to a special code for the classsical Runge-Kutta ODE solver
+### Interface to a special code for Euler's ODE solver
 ### with fixed step size and without interpolation, see helpfile for details.
 ### ============================================================================
 
-rk4 <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
+euler <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
   dllname = NULL, initfunc=dllname, initpar = parms,
   rpar = NULL,  ipar = NULL, nout = 0, outnames=NULL, ...) {
 
@@ -53,7 +53,7 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
          { Nmtot   <- outnames} else
       if (length(outnames) > nout)
          Nmtot <- outnames[1:nout] else
-         Nmtot <- c(outnames, (length(outnames)+1):nout)
+         Nmtot <- c(outnames,(length(outnames)+1):nout)
       ## ThPe:
       Nstates <- length(y) # assume length of states is correct
       rho <- NULL
@@ -65,13 +65,13 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
       # func and jac are overruled, either including ynames, or not
       # This allows to pass the "..." arguments and the parameters
       if(ynames) {
-        Func   <- function(time, state, parms) {
-          attr(state, "names") <- Ynames
+        Func   <- function(time,state,parms) {
+          attr(state,"names") <- Ynames
           func   (time,state,parms,...)
         }
       } else {                            # no ynames...
-        Func   <- function(time, state, parms)
-          func   (time, state, parms,...)
+        Func   <- function(time,state,parms)
+          func   (time,state,parms,...)
       }
 
       ## Call func once to figure out whether and how many "global"
@@ -84,17 +84,17 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
         stop(paste("The number of derivatives returned by func() (",
                    length(tmp[[1]]),
                    "must equal the length of the initial conditions vector (",
-                   Nstates, ")" , sep=""))
+                   Nstates,")", sep=""))
 
       ## use "unlist" here because some output variables are vectors/arrays
       Nglobal <- if (length(tmp) > 1)
           length(unlist(tmp[-1]))  else 0
       Nmtot <- attr(unlist(tmp[-1]),"names")
     }
-    vrb <- FALSE # TRUE forces internal debugging output of the C code
+
     ## the CALL to the integrator
-    out <- .Call("call_rk4", as.double(y), as.double(times),
-        Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(vrb),
+    out <- .Call("call_euler", as.double(y), as.double(times),
+        Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(verbose),
         as.double(rpar), as.integer(ipar))
 
     nm <- c("time",
@@ -110,7 +110,10 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
     ## column names and state information
     dimnames(out) <- list(NULL, nm)
     istate <- attr(out, "istate")
-    attr(out, "type")  <- "rk"
+    if (!is.null(istate) && istate[1] == -1)
+
     if (verbose) diagnostics(out)
-    return(out)
+
+    attr(out, "type")   <- "rk"
+    out
 }

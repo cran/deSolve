@@ -12,20 +12,22 @@
 rkMethod(method = NULL, ...)
 }
 \arguments{
-  \item{method}{a string constant naming one of the pre-defined methods
+  
+  \item{method }{a string constant naming one of the pre-defined methods
     of the Runge-Kutta family of solvers.  The most common methods are
     the fixed-step methods \code{"euler"}, \code{"rk2"}, \code{"rk4"} or
-    the variable step methods \code{"rk23bs"}, \code{"rk34f"},
-    \code{"rk45f"} or \code{"rk45dp7"}.
+    the variable step methods \code{"rk23bs"} (alias \code{"ode23"}) or
+    \code{"rk45dp7"} (alias \code{"ode45"}).
   }
-  \item{\dots}{specification of a user-defined solver, see \emph{Value}
+
+  \item{\dots }{specification of a user-defined solver, see \emph{Value}
     and example below.
   }
 }
 \details{
   This function supplies \code{method} settings for \code{\link{rk}} or
   \code{\link{ode}}. If called without arguments, the names of all
-  implemented solvers of the Runge-Kutta family is returned.
+  implemented solvers of the Runge-Kutta family are returned.
   
   The following comparison gives an idea how the algorithms of \pkg{deSolve}
   are related to similar algorithms of other simulation languages:
@@ -47,28 +49,40 @@ rkMethod(method = NULL, ...)
   
   Note that this table is based on the Runge-Kutta coefficients only,
   but the algorithms differ also in their implementation, in their
-  stepsize adaption strategy and interpolation methods.
+  stepsize adaption strategy and interpolation methods. The table
+  reflects the state at time of writing and it is of course possible
+  that implementations change.
+
 }
 
 \note{  
   \itemize{
+      
+    \item Among the \code{rk} solvers, "rk45dp7" (alias "ode45") is used
+      by default, because of its relatively high order (4), re-use of
+      the last intermediate steps (FSAL = first same as last) and
+      built-in polynomial interpolation (dense output). Solver "rk23bs",
+      that supports also FSAL, may be useful for slightly stiff systems
+      if demands on precision are low. Classical "rk4" is traditionally
+      used in cases where an adequate stepsize is known a-priori or if
+      external forcing data are provided for fixed time steps only and
+      frequent interpolation of external data needs to be avoided.
+  
+    \item Interpolation for other methods than "rk45dp7" (alias "ode45")
+      is done by 3rd order Neville-Aitken polynomials only. This needs
+      at least 4 internal time steps and may lead to local inaccuracies
+      for badly behaving systems if external and internal time steps are
+      too different.
+    
     \item The Runge-Kutta solvers are primarily provided for didactic
       reasons. For most practical cases, solvers of the Livermore family
       (\code{\link{lsoda}}, \code{\link{lsode}}, \code{\link{lsodes}},
       \code{\link{lsodar}}, \code{\link{vode}}, \code{\link{daspk}}) are
-      superior because of higher efficiency and faster implementation
-      (FORTRAN and C).  In addition to this, some of the Livermore
-      solvers are also suitable for stiff ODEs, differential algebraic
-      equations (DAEs), or partial differential equations (PDEs).
-    \item Among the \code{rk} solvers, "rk45dp7" is used by default,
-      because of its high order (4), re-use of the last intermediate
-      steps (FSAL = first same as last) and built-in polynomial
-      interpolation (dense output). Solver "rk23bs", that supports also
-      FSAL, may be useful for slightly stiff systems if demands on
-      precision are low. Classical "rk4" is traditionally used in cases
-      where an adequate stepsize is known a-priori or if external
-      forcing data are provided for fixed time steps only and frequent
-      interpolation of external data needs to be avoided.
+      superior because of higher efficiency and faster implementation.
+      In addition to this, some of the Livermore solvers are also
+      suitable for stiff ODEs, differential algebraic equations (DAEs),
+      or partial differential equations (PDEs).
+      
   }
 }
    
@@ -79,14 +93,20 @@ rkMethod(method = NULL, ...)
   \item{varstep}{boolean value specifying if the method allows for
     variable time step (\code{TRUE}) or not (\code{FALSE}).
   }
+  \item{interpolation}{boolean value to switch internal interpolation
+    off.  Note that this works only if time steps match exactly. This
+    may not work as expected for all cases because of floating point
+    rounding errors (see R FAQ about ``Why doesn't R think these numbers
+    are equal?'').
+  }
   \item{FSAL}{(first same as last) boolean value specifying if the
     method allows re-use of the last function evaluation (\code{TRUE})
     or not (\code{FALSE} or \code{NULL}).
   }
-  \item{A}{coefficient matrix of the method. As \code{link{rk}}
-    supports only explicit methods, this matrix must be lower
-    triangular.  \code{A} can also be a vector if only the subdiagonal
-    values are different from zero.
+  \item{A}{coefficient matrix of the method. As \code{link{rk}} supports
+    only explicit methods, this matrix must be lower triangular.
+    \code{A} must be a vector for fixed step methods where only the
+    subdiagonal values are different from zero.
   }
   \item{b1}{weighting coefficients for averaging the function
     evaluations of method 1.
@@ -96,9 +116,10 @@ rkMethod(method = NULL, ...)
     variable time step).
   }
   \item{c}{coefficients for calculating the intermediate time steps.}
-  \item{d}{coefficients for polynomial interpolation of the outputs from
-    internal steps (dense output), currently only available for method
-    \code{rk45dp7} (Dormand-Prince).
+  
+  \item{d}{coefficients for built-in polynomial interpolation of the
+    outputs from internal steps (dense output), currently only available
+    for method \code{rk45dp7} (Dormand-Prince).
   }
   \item{stage}{number of function evaluations needed (corresponds to
     number of rows in A).
@@ -174,8 +195,6 @@ ode(x, times, func, parms, method = rkMethod("rk45dp7", d = NULL))
 ode(x, times, func, parms, 
   method = rkMethod(ID = "midpoint",
     varstep = FALSE,
-    #A       = matrix(c(0, 0, 1/2, 0), nrow = 2, byrow = TRUE), 
-    # or simply, because this A is nonzero only in the subdiagonal
     A      = c(0, 1/2),
     b1      = c(0, 1),
     c       = c(0, 1/2),

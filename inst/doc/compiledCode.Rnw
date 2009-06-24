@@ -18,7 +18,7 @@
 \title{\proglang{R} Package \pkg{deSolve}, Writing Code in Compiled
 Language}
 
-\Plaintitle{R Package deSolve, Writing Code in Compiled Language}
+\Plaintitle{R Package deSolve, Writing Code in Compiled Languages}
 
 \Keywords{differential equation solvers, compiled code, performance,
 \proglang{FORTRAN}, \proglang{C}}
@@ -27,16 +27,24 @@ Language}
 performance, FORTRAN, C}
 
 
-\author{K. Soetaert\\
-Centre for Estuarine and Marine Ecology\\
-Netherlands Institute of Ecology\\
-The Netherlands
-\And
-R. Woodrow Setzer\\
-National Center for\\ Computational Toxicology\\
-US Environmental Protection Agency}
+\author{
+  Karline Soetaert\\
+  Centre for \\
+  Estuarine and Marine Ecology\\
+  Netherlands Institute of Ecology\\
+  The Netherlands
+  \And
+  Thomas Petzoldt\\
+  Technische Universit\"at \\
+  Dresden\\
+  Germany
+  \And
+  R. Woodrow Setzer\\
+  National Center for\\ Computational Toxicology\\
+  US Environmental Protection Agency
+}
 
-\Plainauthor{K. Soetaert, R. W. Setzer}
+\Plainauthor{Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer}
 
 \Abstract{This document describes how to use the \pkg{deSolve} package
 to solve models that are written in \proglang{FORTRAN} or
@@ -48,9 +56,16 @@ to solve models that are written in \proglang{FORTRAN} or
   Karline Soetaert\\
   Centre for Estuarine and Marine Ecology (CEME)\\
   Netherlands Institute of Ecology (NIOO)\\
-  4401 NT Yerseke, Netherlands
+  4401 NT Yerseke, Netherlands \\
   E-mail: \email{k.soetaert@nioo.knaw.nl}\\
-  URL: \url{http://www.nioo.knaw.nl/ppages/ksoetaert}\\
+  URL: \url{http://www.nioo.knaw.nl/users/ksoetaert}\\
+  \\
+  Thomas Petzoldt\\
+  Institut f\"ur Hydrobiologie\\
+  Technische Universit\"at Dresden\\
+  01062 Dresden, Germany\\
+  E-mail: \email{thomas.petzoldt@tu-dresden.de}\\
+  URL: \url{http://tu-dresden.de/Members/thomas.petzoldt/}\\
    \\
   R. Woodrow Setzer\\
   National Center for Computational Toxicology\\
@@ -60,7 +75,7 @@ to solve models that are written in \proglang{FORTRAN} or
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% R/Sweave specific LaTeX commands.
 %% need no \usepackage{Sweave}
-%\VignetteIndexEntry{compiledCode}
+%\VignetteIndexEntry{deSolve: Writing Code in Compiled Languages}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Begin of the document
 \begin{document}
@@ -70,23 +85,24 @@ to solve models that are written in \proglang{FORTRAN} or
 library("deSolve")
 options(prompt = "R> ")
 options(width=50)
-@ 
+@
 
 \maketitle
 
 \section{Introduction}
 
-\pkg{deSolve}, the successor of \proglang{R} package \pkg{odesolve} is
-a package to solve ordinary differential equations (ODE), differential
-algebraic equations (DAE) and partial differential equations (PDE).
+\pkg{deSolve} \citep{deSolve}, the successor of \proglang{R} package
+\pkg{odesolve} \citep{Setzer01} is a package to solve ordinary
+differential equations (ODE), differential algebraic equations (DAE)
+and partial differential equations (PDE).
 
 One of the prominent features of \pkg{deSolve} is that it allows
 specifying the differential equations either as:
 
 \begin{itemize}
-\item pure \proglang{R} code.
-\item functions defined in lower-level languages such as \proglang{FORTRAN}, 
-\proglang{C}, or \proglang{C++}, which are compiled into a dynamically linked 
+\item pure \proglang{R} code,
+\item functions defined in lower-level languages such as \proglang{FORTRAN},
+\proglang{C}, or \proglang{C++}, which are compiled into a dynamically linked
 library (DLL) and loaded into \proglang{R}.
 \end{itemize}
 
@@ -103,10 +119,10 @@ code.
 Here are some rules of thumb when it is worthwhile or not to switch to
 \DLLmodels.
 
-\begin{itemize} 
+\begin{itemize}
 \item As long as one makes use only of \proglang{R} s high-level
 commands, the time gain will be modest. This was demonstrated in
-Soetaert et al. (subm.), where a formulation of two interacting
+\citet{Soetaert08b}, where a formulation of two interacting
 populations dispersing on a 1-dimensional or a 2-dimensional grid led
 to a time gain of a factor two only when using \DLLmodels.
 
@@ -114,7 +130,7 @@ to a time gain of a factor two only when using \DLLmodels.
 the gain of using compiled code. Thus, in the same paper (Soetaert et
 al. subm.), a very simple, 0-D, Lotka-Volterrra type of model
 describing only 2 state variables was solved 50 times faster when
-using compiled code.  
+using compiled code.
 
 \item As even \Rmodels are quite performant, the time gain induced by
 compiled code will often not be discernible when the model is only
@@ -122,7 +138,7 @@ solved once (who can grasp the difference between a run taking 0.001
 or 0.05 seconds to finish).  However, if the model is to be applied
 multiple times, e.g.  because the model is to be fitted to data, or
 its sensitivity is to be tested, then it may be worthwhile to
-implement the model in a compiled language.  
+implement the model in a compiled language.
 \end{itemize}
 
 \section{A simple ODE example}
@@ -172,11 +188,12 @@ model <- function(t, Y, parameters)
 
    list(c(dy1, dy2, dy3))
                             })
-}                            
+}
 @
 
 
-The Jacobian ($\frac{{\partial y'}}{{\partial y}}$) associated to the above example is:
+The Jacobian ($\frac{{\partial y'}}{{\partial y}}$) associated to the
+above example is:
 
 <<Jacobian_in_R>>=
 jac <- function (t, Y, parameters)
@@ -194,7 +211,7 @@ jac <- function (t, Y, parameters)
 
    return(PD)
                             })
-}                            
+}
 @
 
 This model can then be run as follows:
@@ -464,14 +481,16 @@ Team (2008).
 
 \section{deSolve integrators that support DLL models}
 
-Not all integration routines included in \pkg{deSolve} can solve
-\DLLmodels. To date those that can are:
+In the most recent version of \pkg{deSolve} all integration routines
+can solve \DLLmodels. They are:
 
 \begin{itemize}
 \item all solvers of the \code{lsode} familiy: \code{lsoda},
   \code{lsode}, \code{lsodar}, \code {lsodes}
 \item \code{vode}
 \item \code{daspk}
+\item the C-implemented Runge-Kutta integration routines (including the
+  Euler method)
 \end{itemize}
 
 For some of these solvers the interface is slightly different
@@ -641,6 +660,9 @@ INTEGER NEQ, J, IP(*)
 
 \section{Final remark}
 
+Detailed information about communication between \proglang{C},
+\proglang{FORTRAN} and \proglang{R} can be found in \citet{Rexts2009}.
+
 Notwithstanding the speed gain when using compiled code, one should
 not carelessly decide to always resort to this type of modelling.
 
@@ -650,13 +672,12 @@ is lost. Moreover, mistakes are easily made and paid harder in
 compiled code: often a programming error will terminate
 \proglang{R}. In addition, these errors may not be simple to trace.
 
-\section{References}
 
-R Development Core Team (2008) Writing R Extensions, Version 2.7.1.
+%% this adds References to the PDF-Index without adding an obsolete section
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliography{integration}
 
-Soetaert, K., Petzoldt, T. and Setzer, R.W., subm. Solving
-Differential Equations in R: Package deSolve. Subm. to Journal of
-Statistical Software.
 
 \end{document}
 

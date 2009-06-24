@@ -39,7 +39,9 @@
     The return value of \code{func} should be a list, whose first
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
-    that are required at each point in \code{times}.
+    that are required at each point in \code{times}.The derivatives
+    should be specified in the same order as the state variables \code{y}.
+
   }
   \item{parms }{parameters passed to \code{func}.}
   \item{nspec }{the number of *species* (components) in the model.}
@@ -66,7 +68,7 @@
   The output will have the attributes \code{istate} and \code{rstate},
   two vectors with several elements. See the help for the selected
   integrator for details.  the first element of istate returns the
-  conditions under which the last call to vode returned. Normal is
+  conditions under which the last call to the integrator returned. Normal is
   \code{istate = 2}.  If \code{verbose = TRUE}, the settings of
   \code{istate} and \code{rstate} will be written to the screen.
 }
@@ -141,8 +143,15 @@ filled.contour(x = times, y = Distance, DENSITY, color = topo.colors,
   See the selected integrator for the additional options.
 }
 \seealso{
-  \code{\link{ode.1D}}, for integrating, when the jacobian matrix is
-  banded, and where the state variables need to be rearranged.
+  \itemize{
+    \item \code{\link{ode}} for a general interface to most of the ODE solvers,
+    \item  \code{\link{ode.1D}} for integrating 1-D models
+    \item  \code{\link{ode.2D}} for integrating 2-D models
+    \item  \code{\link{ode.3D}} for integrating 3-D models
+    \item  \code{\link{lsode}}, \code{\link{lsoda}}, \code{\link{lsodar}},
+    \code{\link{vode}} for the integration options.
+  }
+  \code{\link{diagnostics}} to print diagnostic messages.
 }
 \keyword{math}
 

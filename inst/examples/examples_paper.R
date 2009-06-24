@@ -271,7 +271,7 @@ print(system.time(
   if (i==5) nm <- "total conc"
   plot(DAE$time,DAE[,i],xlab="time", lwd=2,
        ylab="conc",main=nm,type="l")
-  writelabel(nr=i-1)     
+#  writelabel(nr=i-1)
   }
 
 mtext(outer=TRUE, side=3, "DAE chemical model",cex=1.25)

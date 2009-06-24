@@ -1614,7 +1614,7 @@ C
       call rwarn(
      2  'value = I1, of idid and no appropriate action was taken ')
       call rwarn('- run terminated')
-      write (msg,'(6X,I10)'), idid
+      write (msg,'(6X,I10)') idid
       call rwarn (msg)
 
       RETURN
@@ -3907,7 +3907,7 @@ C
       IF (KPRIN .GE. 2) THEN
       call rwarn(
      1  'daspk--  in routine dlinsd--PNRM (=R1)')
-      write (msg,'(6X,D21.13)'), PNRM
+      write (msg,'(6X,D21.13)') PNRM
       call rwarn (msg)
      
         ENDIF

@@ -104,11 +104,11 @@ system.time(out2 <- as.data.frame(rk(xstart, times, lvmodel, parms, hini=1,
 plotIt("blue")
 
 ## tolerance values can also be set for single state variables
-## if all tolerance values are zero, hini is retained as fixed step
+## if all tolerance values are zero, hmax is taken as fixed step
 ## Prince-Dormand  5(4)7m
 system.time(out2 <- as.data.frame(rk(xstart, times, lvmodel, parms, hini=1,
-  hmax = 10, method = rkMethod("rk45dp7"), input=sigimp,
-  atol=c(0, 0, 0), rtol=c(0, 0, 0))))
+  hmax = 1, method = rkMethod("rk45dp7"), input=sigimp,
+  atol=c(0, 0, 0), rtol=c(0, 0, 0), maxsteps=1e5)))
 
 plotIt()
 

@@ -4,7 +4,8 @@
 #include "deSolve.h"
 
 /* definition of the call to the fortran function ddaspk - in file ddaspk.f*/                              
-void F77_NAME(ddaspk)(void (*)(double *, double *, double *, double*, double *, int*, double *, int*),
+void F77_NAME(ddaspk)(void (*)(double *, double *, double *, double*,
+                               double *, int*, double *, int*),
 		     int *, double *, double *, double *, double *, 
 		     int *,double *, double *,  int *,  double *,  int *, 
 		     int *, int *, double *, int *,
@@ -93,11 +94,15 @@ static void daspk_jac (double *t, double *y, double *yprime,
 }
 
 /* give name to data types */
-typedef void res_func(double *, double *, double *, double*, double *, int*, double *, int*);
-typedef void jac_func(double *, double *, double *, double *, double *, double *, int *);
-typedef void psol_func(int *, double *, double *, double *, double *, double *, 
-           double *, double *, double *, int*, double *, double *, int*, double *, int*);
-typedef void kryljac_func(double *, int *, int *, double *, double *, double *, double *, double *,
+typedef void res_func(double *, double *, double *, double*, double *,
+                      int*, double *, int*);
+typedef void jac_func(double *, double *, double *, double *, double *,
+                      double *, int *);
+typedef void psol_func(int *, double *, double *, double *, double *,
+                      double *, double *, double *, double *, int*, double *,
+                      double *, int*, double *, int*);
+typedef void kryljac_func(double *, int *, int *, double *, double *,
+                          double *, double *, double *,
            double *, double *, double *, double *, int*, int*, double *, int*);
 typedef void init_func(void (*)(int *, double *));
 
@@ -113,17 +118,18 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP res, SEXP parms,
 /******************************************************************************/
 
 /* These R-structures will be allocated and returned to R*/
-  SEXP   yout, yout2, ISTATE, RWORK;
+  SEXP   yout, yout2=NULL, ISTATE, RWORK;
   int    i, j, k, nt, ny, repcount, latol, lrtol, lrw, liw, isDll, maxit;
-  double *xytmp,  *xdytmp, *rwork, tin, tout, *Atol, *Rtol, *out, *delta, cj;
+  double *xytmp,  *xdytmp, *rwork, tin, tout, *Atol, *Rtol, *out;
+  double *delta=NULL, cj;
   int    *Info,  ninfo, idid, *iwork, mflag, nout, ntot, ires;
   int    lrpar, lipar, *ipar;
 
   res_func  *Resfun;
-  jac_func  *jac;
-  psol_func *psol;  
+  jac_func  *jac=NULL;
+  psol_func *psol=NULL;
   init_func *initializer;
-  kryljac_func *kryljac;
+  kryljac_func *kryljac=NULL;
 
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
