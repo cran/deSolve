@@ -35,4 +35,4 @@ void Initdeparms(int *, double *);
 long int n_eq;
 long int mu;
 long int ml;
-long int nrowpd; 
+long int nrowpd;

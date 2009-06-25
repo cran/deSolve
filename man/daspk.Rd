@@ -22,14 +22,14 @@
   dynamically loaded.
 }
 \usage{
-daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
-  rtol = 1e-6, atol = 1e-8, jacfunc = NULL, jacres = NULL,
-  jactype = "fullint", estini = NULL, verbose = FALSE, 
-  tcrit = NULL, hmin = 0, hmax = NULL, hini = 0, ynames = TRUE, maxord = 5,
-  bandup = NULL, banddown = NULL, maxsteps = 5000,   
-  dllname = NULL, initfunc = dllname, initpar = parms, 
-  rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, 
-  ...)
+daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
+  nalg = 0, rtol = 1e-6, atol = 1e-8, jacfunc = NULL,
+  jacres = NULL, jactype = "fullint", estini = NULL,
+  verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL,
+  hini = 0, ynames = TRUE, maxord = 5, bandup = NULL,
+  banddown = NULL, maxsteps = 5000, dllname = NULL,
+  initfunc = dllname, initpar = parms, rpar = NULL,
+  ipar = NULL, nout = 0, outnames = NULL,  ...)
 }
 
 \arguments{
@@ -39,7 +39,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
   }
   \item{times }{time sequence for which output is wanted; the first
     value of \code{times} must be the initial time; if only one step is
-    to be taken; set times = NULL.
+    to be taken; set \code{times} = \code{NULL}.
   }
   \item{func }{cannot be used if the model is a DAE system. If an ODE
     system, \code{func} should be an \R-function that computes the
@@ -53,11 +53,15 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
     attribute, the names will be available inside \code{func}, unless
     \code{ynames} is FALSE.  \code{parms} is a vector or list of
     parameters.  \code{...} (optional) are any other arguments passed to
-    the function.  The return value of \code{func} should be a list,
+    the function.
+    
+    The return value of \code{func} should be a list,
     whose first element is a vector containing the derivatives of
     \code{y} with respect to \code{time}, and whose next elements are
     global values that are required at each point in \code{times}.
-  
+    The derivatives should be specified in the same order as the specification
+    of the state variables \code{y}.
+
     Note that it is not possible to define \code{func} as a compiled
     function in a dynamically loaded shared library. Use \code{res}
     instead.
@@ -90,8 +94,8 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
   
     If \code{res} is a string, then \code{dllname} must give the name of
     the shared library (without extension) which must be loaded before
-    \code{daspk()} is called (see package vignette for more
-    information).
+    \code{daspk()} is called (see package vignette \code{"compiledCode"}
+    for more information).
   }
   \item{nalg }{if a DAE system: the number of algebraic equations
     (equations not involving derivatives). Algebraic equations should
@@ -193,7 +197,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
     the jacobian is banded (and \code{jactype} one of
     "bandint","bandusr")
   }
-  \item{maxsteps }{maximal number of steps during one call to the
+  \item{maxsteps }{maximal number of steps per output interval taken by the
     solver; will be recalculated to be at least 500 and a multiple of
     500; the solver will give a warning if more than 500 steps are
     taken, but it will continue till \code{maxsteps} steps.
@@ -201,11 +205,11 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
   \item{dllname }{a string giving the name of the shared library
     (without extension) that contains all the compiled function or
     subroutine definitions referred to in \code{func}/or \code{res} and
-    \code{jacfunc}.  See package vignette.
+    \code{jacfunc}.  See package vignette \code{"compiledCode"}.
   }
-  \item{initfunc }{if not NULL, the name of the initialisation function
+  \item{initfunc }{if not \code{NULL}, the name of the initialisation function
     (which initialises values of parameters), as provided in
-    \file{dllname}. See package vignette.
+    \file{dllname}. See package vignette \code{"compiledCode"}.
   }
   \item{initpar }{only when \file{dllname} is specified and an
     initialisation function \code{initfunc} is in the dll: the
@@ -225,7 +229,8 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
     indeed the number of output variables calculed in the dll - you have
-    to perform this check in the code - See package vignette.
+    to perform this check in the code - See package vignette
+    \code{"compiledCode"}.
   }
   \item{outnames }{only used if \file{dllname} is specified and
     \code{nout} > 0: the names of output variables calculated in the
@@ -249,7 +254,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL, nalg = 0,
   The output will have the attributes \code{istate}, and \code{rstate},
   two vectors with several useful elements.  See details.  The first
   element of istate returns the conditions under which the last call to
-  lsoda returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
+  daspk returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
   TRUE, the settings of istate and rstate will be written to the screen.
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
@@ -280,13 +285,13 @@ pars <- c(
 Fun_ODE <- function (t, y, pars)
 {
   with (as.list(c(y, pars)), {
-    ra  = ka*D        # forward rate
-    rb  = ka/K *A*B   # backward rate
+    ra  <- ka*D        # forward rate
+    rb  <- ka/K *A*B   # backward rate
 
     ## rates of changes
-    dD  = -ra + rb + prod
-    dA  =  ra - rb
-    dB  =  ra - rb - r*B
+    dD  <- -ra + rb + prod
+    dA  <-  ra - rb
+    dB  <-  ra - rb - r*B
     return(list(dy = c(dA, dB, dD),
                 CONC = A+B+D))
   })
@@ -306,11 +311,11 @@ Res_DAE <- function (t, y, yprime, pars)
   with (as.list(c(y, yprime, pars)), {
 
     ## residuals of lumped rates of changes
-    res1 = -dD - dA + prod
-    res2 = -dB + dA - r*B
+    res1 <- -dD - dA + prod
+    res2 <- -dB + dA - r*B
     
     ## and the equilibrium equation
-    eq = K*D - A*B
+    eq   <- K*D - A*B
 
     return(list(c(res1, res2, eq),
                 CONC = A+B+D))
@@ -457,7 +462,8 @@ max(abs(DAE-DAE2))
   an error code. See \code{\link{lsoda}} for details.
   
   \bold{res and jacres} may be defined in compiled C or Fortran code, as
-  well as in an R-function. See package vignette for details.  Examples
+  well as in an R-function. See package vignette \code{"compiledCode"}
+  for details.  Examples
   in Fortran are in the \file{dynload} subdirectory of the
   \code{deSolve} package directory.
 
@@ -509,8 +515,21 @@ max(abs(DAE-DAE2))
   original code daspk.f.
 }
 \seealso{
-  \code{\link{lsoda}}, \code{\link{lsodar}},
-  \code{\link{lsode}}, \code{\link{lsodes}}, \code{\link{vode}}
+  \itemize{
+    \item \code{\link{rk}}, \item \code{\link{rk4}} and \code{\link{euler}} for
+      Runge-Kutta integrators.
+    \item \code{\link{lsoda}}, \code{\link{lsode}},
+      \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},
+      for other solvers of the Livermore family,
+    \item \code{\link{ode}} for a general interface to most of the ODE solvers,
+    \item \code{\link{ode.band}} for solving models with a banded
+      Jacobian,
+    \item \code{\link{ode.1D}} for integrating 1-D models,
+    \item \code{\link{ode.2D}} for integrating 2-D models,
+    \item \code{\link{ode.3D}} for integrating 3-D models,
+  }
+
+  \code{\link{diagnostics}} to print diagnostic messages.
 }
 \note{
   In this version, the krylov method is not (yet) supported.

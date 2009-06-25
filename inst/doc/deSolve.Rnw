@@ -1,0 +1,738 @@
+\documentclass[article,nojss]{jss}
+\DeclareGraphicsExtensions{.pdf,.eps}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Add-on packages and fonts
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\newcommand{\noun}[1]{\textsc{#1}}
+%% Bold symbol macro for standard LaTeX users
+\providecommand{\boldsymbol}[1]{\mbox{\boldmath $#1$}}
+
+%% Because html converters don't know tabularnewline
+\providecommand{\tabularnewline}{\\}
+\usepackage{array} % table commands
+\setlength{\extrarowheight}{0.1cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\newcommand{\R}{\proglang{R }}
+\newcommand{\ds}{\textbf{\textsf{deSolve }}}
+\newcommand{\rb}[1]{\raisebox{1.5ex}{#1}}
+
+\title{Package deSolve: solving initial value differential equations in R}
+
+\Keywords{differential equations, ordinary differential equations,
+differential algebraic equations, partial differential equations,
+initial value problems, \proglang{R}}
+
+\Plainkeywords{differential equations, ordinary differential equations,
+differential algebraic equations, partial differential equations,
+initial value problems, R}
+
+
+\author{
+  Karline Soetaert\\
+  Centre for \\
+  Estuarine and Marine Ecology\\
+  Netherlands Institute of Ecology\\
+  The Netherlands
+  \And
+  Thomas Petzoldt\\
+  Technische Universit\"at \\
+  Dresden\\
+  Germany
+  \And
+  R. Woodrow Setzer\\
+  National Center for\\ Computational Toxicology\\
+  US Environmental Protection Agency
+}
+
+
+\Plainauthor{Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer}
+
+\Abstract{
+  \R package \ds \citep{deSolve}, the successor of \proglang{R}
+  package \pkg{odesolve} is a package to solve initial value problems (IVP) of:
+
+  \begin{itemize}
+    \item ordinary differential equations (ODE),
+    \item differential algebraic equations (DAE) and
+    \item partial differential equations (PDE).
+  \end{itemize}
+
+  The implementation includes stiff integration routines based on the
+  ODEPACK Fortan codes \citep{Hindmarsh83}.  It also include
+  Runge-Kutta solvers and the Euler method \citep{Press92}.
+
+  In this vignette we outline how to implement differential equations
+  as \R-functions.
+
+  Another vignette ("compiledCode") \citep{compiledCode}, deals with
+  differential equations implemented in lower-level languages such as
+  \proglang{FORTRAN}, \proglang{C}, or \proglang{C++}, which are
+  compiled into a dynamically linked library (DLL) and loaded into
+  \proglang{R}.
+}
+
+%% The address of (at least) one author should be given
+%% in the following format:
+\Address{
+  Karline Soetaert\\
+  Centre for Estuarine and Marine Ecology (CEME)\\
+  Netherlands Institute of Ecology (NIOO)\\
+  4401 NT Yerseke, Netherlands \\
+  E-mail: \email{k.soetaert@nioo.knaw.nl}\\
+  URL: \url{http://www.nioo.knaw.nl/ppages/ksoetaert}\\
+  \\
+  Thomas Petzoldt\\
+  Institut f\"ur Hydrobiologie\\
+  Technische Universit\"at Dresden\\
+  01062 Dresden, Germany\\
+  E-mail: \email{thomas.petzoldt@tu-dresden.de}\\
+  URL: \url{http://tu-dresden.de/Members/thomas.petzoldt/}\\
+   \\
+  R. Woodrow Setzer\\
+  National Center for Computational Toxicology\\
+  US Environmental Protection Agency\\
+  URL: \url{http://www.epa.gov/comptox}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% R/Sweave specific LaTeX commands.
+%% need no \usepackage{Sweave}
+%\VignetteIndexEntry{solving initial value differential equations in R}
+%\VignetteKeywords{differential equations, ordinary differential equations, differential algebraic equations, partial differential equations, initial value problems, R}
+%\VignettePackage{deSolve}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Begin of the document
+\begin{document}
+\SweaveOpts{engine=R,eps=FALSE}
+\SweaveOpts{keep.source=TRUE}
+
+<<preliminaries,echo=FALSE,results=hide>>=
+library("deSolve")
+options(prompt = "> ")
+options(width=70)
+@
+
+\maketitle
+
+\section{A simple ODE: chaos in the atmosphere}
+
+  The Lorenz equations (Lorenz, 1963) were the first chaotic dynamic system
+  to be described. They consist of three differential equations that were
+  assumed to represent idealized behavior of the earth's atmosphere.
+  We use this model to demonstrate how to implement and solve differential
+  equations in \proglang{R}.
+  The Lorenz model describes the dynamics of three state variables, $X$,
+  $Y$ and $Z$.
+
+  %ThPe: It would be nice to have one sentence about what these states are
+
+  The model equations are:
+
+  \[
+    \begin{array}{l}
+      \frac{{dX}}{{dt}} =  a \cdot X + Y \cdot Z \\
+      \frac{{dY}}{{dt}} =  b \cdot (Y - Z) \\
+      \frac{{dZ}}{{dt}} =  - X \cdot Y + c \cdot Y - Z \\
+    \end{array}
+  \]
+  with the initial conditions:
+  \[
+    X(0) = Y(0) = Z(0) = 1
+  \]
+
+  Where $a$, $b$ and $c$ are three parameters, with values of -8/3, -10 and 28
+  respectively.
+
+  Implementation of an IVP ODE in \R can be separated in two parts: the model
+  specification and the model application.
+
+  Model specification consists of:
+  \begin{itemize}
+    \item	Defining model parameters and their values,
+    \item	Defining model state variables and their initial conditions,
+    \item	Implementing the model equations that calculate the rate of
+      change (e.g. $dX/dt$) of the state variables.
+  \end{itemize}
+
+  The model application consists of
+  \begin{itemize}
+    \item	Specification of the time at which model output is wanted,
+    \item	Integration of the model equations (uses R-functions from \ds),
+    \item	Plotting of model results.
+  \end{itemize}
+
+  Below, we discuss the \proglang{R}-code for the Lorenz model.
+
+  \subsection{Model specification}
+
+    1. Model parameters
+
+    There are three model parameters: $a$, $b$, and $c$ that are defined first.
+    Parameters are stored as a vector with assigned names and values.
+
+<<>>=
+parameters <- c(a = -8/3,
+                b = -10,
+                c =  28)
+@
+    2. State variables
+
+    The three state variables are also created as a vector, and their
+    initial values given.
+<<>>=
+
+state     <- c(X = 1,
+               Y = 1,
+               Z = 1)
+@
+    3. Model equations
+
+    The model equations are specified in a function (\code{Lorenz}) that
+    calculates the rate of change of the state variables. Input to the
+    function is the model time (\code{t}, not used here, but required by
+    the calling routine), and the values of the state variables (\code{state})
+    and the parameters, in that order.
+
+    This function will be called by the \R routine that solves the differential
+    equations (here we use \code{ode}, see below).
+
+    The code is most readable if we can address the parameters and state
+    variables by their names.
+    As both parameters and state variables are 'vectors', they are converted
+    as a list. The statement \code{with(as.list(c(state,parameters)), {...})}
+    then makes available the names of this list.
+
+    The main part of the model calculates the rate of change of the state
+    variables. At the end of the function, these rates of change are returned,
+    packed as a list. Note that it is necessary to return the rate of change in
+    the same ordering as the specification of the state variables
+    (this is very important).
+    In this case, as state variables are specified $X$ first, then $Y$ and $Z$,
+    the rates of changes are returned as $dX, dY, dZ$.
+
+<<>>=
+Lorenz<-function(t, state, parameters) {
+ with(as.list(c(state, parameters)),{
+
+    # rate of change
+    dX <- a*X + Y*Z
+    dY <- b * (Y-Z)
+    dZ <- -X*Y + c*Y - Z
+
+    # return the rate of change
+    list(c(dX, dY, dZ))
+
+    })   # end with(as.list...
+  }
+@
+
+  \subsection{Model application}
+
+  1. Time specification
+
+  We run the model for 100 days, and give output at
+  0.01 daily intervals. R's function \code{seq()} creates the time sequence.
+
+<<>>=
+times     <-seq(0,100,by=0.01)
+@
+
+  2. Model integration
+
+  The model is solved using \ds function \code{ode}, which is the default
+  integration routine.
+
+  Function \code{ode} takes as input, a.o. the state variable vector (\code{y}),
+  the times at which output is required (\code{times}), the model function
+  that returns the rate of change (\code{func}) and the parameter vector
+  (\code{parms}).
+
+  Function \code{ode} returns a matrix that contains the values of the state
+  variables (columns) at the requested output times. The output is converted
+  to a data frame and stored in '\code{out}'.
+  Data frames have the advantage, that their columns can be accessed by
+  name, rather than by number. For instance, \code{out$X} will take the
+  outputted values of state variable \code{X}, and so on.
+
+  %ThPe: these are not concentrations; simply call them states
+
+<<>>=
+require(deSolve)
+out <- as.data.frame(ode(y=state,times=times,func=Lorenz,parms=parameters))
+head(out)
+@
+
+  3. Plotting results
+
+  Finally, the model output is plotted.
+  The figures are arranged in two rows and two columns (\code{mfrow}), and
+  the size of the outer upper margin (the third margin) is increased
+  (\code{oma}), such as to allow writing a figure heading (\code{mtext}).
+  First the X concentration versus time is plotted, then the Y concentration
+  versus time, and finally Y versus X and Z versus X.
+
+  %ThPe: concentrations? states!
+
+<<label=ode,include=FALSE>>=
+par(mfrow=c(2,2), oma=c(0,0,3,0))
+plot (times,out$X ,type="l",main="X", xlab="time", ylab="-")
+plot (times,out$Y ,type="l",main="Y", xlab="time", ylab="-")
+plot (out$X,out$Y, pch=".")
+plot (out$X,out$Z, pch=".")
+
+mtext(outer=TRUE,side=3,"Lorenz model",cex=1.5)
+@
+
+\setkeys{Gin}{width=0.4\textwidth}
+
+\begin{figure}
+\begin{center}
+<<label=figode,fig=TRUE,echo=FALSE>>=
+<<ode>>
+@
+\end{center}
+\caption{Solution of the ordinary differential equation -
+  see text for R-code}
+\label{fig:dae}
+\end{figure}
+
+\subsection{Solvers for initial value problems of ordinary differential
+  equations}
+
+  Package \ds contains several IVP ordinary differential equation solvers.
+  They can all be triggered from function \code{ode} (by setting the argument
+  \code{method}), or can be run as stand-alone functions.
+
+  Moreover, for each integration routine, several options are available to
+  optimise performance.
+
+  Thus it should be possible to find, for one particular problem, the most
+  efficient solver.
+  See \citep{deSolve} for more information about when to use which solver
+  in \pkg{deSolve}. For most cases, the default solver, \code{ode} and using the
+  default settings will do.
+  Table 1 gives a short overview of the available methods.
+
+  We solve the model with several integration routines, each time
+  printing the time it took (in seconds) to find the solution.
+
+<<>>=
+print(system.time(out <-rk4   (state,times,Lorenz,parameters)))
+print(system.time(out <-lsode (state,times,Lorenz,parameters)))
+print(system.time(out <-lsoda (state,times,Lorenz,parameters)))
+print(system.time(out <-lsodes(state,times,Lorenz,parameters)))
+print(system.time(out <-daspk (state,times,Lorenz,parameters)))
+print(system.time(out <-vode  (state,times,Lorenz,parameters)))
+@
+
+\section{Partial differential equations}
+
+  As package \ds includes integrators that deal efficiently with
+  arbitrarily sparse and banded Jacobians, it is especially well
+  suited to solve initial value problems resulting from 1, 2 or
+  3-dimensional partial differential equations (PDE). These are first
+  written as ODEs using the method-of-lines approach.
+
+  Three special-purpose solvers are included in \ds:
+  \begin{itemize}
+    \item \code{ode.band} integrates 1-dimensional problems comprizing one species,
+    \item \code{ode.1D} integrates 1-dimensional problems comprizing many species,
+    \item \code{ode.2D} integrates 2-dimensional problems,
+    \item \code{ode.2D} integrates 2-dimensional problems.
+  \end{itemize}
+
+  As an example, consider the Aphid model described in \citet{Soetaert08}.
+  It is a model where aphids slowly diffuse and grow on a row of plants.
+  The model equations are:
+
+  \[
+    \frac{{\partial N}}{{\partial t}} =  - \frac{{\partial Flux}}{{\partial {\kern 1pt} x}} + g \cdot N
+  \]
+  and where the diffusive flux is given by:
+  \[
+    Flux_{diffusion}  =  - D\frac{{\partial N}}{{\partial {\kern 1pt} x}}
+  \]
+
+  with boundary conditions
+  \[
+    N_{x=0}=N_{x=60}=0
+  \]
+  and initial condition
+
+  $N_x=0$ for $x \neq 30$
+
+  $N_x=1$ for $x = 30$
+
+  In the method of lines approach, the spatial domain is subdivided in a
+  number of boxes and the equation is discretized as:
+  \[
+    \frac{{dN_i }}{{dt}} =   - \frac{{Flux_{i,i + 1}  - Flux_{i - 1,i} }}{{\Delta x_i }} + g \cdot N_i
+  \]
+  with the flux on the interface equal to:
+  \[
+    Flux_{i - 1,i}  =  - D_{i - 1,i}  \cdot \frac{{N_i  - N_{i - 1} }}{{\Delta x_{i - 1,i} }}
+  \]
+  Note that the values of state variables (here densities) are defined in the
+  centre of boxes (i), whereas the fluxes are defined on the box interfaces.
+
+  We refer to \citet{Soetaert08} for more information about this model and
+  its numerical approximation.
+
+  Here is its implementation in \proglang{R}.
+  First the model equations are defined:
+
+<<>>=
+ Aphid <- function(t, APHIDS, parameters)
+   {
+     deltax     <- c (0.5, rep(1, numboxes - 1), 0.5)
+     Flux       <- -D * diff(c(0, APHIDS, 0)) / deltax
+     dAPHIDS    <- -diff(Flux) / delx  + APHIDS * r
+
+     # the return value
+     list(dAPHIDS )
+   } # end
+@
+  Then the model parameters and spatial grid are defined
+<<>>=
+  D         <- 0.3    # m2/day  diffusion rate
+  r         <- 0.01   # /day    net growth rate
+  delx      <- 1      # m       thickness of boxes
+  numboxes  <- 60
+
+  # distance of boxes on plant, m, 1 m intervals
+  Distance  <- seq(from=0.5, by=delx, length.out=numboxes)
+@
+  Aphids are initially only present in two central boxes:
+<<>>=
+  # Initial conditions:  # ind/m2
+  APHIDS        <- rep(0, times=numboxes)
+  APHIDS[30:31] <- 1
+  state         <- c(APHIDS=APHIDS)      # initialise state variables
+@
+  The model is run for 200 days, producing output every day; the time
+  elapsed in seconds to solve this 60 state-variable model
+  is estimated (\code{system.time})
+<<>>=
+  times     <-seq(0,200,by=1)
+  print(system.time(
+    out       <- ode.band(state,times,Aphid,parms=0,nspec=1)
+  ))
+@
+matrix 'out' consist of times (1st column) followed by the densities (next
+columns)
+<<>>=
+  head (out[,1:5])
+  DENSITY   <- out[,2:(numboxes  +1)]
+@
+  Finally, the output is plotted
+<<label=aphid, include=FALSE>>=
+  filled.contour(x=times, y=Distance, DENSITY, color= topo.colors,
+                 xlab="time, days", ylab= "Distance on plant, m",
+                 main="Aphid density on a row of plants")
+@
+
+\setkeys{Gin}{width=0.8\textwidth}
+\begin{figure}
+\begin{center}
+<<label=aphidfig,fig=TRUE,echo=FALSE>>=
+<<aphid>>
+@
+\end{center}
+\caption{Solution of the 1-dimensional aphid model - see text for \R-code}
+\label{fig:aphid}
+\end{figure}
+
+  As the 1-D model describes only one species, it is best solved with
+  \ds function \code{ode.band}.
+
+  A multi-species IVP example can be found in \citet{Soetaert08b}.
+
+  For 2-D problems, we refer to the help-files of function \code{ode.2D}.
+
+  \section{Differential algebraic equations}
+
+  Function \code{daspk} from package \ds solves (relatively simple)
+  DAEs of index\footnote{note that many -apparently simple-
+  DAEs are higher-index DAEs} maximal 1.
+
+  The DAE has to be specified by the \emph{residual function} instead of
+  the rates of change (as in ODE).
+
+  Consider the following simple DAE:
+
+\begin{eqnarray*}
+\frac{dy_1}{dt}&=&-y_1+y_2\\
+y_1 \cdot y_2 &=& t
+\end{eqnarray*}
+
+  where the first equation is a differential, the second an algebraic equation.
+
+  To solve it, it is first rewritten as residual functions:
+
+\begin{eqnarray*}
+0&=&\frac{dy_1}{dt}+y_1-y_2\\
+0&=&y_1 \cdot y_2 - t
+\end{eqnarray*}
+
+  In \R we write:
+<<>>=
+daefun<-function(t,y,dy,parameters)
+ {
+    res1  <- dy[1]+y[1]-y[2]
+    res2  <- y[2]*y[1]-t
+
+    list(c(res1,res2))
+ }
+require(deSolve)
+
+yini  <- c(1,0)
+dyini <- c(1,0)
+times <-seq(0,10,0.1)
+
+# solver
+print(system.time(out <-daspk(y=yini,dy=dyini,times=times,res=daefun,parms=0)))
+@
+<<label=dae,include=FALSE>>=
+matplot(out[,1],out[,2:3],type="l",lwd=2,
+        main="dae",xlab="time",ylab="y")
+@
+\setkeys{Gin}{width=0.4\textwidth}
+\begin{figure}
+\begin{center}
+<<label=figdae,fig=TRUE,echo=FALSE>>=
+<<dae>>
+@
+\end{center}
+\caption{Solution of the differential algebraic equation model -
+  see text for R-code}
+\label{fig:dae}
+\end{figure}
+\clearpage
+\section{Using the integration options}
+The solvers from the ODEPACK integration routines can be optimised if it
+is known whether the problem is stiff or non-stiff, or if the
+structure of the Jacobian is sparse. We repeat the example from \code{lsode}
+to show how we can make good use of these options.
+
+The model describes the time evolution of 5 state variables:
+<<>>=
+f1 <- function  (t, y, parms)
+{
+  ydot <- vector(len = 5)
+
+  ydot[1] <-  0.1*y[1] -0.2*y[2]
+  ydot[2] <- -0.3*y[1] +0.1*y[2] -0.2*y[3]
+  ydot[3] <-           -0.3*y[2] +0.1*y[3] -0.2*y[4]
+  ydot[4] <-                     -0.3*y[3] +0.1*y[4] -0.2*y[5]
+  ydot[5] <-                               -0.3*y[4] +0.1*y[5]
+
+  return(list(ydot))
+}
+@
+and the initial conditions and output times are:
+<<>>=
+yini  <- 1:5
+times <- 1:20
+@
+The default solution, using \code{lsode} assumes that the model is stiff,
+and the integrator generates the Jacobian, which is assummed to be \emph{full}:
+<<>>=
+out   <- lsode(yini, times, f1, parms = 0, jactype = "fullint")
+@
+
+It is possible for the user to provide the Jacobian. Especially for large
+problems this can result in subtantial time savingsL
+
+In a first case, the Jacobian is written as a full matrix:
+<<>>=
+fulljac <- function  (t, y, parms)
+{
+   jac <- matrix(nrow = 5, ncol = 5, byrow = TRUE,
+                data = c(0.1, -0.2,  0  ,  0  ,  0  ,
+                        -0.3,  0.1, -0.2,  0  ,  0  ,
+                         0  , -0.3,  0.1, -0.2,  0  ,
+                         0  ,  0  , -0.3,  0.1, -0.2,
+                         0  ,  0  ,  0  , -0.3,  0.1)    )
+   return(jac)
+}
+@
+and the model solved as:
+<<>>=
+out2  <- lsode(yini, times, f1, parms = 0, jactype = "fullusr",
+              jacfunc = fulljac)
+@
+
+The Jacobian matrix is banded, with
+ one nonzero band above (up) and one below(down) the diagonal.
+First we let \code{lsode} to estimate the banded Jacobian internally
+(\code{jactype="bandint"}):
+
+<<>>=
+out3  <- lsode(yini, times, f1, parms = 0, jactype = "bandint",
+                              bandup = 1, banddown = 1)
+@
+
+It is also possible to provide the nonzero bands of the Jacobian in a function:
+<<>>=
+bandjac <- function  (t, y, parms)
+{
+   jac <- matrix(nrow = 3, ncol = 5, byrow = TRUE,
+                 data = c( 0  , -0.2, -0.2, -0.2, -0.2,
+                           0.1,  0.1,  0.1,  0.1,  0.1,
+                          -0.3, -0.3, -0.3, -0.3,    0)    )
+   return(jac)
+}
+@
+in which case the model is solved as:
+<<>>=
+out4  <- lsode(yini, times, f1, parms = 0, jactype = "bandusr",
+              jacfunc = bandjac, bandup = 1, banddown = 1)
+@
+Finally, if the model is specified as a "non-stiff"  (by setting \code{mf=10}),
+there is no need to specify the Jacobian.
+<<>>=
+out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
+@
+\clearpage
+
+\section{Troubleshooting}
+
+\subsection{Avoiding numerical errors}
+
+The solvers from ODEPACK should be first choice for any problem and
+the the defaults of the control parameters are reasonable for many
+practical problems. However, there are cases where they may give
+dubious results.  Consider the following Lotka-Volterra type of model:
+
+<<>>=
+lvmodel <- function(t, x, parms)  {
+  with(as.list(c(parms, x)), {
+    dP <- c*P  - d*K*P          # producer
+    dK <- e*P*K  - f*K          # consumer
+    res <- c(dP, dK)
+    list(res)
+  })
+}
+@
+
+and with the following (biologically not very realistic)%
+\footnote{they are not realistic because producers grow unlimited with
+  a high rate and consumers with 100 \% efficiency} parameter values:
+
+<<>>=
+parms  <- c(c = 5, d = 0.1, e = 0.1, f = 0.1)
+@
+
+After specification of initial conditions and output times, the model
+is solved - using \code{lsoda}:
+
+<<>>=
+xstart <- c(P = 0.5, K = 1)
+times  <- seq(0, 190, 0.1)
+
+out <- as.data.frame( ode(y = xstart,times = times,
+  func = lvmodel, parms = parms))
+tail(out)
+@
+
+At the end of the simulation, both producers and consumer values are
+Not-A-Numbers!
+
+What has happened? Being an implicit method, \code{lsoda} generates
+very small negative values for producers, from day 40 on; these
+negative values, small at first grow in magnitude until they become
+NaNs.  This is because the model equations are not intended to be used
+with negative numbers, as negative concentrations are not realistic.
+
+A quick-and-dirty solution is to reduce the maximum time step to a
+considerably small value (e.g. \code{hmax=0.02} which, of course,
+reduces computational efficiency. However, a much better solution is
+to think about the reason of the failure, i.e in our case the
+\textbf{absolute} accuracy because the states can reach very small
+absolute values. Therefore, it helps here to reduce \code{atol} to a
+very small number or even to zero:
+
+<<>>=
+out <- as.data.frame(ode(y = xstart,times = times, func = lvmodel,
+                         parms = parms, atol = 0))
+matplot(out[,1], out[,2:3], type="l")
+@
+
+It is, of course, not possible to set both, \code{atol} and
+\code{rtol} simultaneously to zero. As we see at this example, it is
+always a good idea to test simulation results for plausibility. This
+can be done by theoretical considerations or by comparing the outcome
+of different ODE solvers and parametrizations.
+
+\subsection{Checking model specification}
+
+If a model outcome is obviously unrealistic or one of the \ds
+functions complains about numerical problems it is even more likely
+that the ``numerical problem'' is in fact a result of an unrealistic
+model or a programming error. In such cases, playing with solver
+parameters will not help.  Here are some common mistakes we observed
+in our models and the codes of our students:
+
+\begin{itemize}
+\item The function with the model definition must return a list with
+  the derivatives of all state variables in correct order (and
+  optionally some global values). Check if the number and order of
+  your states is identical in the initial states \code{y} passed to
+  the solver, in the assignments within your model equations and in
+  the returned values. Check also whether the return value is the last
+  statement of your model definition.
+\item The order of function parameters in the model definition is
+  \code{t, y, parms, ...}.  This order is strictly fixed, so that the
+  \ds solvers can pass their data, but naming is flexible and can be
+  adapted to your needs, e.g. \code{time, init, params}. Note also
+  that all three parameters must be given, even if \code{t} is not
+  used in your model.
+\item Mixing of variable names: if you use the
+  \code{with()}-construction explained above, you must ensure to avoid
+  naming conflicts between parameters (\code{parms}) and state
+  variables (\code{y}).
+\end{itemize}
+
+The solvers included in package \ds are thorougly tested, however they
+come with no warranty and the user is solely responsible for their
+correct application. If you encounter unexpected behavior, first check
+your model and read the documentation. If this doesn't help, feel free
+to ask a question to an appropriate mailing list,
+e.g. \url{r-help@r-project.org}.
+
+
+\clearpage
+%\section{Function overview}
+
+\begin{table*}[b]
+\caption{Summary of the functions that solve differential equations}\label{tb:rs}
+\centering
+\begin{tabular}{p{.15\textwidth}p{.75\textwidth}}\hline
+\rule[-3mm]{0mm}{8mm}       Function &Description\\
+\hline \hline
+\code{ode}                  & integrates systems of ordinary differential equations, assumes a full, banded or arbitrary sparse Jacobian   \\ \hline
+\code{ode.1D}               & integrates systems of ODEs resulting from multicomponent 1-dimensional reaction-transport problems           \\ \hline
+\code{ode.2D}               & integrates systems of ODEs resulting from 2-dimensional reaction-transport problems                          \\ \hline
+\code{ode.3D}               & integrates systems of ODEs resulting from 3-dimensional reaction-transport problems                          \\ \hline
+\code{ode.band}             & integrates systems of ODEs resulting from unicomponent 1-dimensional reaction-transport problems             \\ \hline
+\code{daspk}                &  solves systems of differential algebraic equations, assumes a full or banded  Jacobian                       \\ \hline
+\code{lsoda}                & integrates ODEs, automatically chooses method for stiff or non-stiff problems, assumes a full or banded Jacobian   \\ \hline
+\code{lsodar}               & same as \code{lsoda}, but includes a root-solving procedure                            \\ \hline
+\code{lsode} or \code{vode} & integrates ODEs, user must specify if stiff or non-stiff assumes a full or banded Jacobian   \\ \hline
+\code{lsodes}               & integrates ODEs, using stiff method and assuming an arbitrary sparse Jacobian           \\ \hline
+\code{rk}                   & integrates ODEs, using Runge-Kutta methods (includes Runge-Kutta 4 and Euler as special cases)    \\ \hline
+\code{rk4}                  & integrates ODEs, using the classical Runge-Kutta 4th order method (special code with less options than \code{rk}) \\ \hline
+\code{euler}                & integrates ODEs, using Euler's method  (special code with less options than \code{rk}) \\ \hline
+\hline
+\end{tabular}
+\end{table*}
+
+%% this adds References to the PDF-Index without adding an obsolete section
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliography{integration}
+
+\end{document}

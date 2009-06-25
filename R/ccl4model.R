@@ -1,10 +1,9 @@
-ccl4model <- function(times, # time sequence for which the model has to be integrated
-                      y,     # intial values of the state variables
-                      parms, # parameter values
-                    ...)
-{ 
-  if (length(y) != 7) stop ("length of state variable vector should be 7")
-  if (length(parms) != 21) stop ("length of parameter vector should be 21")
+ccl4model <- function(times, y, parms, ...) {
+
+  if (length(y) != 7)
+    stop ("length of state variable vector should be 7")
+  if (length(parms) != 21)
+    stop ("length of parameter vector should be 21")
 
   names(y) <- c("AI","AAM","AT","AF","AL","CLT","AM")
 

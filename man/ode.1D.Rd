@@ -3,8 +3,8 @@
 \title{Solver For Multicomponent 1-D Ordinary Differential Equations}
 \description{
   Solves a system of ordinary differential equations
-  resulting from 1-Dimensional multi-component transport-reaction models
-  that include transport only between adjacent layers.
+  resulting from 1-Dimensional partial differential equations
+  that have been converted to ODEs by numerical differencing.
 }
 \usage{ode.1D(y, times, func, parms, nspec = NULL, dimens = NULL, 
        method = "lsode", ...)
@@ -33,8 +33,9 @@
     The return value of \code{func} should be a list, whose first
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
-    that are required at each point in \code{times}.
-   
+    that are required at each point in \code{times}. The derivatives
+    should be specified in the same order as the state variables \code{y}.
+
     If \code{func} is a character string then integrator \code{lsodes}
     will be used. See details.
   }
@@ -274,13 +275,15 @@ filled.contour(x = times, y = x, O2, color = color, nlevels = 50,
   See the selected integrator for the additional options.
 }
 \seealso{
-  \code{\link{ode}},
   \itemize{
-    \item \code{\link{ode.band}} for solving models with a banded Jacobian
-    \item \code{\link{ode.2D}} for integrating 2-D models
-    \item \code{\link{lsoda}}, \code{\link{lsode}}, \code{\link{lsodes}},
-    \code{\link{lsodar}}, \code{\link{vode}}, \code{\link{daspk}}.
+    \item \code{\link{ode}} for a general interface to most of the ODE solvers,
+    \item \code{\link{ode.band}} for integrating models with a banded Jacobian
+    \item  \code{\link{ode.2D}} for integrating 2-D models
+    \item  \code{\link{ode.3D}} for integrating 3-D models
+    \item  \code{\link{lsodes}},\code{\link{lsode}}, \code{\link{lsoda}},
+    \code{\link{lsodar}},\code{\link{vode}} for the integration options.
   }
+  \code{\link{diagnostics}} to print diagnostic messages.
 }
 \keyword{math}
 

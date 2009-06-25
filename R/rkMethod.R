@@ -1,3 +1,10 @@
+### ============================================================================
+### Butcher tables for selected explicit ODE solvers of Runge-Kutta type
+### Note that for fixed step methods A is a vector (the subdiagonal of matrix A)
+###   For variable time step methods, A must be strictly lower triangular.
+###   The underlying rk code is currently restricted to explicit methods.
+### ============================================================================
+
 rkMethod <- function(method = NULL, ...) {
   methods <- list(
     euler = list(ID = "euler",
@@ -45,7 +52,7 @@ rkMethod <- function(method = NULL, ...) {
       FSAL    = TRUE,
       A  = matrix(c(0, 0, 0, 0,
                   1/2, 0, 0, 0,
-                  0, 3/4, 0, 0, 
+                  0, 3/4, 0, 0,
                   2/9, 1/3, 4/9, 0), 4, 4, byrow = TRUE),
       b1 = c(2/9, 1/3, 4/9, 0),
       b2 = c(7/24, 1/4, 1/3, 1/8),
@@ -143,23 +150,23 @@ rkMethod <- function(method = NULL, ...) {
 
   if (!is.null(method)) {
     method <- unlist(match.arg(method, knownMethods))
-    if (method == "ode23") 
+    if (method == "ode23")
       method <- "rk23bs"
-    else if (method == "ode45") 
+    else if (method == "ode45")
       method <- "rk45dp7"
-      
+
     out <- methods[[method]]
   } else {
     out <- vector("list", 0)
   }
 
   ## modify a known or add a completely new method)
-  ldots <- list(...)  
+  ldots <- list(...)
   out[names(ldots)] <- ldots
   class(out) <- c("list", "rkMethod")
 
-  ## return the IDs of the methods if called with an empty argument list 
-  if (is.null(method) & length(ldots) == 0) 
+  ## return the IDs of the methods if called with an empty argument list
+  if (is.null(method) & length(ldots) == 0)
     out <- as.vector(unlist(knownMethods))
 
   out

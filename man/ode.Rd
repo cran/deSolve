@@ -6,8 +6,8 @@
 \description{Solves a system of ordinary differential equations.}
 
 \usage{ode(y, times, func, parms, 
-method = c("lsoda","lsode","lsodes","lsodar","vode","daspk", "euler", "rk4", 
-         "ode23", "ode45"), ...)
+method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
+           "euler", "rk4", "ode23", "ode45"), ...)
 }
 
 \arguments{
@@ -34,7 +34,14 @@ method = c("lsoda","lsode","lsodes","lsodar","vode","daspk", "euler", "rk4",
     The return value of \code{func} should be a list, whose first
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
-    that are required at each point in \code{times}.
+    that are required at each point in \code{times}.The derivatives
+    should be specified in the same order as the state variables \code{y}.
+
+    If \code{func} is a string, then \code{dllname} must give the name
+    of the shared library (without extension) which must be loaded
+    before \code{lsoda()} is called. See package vignette
+    \code{"compiledCode"} for more details.
+    
   }
   \item{parms }{parameters passed to \code{func}.}
   \item{method }{the integrator to use, either a string (\code{"lsoda"},
@@ -80,6 +87,7 @@ method = c("lsoda","lsode","lsodes","lsodar","vode","daspk", "euler", "rk4",
       Jacobian,
     \item \code{\link{ode.1D}} for integrating 1-D models,
     \item \code{\link{ode.2D}} for integrating 2-D models,
+    \item \code{\link{ode.3D}} for integrating 3-D models,
     \item \code{\link{aquaphy}}, \code{\link{ccl4model}}, where
       \code{ode} is used,
     \item \code{\link{lsoda}}, \code{\link{lsode}},
@@ -87,13 +95,14 @@ method = c("lsoda","lsode","lsodes","lsodar","vode","daspk", "euler", "rk4",
       \code{\link{daspk}},
     \item  \code{\link{rk}}, \code{\link{rkMethod}}
   }
+  \code{\link{diagnostics}} to print diagnostic messages.
 }
 \keyword{math}
 \examples{
 
-## =========================================
-## Example1: Pred-Prey Lotka-Volterra model
-## =========================================
+## =============================================
+## Example1: Predator-Prey Lotka-Volterra model
+## =============================================
 
 LVmod <- function(Time, State, Pars)
 {
@@ -167,6 +176,11 @@ xstart <- c(S = 1, P = 1, K = 1)
 ## Solve model
 out <- as.data.frame(ode(y = xstart,times = times, 
                      func = lvmodel, parms, input = sigimp))
-plot(out$P,out$K,type = "l",lwd = 2,xlab = "producer",ylab = "consumer")
+
+## Display results
+par(mfrow=c(1,2))
+matplot(out[,1], out[,2:4], type="l", xlab="time", ylab="state")
+legend("topright", col = 1:3, lty = 1:3, legend = c("S", "P", "K"))
+plot(out$P, out$K, type = "l", lwd = 2, xlab = "producer", ylab = "consumer")
 }
 

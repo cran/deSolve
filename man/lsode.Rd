@@ -27,10 +27,12 @@
 }
 \usage{
 lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,  
-  jacfunc = NULL, jactype = "fullint", mf = NULL, verbose = FALSE, tcrit = NULL,  
-  hmin = 0, hmax = NULL, hini = 0, ynames = TRUE, maxord = NULL, bandup = NULL, 
-  banddown = NULL, maxsteps = 5000, dllname = NULL, initfunc = dllname, 
-  initpar = parms, rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, ...)
+  jacfunc = NULL, jactype = "fullint", mf = NULL,
+  verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL, hini = 0,
+  ynames = TRUE, maxord = NULL, bandup = NULL, banddown = NULL,
+  maxsteps = 5000, dllname = NULL, initfunc = dllname,
+  initpar = parms, rpar = NULL, ipar = NULL, nout = 0,
+  outnames = NULL, ...)
 }
 
 \arguments{
@@ -40,7 +42,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{times }{time sequence for which output is wanted; the first
     value of \code{times} must be the initial time; if only one step is
-    to be taken; set \code{times} = NULL.
+    to be taken; set \code{times} = \code{NULL}.
   }
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ODE system (the \emph{model definition}) at time
@@ -58,10 +60,14 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     The return value of \code{func} should be a list, whose first
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
-    that are required at each point in \code{times}.  If \code{func} is
+    that are required at each point in \code{times}.  The derivatives
+    should be specified in the same order as the state variables \code{y}.
+
+    If \code{func} is
     a string, then \code{dllname} must give the name of the shared
     library (without extension) which must be loaded before
-    \code{lsode()} is called. See package vignette for more details.
+    \code{lsode()} is called. See package vignette \code{"compiledCode"}
+    for more details.
   }
   \item{parms }{vector or list of parameters used in \code{func} or
     \code{jacfunc}.
@@ -92,7 +98,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{jactype }{the structure of the jacobian, one of
     \code{"fullint"}, \code{"fullusr"}, \code{"bandusr"} or
     \code{"bandint"} - either full or banded and estimated internally or
-    by user; overruled if \code{mf}is not NULL.
+    by user; overruled if \code{mf}is not \code{NULL}.
   }
   \item{mf }{the "method flag" passed to function lsode - overrules
     \code{jactype} - provides more options than \code{jactype} - see
@@ -124,7 +130,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     function \code{func} ; this may speed up the simulation especially
     for multi-D models.
   }
-  \item{maxord }{the maximum order to be allowed. NULL uses the default,
+  \item{maxord }{the maximum order to be allowed. \code{NULL} uses the default,
     i.e. order 12 if implicit Adams method (meth = 1), order 5 if BDF
     method (meth = 2). Reduce maxord to save storage space.
   }
@@ -134,17 +140,17 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{banddown }{number of non-zero bands below the diagonal, in case
     the jacobian is banded.
   }
-  \item{maxsteps }{maximal number of steps during one call to the
+  \item{maxsteps }{maximal number of steps per output interval taken by the
     solver.
   }
   \item{dllname }{a string giving the name of the shared library
     (without extension) that contains all the compiled function or
     subroutine definitions refered to in \code{func} and
-    \code{jacfunc}. See package vignette.
+    \code{jacfunc}. See package vignette \code{"compiledCode"}.
   }
-  \item{initfunc }{if not NULL, the name of the initialisation function
+  \item{initfunc }{if not \code{NULL}, the name of the initialisation function
     (which initialises values of parameters), as provided in
-    \file{dllname}. See package vignette.
+    \file{dllname}. See package vignette \code{"compiledCode"}.
   }
   \item{initpar }{only when \file{dllname} is specified and an
     initialisation function \code{initfunc} is in the dll: the
@@ -164,7 +170,8 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
     indeed the number of output variables calculed in the dll - you have
-    to perform this check in the code - See package vignette.
+    to perform this check in the code - See package vignette
+    \code{"compiledCode"}.
   }
   \item{outnames }{only used if \file{dllname} is specified and
     \code{nout} > 0: the names of output variables calculated in the
@@ -187,7 +194,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   The output will have the attributes \code{istate}, and \code{rstate},
   two vectors with several useful elements.  See details.  The first
   element of istate returns the conditions under which the last call to
-  lsoda returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
+  lsode returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
   TRUE, the settings of istate and rstate will be written to the screen
 
 }
@@ -254,7 +261,7 @@ out3  <- lsode(yini, times, f1, parms = 0, jactype = "bandint",
 out4  <- lsode(yini, times, f1, parms = 0, jactype = "bandusr",
               jacfunc = bandjac, bandup = 1, banddown = 1)
 
-## nono-stiff method
+## non-stiff method
 out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
 
 ## =====================================
@@ -392,7 +399,7 @@ par(ask = pa)
   for details.
    
   \bold{Models} may be defined in compiled C or Fortran code, as well as
-  in an \R-function. See package vignette for details.
+  in an \R-function. See package vignette \code{"compiledCode"} for details.
   
   The output will have the attributes \bold{istate}, and \bold{rstate},
   two vectors with several useful elements.
@@ -431,9 +438,21 @@ par(ask = pa)
   For more information, see the comments in the original code lsode.f
 }
 \seealso{
-  \code{\link{ode}}, \code{\link{lsoda}}, \code{\link{lsodes}},
-  \code{\link{lsodar}}, \code{\link{vode}}, \code{\link{daspk}},
-  \code{\link{rk}}.
+  \itemize{
+    \item \code{\link{rk}}, \item \code{\link{rk4}} and \code{\link{euler}} for
+      Runge-Kutta integrators.
+    \item \code{\link{lsoda}},
+      \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},
+      \code{\link{daspk}} for other solvers of the Livermore family,
+    \item \code{\link{ode}} for a general interface to most of the ODE solvers,
+    \item \code{\link{ode.band}} for solving models with a banded
+      Jacobian,
+    \item \code{\link{ode.1D}} for integrating 1-D models,
+    \item \code{\link{ode.2D}} for integrating 2-D models,
+    \item \code{\link{ode.3D}} for integrating 3-D models,
+  }
+
+  \code{\link{diagnostics}} to print diagnostic messages.
 }
 \keyword{math}
 

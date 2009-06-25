@@ -1,3 +1,4 @@
 CCL4model    Use gnls to estimate parameters for CCl4 PBPK model
 nonlinreg    example for nonlinear regression using deSolve
 rk_solvers   comparison of different rk methods
+odedim       Lotka-Volterra dynamics in 1-D and in 2-D, using ode.1D and ode.2D
