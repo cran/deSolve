@@ -1,20 +1,27 @@
 \name{diagnostics}
 \alias{diagnostics}
-\title{Print Diagnostic Characteristics of ODE Solvers}
+\title{Print Diagnostic Characteristics of ODE and DAE Solvers}
 \description{
   Prints several diagnostics of the simulation to the screen, e.g.
   number of steps taken, the last step size,...
 }
 \usage{
-diagnostics(obj)
+diagnostics(obj, Full = FALSE)
 }
 \arguments{
   \item{obj }{is the output matrix as produced by one of the
     integration routines.
   }
+  \item{Full }{when \code{TRUE} then all messages will be printed, including
+    the ones that are not relevant for the solver. If \code{FALSE}, then only
+    the relevant messages will be printed
+  }
 }
 \value{
-  none
+  The integer and real vector with diagnostic values; for function \code{lsodar}
+  also the root information.
+  
+  See tables 2 and 3 in vignette("deSolve") for what these vectors contain.
 }
 \details{
   When the integration output is saved as a data.frame, then the required

@@ -1,10 +1,10 @@
 
 
-c the Aquaphy algal model
+c the Aquaphy algal model with forcing function light intensity
 
-c -------- Aquaphy.f -> Aquaphy.dll ------
+c -------- Aquaphy2.f -> Aquaphy2.dll ------
 c compile in R with: system("g77 -shared -o Aquaphy Aquaphy")
-c or with system("R CMD SHLIB Aquaphy")
+c or with system("R CMD SHLIB AquaphyForcing")
 
 
 c=======================================================================
@@ -17,22 +17,35 @@ c=======================================================================
 c Initialise parameter common block
 c=======================================================================
 
-      subroutine iniaqua(odeparms)
+      subroutine initaqparms(odeparms)
 
       external odeparms
-      double precision pars(19)
+      double precision pars(16)
       common /myparms/pars
 
-       call odeparms(19, pars)
+       call odeparms(16, pars)
 
       return
       end
+
+
+      subroutine initaqforc(odeforc)
+
+      external odeparms
+      double precision forcs(2)
+      common /myforcs/forcs
+
+       call odeforc(2, forcs)
+
+      return
+      end
+
 
 c=======================================================================
 c Algal dynamics
 c=======================================================================
 
-      subroutine  aquaphy (neq, t, y, ydot,out,IP)
+      subroutine  aquaphy2 (neq, t, y, ydot,out,IP)
       implicit none
       
       integer           neq, ip(*)
@@ -42,16 +55,18 @@ c parameters
       double precision  maxPhotoSynt,rMortPHY,alpha,pExudation,          &
      &     maxProteinSynt,ksDIN,minpLMW,maxpLMW,minQuotum,               &
      &     maxStorage,respirationRate,pResp,catabolismRate,              &
-     &     dilutionRate,rNCProtein,inputDIN,rChlN,parMean,               &
-     &     dayLength
+     &     rNCProtein,inputDIN,rChlN
+
       common /myparms/  maxPhotoSynt,rMortPHY,alpha,pExudation,          &
      &     maxProteinSynt,ksDIN,minpLMW,maxpLMW,minQuotum,               &
      &     maxStorage,respirationRate,pResp,catabolismRate,              &
-     &     dilutionRate,rNCProtein,inputDIN,rChlN,parMean,               &
-     &     dayLength
+     &     rNCProtein,inputDIN,rChlN
+	double precision PAR, dilutionRate
+      common /myforcs/PAR, dilutionRate
+		  
 c variables
       double precision ::                                                &                      
-     &  DIN,PROTEIN,RESERVE,LMW,dLMW,dRESERVE,dPROTEIN,dDIN,PAR,         &
+     &  DIN,PROTEIN,RESERVE,LMW,dLMW,dRESERVE,dPROTEIN,dDIN,             &
      &  PhytoC,PhytoN,NCratio,Chlorophyll,TotalN,ChlCratio,PartLMW,      &      
      &  hourofday, Limfac,PhotoSynthesis,Exudation,MonodQuotum,          &
      &  ProteinSynthesis,Storage,Respiration,Catabolism
@@ -64,18 +79,9 @@ c ------------------------------------------------------------------------
       RESERVE  = y(3)
       LMW      = y(4)
 
-c PAR, on-off function depending on the hour within a day
-      hourofday       = mod(t,24.d0)
-      if (hourofday  < dayLength) THEN
-       PAR = parMean
-      else
-       PAR = 0.d0
-      endif
-
-c the output variables - all components contain carbon
-c only proteins contain nitrogen
-      PhytoC           = PROTEIN + RESERVE + LMW        
-      PhytoN           = PROTEIN * rNCProtein           
+c the output variables
+      PhytoC           = PROTEIN + RESERVE + LMW       ! all components contain carbon
+      PhytoN           = PROTEIN * rNCProtein          ! only proteins contain nitrogen
       NCratio          = PhytoN / PhytoC
       Chlorophyll      = PhytoN * rChlN
       TotalN           = PhytoN + DIN
@@ -123,7 +129,7 @@ c the ordinary variables
       out(6) = Chlorophyll
 
       return
-      end subroutine Aquaphy
+      end subroutine Aquaphy2
 
 
 

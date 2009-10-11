@@ -91,6 +91,21 @@ rkMethod <- function(method = NULL, ...) {
          stage = 6,
          Qerr  = 4
     ),
+    ## Cash-Karp method
+    rk45ck = list(ID = "rk45ck",
+            varstep = TRUE,
+            A = matrix(c(0,    0,       0,         0,            0,
+                         1/5,  0,       0,         0,            0,
+                         3/40, 9/40,    0,         0,            0,
+                         3/10, -9/10,   6/5,       0,            0,
+                       -11/54, 5/2,    -70/27,     35/27,        0,
+                   1631/55296, 175/512, 575/13824, 44275/110592, 253/4096),
+                         6, 5, byrow = TRUE),
+            b1 = c(37/378, 0, 250/621, 125/594, 0, 512/1771),
+            b2 = c(2825/27648, 0, 18575/48384, 13525/55296, 277/14336, 1/4),
+            c = c(0, 1/5, 3/10, 3/5,  1, 7/8),
+            stage = 6,
+            Qerr = 4),
     ## England Method
     rk45e = list(ID = "rk45e",
          varstep = TRUE,
@@ -123,7 +138,7 @@ rkMethod <- function(method = NULL, ...) {
          stage = 6,
          Qerr  = 4
     ),
-    ## Prince-Dormand 5(4)7m -- recomended by the Octave developers
+    ## Prince-Dormand 5(4)7m -- recommended by the Octave developers
     rk45dp7 = list(ID = "rk45dp7",
          varstep = TRUE,
          FSAL    = TRUE,
@@ -163,11 +178,32 @@ rkMethod <- function(method = NULL, ...) {
   ## modify a known or add a completely new method)
   ldots <- list(...)
   out[names(ldots)] <- ldots
-  class(out) <- c("list", "rkMethod")
 
   ## return the IDs of the methods if called with an empty argument list
-  if (is.null(method) & length(ldots) == 0)
+  if (is.null(method) & length(ldots) == 0) {
     out <- as.vector(unlist(knownMethods))
+  } else {
+    ## check size consistency of parameter sets
+    sl    <- lapply(out, length)
+    stage <- out$stage
+    if (is.matrix(out$A)) {
+      if (nrow(out$A) != stage | ncol(out$A)  < stage -1 | ncol(out$A) > stage)
+        stop("Size of matrix A does not match stage")
+    } else {
+      if (length(out$A) != stage) stop("Size of A does not match stage")
+    }
+    if (stage != sl$b1 | stage != sl$c)
+      stop("Wrong rkMethod, length of parameters do not match")
+    if (out$varstep & is.null(out$b2))
+      stop("Variable stepsize method needs non-empty b2")
+    if (!is.null(out$b2))
+      if (sl$b2 != stage)
+        stop("Wrong rkMethod, length of b2 must be empty or equal to stage")
+    if (!is.null(out$d))
+      if (sl$d != stage)
+        stop("Wrong rkMethod, length of d must be empty or equal to stage")
+    class(out) <- c("list", "rkMethod")
+  }
 
   out
 }

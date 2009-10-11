@@ -1,7 +1,7 @@
 \name{lsoda}
 \alias{lsoda}
 \title{
-  General Solver for Ordinary Differential Equations (ODE),
+  Solver for Ordinary Differential Equations (ODE),
   Switching Automatically Between Stiff and Non-stiff Methods
 }
 \description{
@@ -9,7 +9,7 @@
   Solving initial value problems for stiff or non-stiff systems of
   first-order ordinary differential equations (ODEs).
   
-  The \R function \code{lsoda} provides an interface to the Fortran ODE
+  The \R function \code{lsoda} provides an interface to the FORTRAN ODE
   solver of the same name, written by Linda R. Petzold and Alan
   C. Hindmarsh.
   
@@ -20,7 +20,7 @@
   parameters is passed to the ODEs, so the solver may be used as part of
   a modeling package for ODEs, or for parameter estimation using any
   appropriate modeling tool for non-linear models in \R such as
-  \code{\link{optim}}, \code{\link[nls]{nls}}, \code{\link{nlm}} or
+  \code{\link{optim}}, \code{\link{nls}}, \code{\link{nlm}} or
   \code{\link[nlme]{nlme}}
     
   \code{lsoda} differs from the other integrators (except \code{lsodar})
@@ -36,7 +36,8 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   maxordn = 12, maxords = 5, bandup = NULL, banddown = NULL,
   maxsteps = 5000, dllname = NULL, initfunc = dllname,
   initpar = parms, rpar = NULL, ipar = NULL, nout = 0,
-  outnames = NULL,  ...)
+  outnames = NULL, forcings=NULL, initforc = NULL,
+  fcontrol=NULL,  ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -52,10 +53,10 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     dynamically loaded shared library.
 
     If \code{func} is an \R-function, it must be defined as:
-    \code{yprime = func(t, y, parms, ...)}.  \code{t} is the current
+     \code{func <- function(t, y, parms,...)}.  \code{t} is the current
     time point in the integration, \code{y} is the current estimate of
     the variables in the ODE system.  If the initial values \code{y} has
-    a names attribute, the names will be available inside \code{func}.
+    a \code{names} attribute, the names will be available inside \code{func}.
     \code{parms} is a vector or list of parameters; ... (optional) are
     any other arguments passed to the function.
 
@@ -81,33 +82,34 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     long as \code{y}. See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function, that computes the
-    jacobian of the system of differential equations dydot(i)/dy(j), or
+    Jacobian of the system of differential equations dydot(i)/dy(j), or
     a string giving the name of a function or subroutine in
-    \file{dllname} that computes the jacobian (see Details below for
-    more about this option).  In some circumstances, supplying
+    \file{dllname} that computes the Jacobian (see vignette
+    \code{"compiledCode"} for more about this option).
+    
+    In some circumstances, supplying
     \code{jacfunc} can speed up the computations, if the system is
     stiff.  The \R calling sequence for \code{jacfunc} is identical to
     that of \code{func}.
 
-    If the jacobian is a full matrix, \code{jacfunc} should return a
+    If the Jacobian is a full matrix, \code{jacfunc} should return a
     matrix dydot/dy, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
-    matrix elements by columns (the way \R and Fortran store matrices).
+    matrix elements by columns (the way \R and FORTRAN store matrices).
     
-    If the jacobian is banded, \code{jacfunc} should return a matrix
-    containing only the nonzero bands of the jacobian, rotated
+    If the Jacobian is banded, \code{jacfunc} should return a matrix
+    containing only the nonzero bands of the Jacobian, rotated
     row-wise. See first example of \code{lsode}.
   }
-  \item{jactype }{the structure of the jacobian, one of \code{"fullint"},
+  \item{jactype }{the structure of the Jacobian, one of \code{"fullint"},
     \code{"fullusr"}, \code{"bandusr"} or \code{"bandint"} - either
     full or banded and estimated internally or by user.
   }
-  \item{verbose }{a logical value that, when \code{TRUE}, triggers more
-    verbose output from the ODE solver.  Will output the settings of
-    vectors \bold{istate} and \bold{rstate} -- see details.
+  \item{verbose }{a logical value that, when \code{TRUE}, will
+    print the \code{diagnostiscs} of the integration - see details.
   }
   \item{tcrit }{if not \code{NULL}, then \code{lsoda} cannot integrate
-    past \code{tcrit}. The Fortran routine \code{lsoda} overshoots its
+    past \code{tcrit}. The FORTRAN routine \code{lsoda} overshoots its
     targets (times points in the vector \code{times}), and interpolates
     values for the desired time points.  If there is a time beyond which
     integration should not proceed (perhaps because of a singularity),
@@ -125,8 +127,8 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{hini }{initial step size to be attempted; if 0, the initial step
     size is determined by the solver.
   }
-  \item{ynames }{if \code{FALSE}: names of state variables are not passed
-    to function \code{func} ; this may speed up the simulation especially
+  \item{ynames }{logical, if \code{FALSE}: names of state variables are not
+    passed to function \code{func}; this may speed up the simulation especially
     for large models.
   }
   \item{maxordn }{the maximum order to be allowed in case the method is
@@ -156,7 +158,7 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{initpar }{only when \file{dllname} is specified and an
     initialisation function \code{initfunc} is in the dll: the
     parameters passed to the initialiser, to initialise the common
-    blocks (fortran) or global variables (C, C++).
+    blocks (FORTRAN) or global variables (C, C++).
   }
   \item{rpar }{only when \file{dllname} is specified: a vector with
     double precision values passed to the dll-functions whose names are
@@ -177,29 +179,42 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{outnames }{only used if \file{dllname} is specified and
     \code{nout} > 0: the names of output variables calculated in the
     compiled function \code{func}, present in the shared library.
+    These names will be used to label the output matrix.
+  }
+  \item{forcings }{only used if \file{dllname} is specified: a list with
+    the forcing function data sets, each present as a two-columned matrix,
+    with (time,value); interpolation outside the interval
+    [min(\code{times}), max(\code{times})] is done by taking the value at
+    the closest data extreme.
+
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See \link{forcings} or vignette \code{compiledCode}.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.
   }
 }
 \value{
-  A matrix with up to as many rows as elements in \code{times} and as
-  many columns as elements in \code{y} plus the number of "global"
+  A matrix of class \code{deSolve} with up to as many rows as elements
+  in \code{times} and as many columns as elements in \code{y} plus the number of "global"
   values returned in the next elements of the return from \code{func},
   plus and additional column for the time value.  There will be a row
-  for each element in \code{times} unless the Fortran routine `lsoda'
+  for each element in \code{times} unless the FORTRAN routine `lsoda'
   returns with an unrecoverable error. If \code{y} has a names
   attribute, it will be used to label the columns of the output value.
     
-  The output will have the attributes \code{istate}, and \code{rstate},
-  two vectors with several useful elements.  See details.  The first
-  element of istate returns the conditions under which the last call to
-  lsoda returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
-  TRUE, the settings of istate and rstate will be written to the screen.
 }
 \author{R. Woodrow Setzer <setzer.woodrow@epa.gov>}
 \examples{
-## ===================================================
+## =======================================================================
 ## Example 1:
 ##   A simple resource limited Lotka-Volterra-Model
 ##
@@ -208,15 +223,15 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 ##    accessible via "with" function
 ## 2. function sigimp accessible through lexical scoping
 ##    (see also ode and rk examples)
-## ===================================================
+## =======================================================================
 
-lvmodel <- function(t, x, parms) {
+SPCmod <- function(t, x, parms) {
   with(as.list(c(parms, x)), {
     import <- sigimp(t)
-    dS <- import - b*S*P + g*K     #substrate
-    dP <- c*S*P  - d*K*P           #producer
-    dK <- e*P*K  - f*K             #consumer
-    res <- c(dS, dP, dK)
+    dS <- import - b*S*P + g*C     #substrate
+    dP <- c*S*P  - d*C*P           #producer
+    dC <- e*P*C  - f*C             #consumer
+    res <- c(dS, dP, dC)
     list(res)
   })
 }
@@ -237,23 +252,23 @@ sigimp <- approxfun(signal$times, signal$import, rule = 2)
 
 
 ## Start values for steady state
-y <- xstart <- c(S = 1, P = 1, K = 1)
+y <- xstart <- c(S = 1, P = 1, C = 1)
 
 ## Solving
-out <- as.data.frame(lsoda(xstart, times, lvmodel, parms))
+out <- as.data.frame(lsoda(xstart, times, SPCmod, parms))
 
 ## Plotting
 mf <- par(mfrow = c(2,2))
 plot(out$time, out$S,  type = "l", ylab = "substrate")
 plot(out$time, out$P, type = "l", ylab = "producer")
-plot(out$time, out$K, type = "l", ylab = "consumer")
-plot(out$P, out$K, type = "l", xlab = "producer", ylab = "consumer")
+plot(out$time, out$C, type = "l", ylab = "consumer")
+plot(out$P, out$C, type = "l", xlab = "producer", ylab = "consumer")
 par(mfrow = mf)
 
-## ===================================================
+## =======================================================================
 ## Example 2:
 ##  from lsoda source code
-## ===================================================
+## =======================================================================
 
 ## names makes this easier to read, but may slow down execution.
 parms   <- c(k1 = 0.04, k2 = 1e4, k3 = 3e7)
@@ -305,7 +320,7 @@ out
 ## at t =  4.0000e+09   y =  4.659031e-07  1.863613e-12  9.999995e-01
 ## at t =  4.0000e+10   y =  1.404280e-08  5.617126e-14  1.000000e+00
 
-## Using the analytic jacobian speeds up execution a little :
+## Using the analytic Jacobian speeds up execution a little :
 
 system.time( 
   outJ <- lsoda(c(1, 0, 0), times, lsexamp, parms, rtol = 1e-4,
@@ -330,7 +345,7 @@ diagnostics(outJ) # shows what lsoda did internally
   Netlib: \url{http://www.netlib.org}
 }
 \details{
-  All the hard work is done by the Fortran subroutine \code{lsoda},
+  All the hard work is done by the FORTRAN subroutine \code{lsoda},
   whose documentation should be consulted for details (it is included as
   comments in the source file \file{src/opkdmain.f}). The implementation
   is based on the 12 November 2003 version of lsoda, from Netlib.
@@ -341,14 +356,14 @@ diagnostics(outJ) # shows what lsoda did internally
   the appropriate method.  It always starts with the nonstiff method.
     
   
-  The form of the \bold{jacobian} can be specified by \code{jactype} which can
+  The form of the \bold{Jacobian} can be specified by \code{jactype} which can
   take the following values:
   \describe{
-    \item{"fullint"}{a full jacobian, calculated internally by lsoda, the default,}
-    \item{"fullusr"}{a full jacobian, specified by user function \code{jacfunc},}
-    \item{"bandusr"}{a banded jacobian, specified by user function \code{jacfunc}
+    \item{"fullint"}{a full Jacobian, calculated internally by lsoda, the default,}
+    \item{"fullusr"}{a full Jacobian, specified by user function \code{jacfunc},}
+    \item{"bandusr"}{a banded Jacobian, specified by user function \code{jacfunc}
       the size of the bands specified by \code{bandup} and \code{banddown},}
-    \item{"bandint"}{banded jacobian, calculated by lsoda; the size of the bands
+    \item{"bandint"}{banded Jacobian, calculated by lsoda; the size of the bands
       specified by \code{bandup} and \code{banddown}.}
   }
   If \code{jactype} = "fullusr" or "bandusr" then the user must supply a
@@ -372,53 +387,29 @@ diagnostics(outJ) # shows what lsoda did internally
   where multiplication of two vectors is element-by-element.
 
   If the request for precision exceeds the capabilities of the machine,
-  the Fortran subroutine lsoda will return an error code; under some
+  the FORTRAN subroutine lsoda will return an error code; under some
   circumstances, the \R function \code{lsoda} will attempt a reasonable
   reduction of precision in order to get an answer.  It will write a
   warning if it does so.
 
-  \bold{Models} may be defined in compiled C or Fortran code, as well as
-  in R.  See package vignette \code{"compiledCode"} for details.
-  
-  Examples in both C and Fortran are in the \file{dynload} subdirectory
+  The diagnostics of the integration can be printed to screen
+  by calling \code{\link{diagnostics}}. If \code{verbose} = \code{TRUE},
+  the diagnostics will written to the screen at the end of the integration.
+
+  See vignette("deSolve") for an explanation of each element in the vectors
+  containing the diagnostic properties and how to directly access them.
+
+  \bold{Models} may be defined in compiled C or FORTRAN code, as well as
+  in an R-function. See package vignette \code{"compiledCode"} for details.
+
+  More information about models defined in compiled code is in the package
+  vignette ("compiledCode"); information about linking forcing functions
+  to compiled code is in \link{forcings}.
+
+  Examples in both C and FORTRAN are in the \file{dynload} subdirectory
   of the \code{deSolve} package directory.
   
-  The output will have the attributes \bold{istate}, and \bold{rstate},
-  two vectors with several useful elements.
 
-  If \code{verbose = TRUE}, the settings of istate and rstate will be
-  written to the screen.
-
-  The following elements of \bold{istate} are meaningful:    
-  \itemize{
-    \item el 1 : returns the conditions under which the last call to lsoda returned.
-    2  if LSODA was successful, -1 if excess work done, -2 means excess accuracy
-    requested. (Tolerances too small),
-    -3 means illegal input detected. (See printed message.), -4 means repeated
-    error test failures. (Check all input),
-    -5 means repeated convergence failures. (Perhaps bad Jacobian supplied or
-    wrong choice of MF or tolerances.),
-    -6 means error weight became zero during problem. (Solution component i
-    vanished, and atol or atol(i) = 0.)
-    \item el 12 : The number of steps taken for the problem so far.
-    \item el 13 : The number of function evaluations for the problem so far.,
-    \item el 14 : The number of Jacobian evaluations and LU decompositions so far.,
-    \item el 15 : The method order last used (successfully).,
-    \item el 16 : The order to be attempted on the next step.,
-    \item el 17 : if el 1 = -4,-5: the largest component in the error vector,
-    \item el 20 : The method indicator for the last succesful step, 1 = adams
-      (nonstiff), 2 = bdf (stiff),
-    \item el 21 : The current method indicator to be attempted on th next step,
-      1 = adams (nonstiff), 2 = bdf (stiff),
-   }
-   \bold{rstate} contains the following:
-   \itemize{
-      \item 1: The step size in t last used (successfully).
-      \item 2: The step size to be attempted on the next step.
-      \item 3: A tolerance scale factor, greater than 1.0, computed when a
-        request for too much accuracy was detected.
-      \item 4: the value of t at the time of the last method switch, if any.
-}
     }
 \seealso{
   \itemize{

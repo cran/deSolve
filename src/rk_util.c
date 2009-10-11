@@ -21,15 +21,6 @@
 #include "deSolve.h"
 
 /*============================================================================*/
-/*   Interface to functions written in compiled languages                     */
-/*============================================================================*/
-
-/* give name to data types */
-typedef void deriv_func(int *, double *, double *,double *, double *, int *);
-
-typedef void init_func (void (*)(int *, double *));
-
-/*============================================================================*/
 /*   DLL specific functions                                                   */
 /*============================================================================*/
 
@@ -63,25 +54,13 @@ SEXP getInputs(SEXP symbol, SEXP Rho) {
   return(getvar(symbol, Rho));
 }
 
-/* -- getvar from list ------------------------------------------------------ */
-SEXP getListElement(SEXP list, const char *str) {
-  SEXP elmt = R_NilValue, names = getAttrib(list, R_NamesSymbol);
-  int i;
-
-  for (i = 0; i < length(list); i++)
-   if(strcmp(CHAR(STRING_ELT(names, i)), str) == 0) {
-     elmt = VECTOR_ELT(list, i);
-     break;
-   }
-  return elmt;
-}
 
 /*============================================================================*/
 /*   Arithmetic utilities                                                     */
 /*============================================================================*/
 
 /*----------------------------------------------------------------------------*/
-/* Matrix Multiplikation                                                      */
+/* Matrix Multiplication                                                      */
 /* a reduced version without NA checking, this is ensured otherwise           */
 /*----------------------------------------------------------------------------*/
 
@@ -138,7 +117,8 @@ double maxerr(double *y1, double *y2, double* Atol, double* Rtol, int n) {
 /*   CALL TO THE MODEL FUNCTION                                             */
 /*==========================================================================*/
 void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
-	    double *ydot, double *yout, int j, int neq, int *ipar, int isDll) {
+	    double *ydot, double *yout, int j, int neq, int *ipar, int isDll,
+            int isForcing) {
   SEXP Val, R_fcall;
   SEXP R_t;
   SEXP R_y;
@@ -154,6 +134,7 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
     /*   Function is a DLL function                                           */
     /*------------------------------------------------------------------------*/
     deriv_func *cderivs;
+    if (isForcing) updatedeforc(&t); 
     cderivs = (deriv_func *) R_ExternalPtrAddr(Func);
     cderivs(&neq, &t, y, ytmp, yout, ipar);
     if (j >= 0)
@@ -169,12 +150,25 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
 
     PROTECT(R_fcall = lang4(Func, R_t, R_y, Parms)); incr_N_Protect();
     PROTECT(Val = eval(R_fcall, Rho)); incr_N_Protect();
-    /* extract the states of list "val" */
+
+    /* extract the states from first list element of "Val" */
     if (j >= 0)
       for (i = 0; i < neq; i++)  ydot[i + neq * j] = REAL(VECTOR_ELT(Val, 0))[i];
-    /* extract outputs from second list element */
-    if (j < 0)
-      for (i = 0; i < nout; i++)  yout[i] = REAL(VECTOR_ELT(Val, 1))[i];
+
+    /* extract outputs from second and following list elements */
+    /* this is essentially an unlist for non-nested numeric lists */
+    if (j < 0) {
+      int elt = 1, ii = 0, l;
+      for (i = 0; i < nout; i++)  {
+	l = LENGTH(VECTOR_ELT(Val, elt));
+        //Rprintf("len=%d \n", l);
+        if (ii == l) {
+	    ii = 0; elt++;
+	}
+        yout[i] = REAL(VECTOR_ELT(Val, elt))[ii];
+        ii++;
+      }
+    }
     my_unprotect(4);
   }
 }
@@ -219,8 +213,6 @@ void densout(double *r, double t0, double t, double dt, double* res, int neq) {
 /*    n:    number of knots per signal                                        */
 /*    x[0 .. n-1]:          vector of x values                                */
 /*    y[0 .. n-1, 0 .. ksig] array  of y values                               */
-/*                                                                            */
-/*    ToDo: check if ringbuffer is faster; rewrite eventually                 */
 /*----------------------------------------------------------------------------*/
 void neville(double *xx, double *y, double tnew, double *ynew, int n, int ksig) {
   int i, j, k;
@@ -253,14 +245,6 @@ void shiftBuffer (double *x, int n, int k) {
       x[i + j * n] = x[i + 1 + j * n];
 }
 
-void initParms(SEXP Initfunc, SEXP Parms) {
-  if (inherits(Initfunc, "NativeSymbol"))  {
-    PROTECT(de_gparms = Parms); incr_N_Protect();
-    init_func *initializer;
-    initializer = (init_func *) R_ExternalPtrAddr(Initfunc);
-    initializer(Initdeparms);
-  }
-}
 
 void setIstate(SEXP R_yout, SEXP R_istate, int *istate,
   int it_tot, int stage, int fsal, int qerr) {

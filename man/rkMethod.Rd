@@ -40,6 +40,7 @@ rkMethod(method = NULL, ...)
     "rk23"             \tab | \tab Runge-Kutta, order 2(3), Octave: \bold{ode23}\cr
     "rk23bs", "ode23"  \tab | \tab Bogacki-Shampine, order 2(3), Matlab: \bold{ode23}\cr
     "rk34f"            \tab | \tab Runge-Kutta-Fehlberg, order 3(4)\cr
+    "rk45ck"           \tab | \tab Runge-Kutta Cash-Karp, order 4(5)\cr
     "rk45f"            \tab | \tab Runge-Kutta-Fehlberg, order 4(5), Octave: \bold{ode45, pair=1} \cr
     "rk45e"            \tab | \tab Runge-Kutta-England, order 4(5)\cr
     "rk45dp6"          \tab | \tab Dormand-Prince, order 4(5), local order 6\cr
@@ -52,37 +53,42 @@ rkMethod(method = NULL, ...)
   stepsize adaption strategy and interpolation methods. The table
   reflects the state at time of writing and it is of course possible
   that implementations change.
-
 }
 
 \note{  
   \itemize{
-      
-    \item Among the \code{rk} solvers, "rk45dp7" (alias "ode45") is used
-      by default, because of its relatively high order (4), re-use of
-      the last intermediate steps (FSAL = first same as last) and
-      built-in polynomial interpolation (dense output). Solver "rk23bs",
-      that supports also FSAL, may be useful for slightly stiff systems
-      if demands on precision are low. Classical "rk4" is traditionally
-      used in cases where an adequate stepsize is known a-priori or if
-      external forcing data are provided for fixed time steps only and
-      frequent interpolation of external data needs to be avoided.
+    \item Adaptive stepsize Runge-Kuttas are preferred if the solution
+      contains parts where it changes fast, and parts where nothing much
+      happens. They will take small steps over bumpy ground and long steps
+      over uninteresting terrain.
+
+    \item As a suggestion, one may use \code{"rk23"} (alias
+      \code{"ode23"}) for simple problems and \code{"rk45dp7"} (alias
+      \code{"ode45"}) for rough problems. The default solver is
+      \code{"rk45dp7"} (alias "ode45"), because of its relatively high
+      order (4), re-use of the last intermediate steps (FSAL = first
+      same as last) and built-in polynomial interpolation (dense
+      output).
+
+    \item Solver \code{"rk23bs"}, that supports also FSAL, may be useful for
+      slightly stiff systems if demands on precision are relatively low.
+
+    \item Another good choice, assuring medium accuracy, is the Cash-Karp
+      Runge-Kutta method, \code{"rk45ck"}.
+
+    \item Classical \code{"rk4"} is traditionally used in cases where an
+      adequate stepsize is known a-priori or if external forcing data
+      are provided for fixed time steps only and frequent interpolation
+      of external data needs to be avoided.
   
-    \item Interpolation for other methods than "rk45dp7" (alias "ode45")
-      is done by 3rd order Neville-Aitken polynomials only. This needs
-      at least 4 internal time steps and may lead to local inaccuracies
-      for badly behaving systems if external and internal time steps are
-      too different.
+    \item Method \code{"rk45dp7"} (alias \code{"ode45"}) contains an
+      efficient built-in interpolation scheme (dense output) based on
+      intermediate function evaluations. Interpolation for all other
+      methods is done with Neville-Aitken polynomials (5th order by
+      default) which needs at least 6 internal time steps. Local
+      interpolation inaccuracies can be minimized if external and
+      internal time steps are not too different.
     
-    \item The Runge-Kutta solvers are primarily provided for didactic
-      reasons. For most practical cases, solvers of the Livermore family
-      (\code{\link{lsoda}}, \code{\link{lsode}}, \code{\link{lsodes}},
-      \code{\link{lsodar}}, \code{\link{vode}}, \code{\link{daspk}}) are
-      superior because of higher efficiency and faster implementation.
-      In addition to this, some of the Livermore solvers are also
-      suitable for stiff ODEs, differential algebraic equations (DAEs),
-      or partial differential equations (PDEs).
-      
   }
 }
    
@@ -93,16 +99,12 @@ rkMethod(method = NULL, ...)
   \item{varstep}{boolean value specifying if the method allows for
     variable time step (\code{TRUE}) or not (\code{FALSE}).
   }
-  \item{interpolation}{boolean value to switch internal interpolation
-    off.  Note that this works only if time steps match exactly. This
-    may not work as expected for all cases because of floating point
-    rounding errors (see R FAQ about ``Why doesn't R think these numbers
-    are equal?'').
+
+  \item{FSAL}{(first same as last) optional boolean value specifying if
+    the method allows re-use of the last function evaluation
+    (\code{TRUE}) or not (\code{FALSE} or \code{NULL}).
   }
-  \item{FSAL}{(first same as last) boolean value specifying if the
-    method allows re-use of the last function evaluation (\code{TRUE})
-    or not (\code{FALSE} or \code{NULL}).
-  }
+  
   \item{A}{coefficient matrix of the method. As \code{link{rk}} supports
     only explicit methods, this matrix must be lower triangular.
     \code{A} must be a vector for fixed step methods where only the
@@ -117,16 +119,36 @@ rkMethod(method = NULL, ...)
   }
   \item{c}{coefficients for calculating the intermediate time steps.}
   
-  \item{d}{coefficients for built-in polynomial interpolation of the
-    outputs from internal steps (dense output), currently only available
-    for method \code{rk45dp7} (Dormand-Prince).
+  \item{d}{optional coefficients for built-in polynomial interpolation
+    of the outputs from internal steps (dense output), currently only
+    available for method \code{rk45dp7} (Dormand-Prince).
   }
+  
   \item{stage}{number of function evaluations needed (corresponds to
     number of rows in A).
   }
   \item{Qerr}{global error order of the method, important for automatic
     time-step adjustment.
   }
+
+  \item{nknots}{integer value specifying the order of interpolation polynomials
+    for methods without dense output (default = 5th order). If \code{nknots} < 2
+    internal
+    interpolation is switched off.  Note that this works only if time steps match
+    exactly. This may not work as expected for all cases because of
+    floating point rounding errors (see \R FAQ about ``Why doesn't \R
+    think these numbers are equal?'').
+  }
+
+  \item{alpha}{optional tuning parameter for stepsize
+    adjustment. If \code{alpha} is omitted, it is set to
+    \eqn{1/Qerr - 0.75 beta}. The default value is
+    \eqn{1/Qerr} (for \code{beta} = 0).}
+
+  \item{beta}{optional tuning parameter for stepsize adjustment. Typical
+    values are \eqn{0} (default) or \eqn{0.4/Qerr}
+  }
+
 }
 
 \references{
@@ -137,6 +159,10 @@ rkMethod(method = NULL, ...)
   Butcher, J. C. (1987) The numerical analysis of ordinary differential
   equations, Runge-Kutta and general linear methods, Wiley, Chichester
   and New York.
+
+  Cash, J. R. and Karp A. H., 1990. A variable order Runge-Kutta method
+  for initial value problems with rapidly varying right-hand sides,
+  ACM Transactions on Mathematical Software \bold{16}, 201--222.
 
   Dormand, J. R. and Prince, P. J. (1980) A family of embedded
   Runge-Kutta formulae, J. Comput. Appl. Math. \bold{6}(1), 19--26.
@@ -173,23 +199,35 @@ rkMethod("ode45")   # an alias for the same method
 
 func <- function(t, x, parms) {
   with(as.list(c(parms, x)),{
-    dP  <- a * P      - b * K * P
-    dK  <- b * P * K  - c * K
-    res <- c(dP, dK)
+    dP  <- a * P      - b * C * P
+    dC  <- b * P * C  - c * C
+    res <- c(dP, dC)
     list(res)
   })
 }
-times  <- seq(0, 20, length = 21)
+times  <- seq(0, 200, length = 101)
 parms  <- c(a = 0.1, b = 0.1, c = 0.1)
-x <- c(P = 2, K = 1)
+x <- c(P = 2, C = 1)
 
 ode(x, times, func, parms, method = rkMethod("rk4"))
 
 ode(x, times, func, parms, method = "ode45")
 
-## disable polynomial interpolation (dense output)
-## and fall back to linear approximation
-ode(x, times, func, parms, method = rkMethod("rk45dp7", d = NULL))
+o0 <- ode(x, times, func, parms, method = "lsoda")
+o1 <- ode(x, times, func, parms, method = rkMethod("rk45dp7"))
+## disable dense-output interpolation
+## and fall back to Neville-Aitken polynomials
+o2 <- ode(x, times, func, parms, method = rkMethod("rk45dp7", d = NULL))
+
+## show differences between methods
+par(mfrow=c(3,1))
+matplot(o1[,1], o1[,-1], type="l", xlab="Time", main="State Variables")
+matplot(o1[,1], o2[,-1], type="p", pch=16, add=TRUE)
+matplot(o0[,1], o1[,-1]-o0[,-1], type="l", lty="solid", xlab="Time",
+  main="Difference: rk45dp7 - lsoda")
+matplot(o1[,1], o2[,-1]-o0[,-1], type="l", lty="dashed", xlab="Time",
+  main="difference: Neville-Aitken - Dense Output")
+abline(h=0, col="grey")
 
 ## define and use a new rk method
 ode(x, times, func, parms, 

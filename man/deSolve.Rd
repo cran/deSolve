@@ -3,8 +3,8 @@
 \alias{deSolve}
 \docType{package}
 \title{
-  General Solvers for initial value problems of Ordinary Differential Equations
-  (ODE), partial differential equations (PDE) and for Differential Algebraic
+  General Solvers for Initial Value Problems of Ordinary Differential Equations
+  (ODE), Partial Differential Equations (PDE) and for Differential Algebraic
   Equations (DAE)
 }
 \description{
@@ -27,8 +27,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.3\cr
-    Date:    \tab 2009-06-1\cr
+    Version: \tab 1.5\cr
+    Date:    \tab 2009-06-25\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
@@ -38,12 +38,14 @@
   as part of a modeling package for differential equations, or for
   parameter estimation using any appropriate modeling tool for
   non-linear models in \R such as \code{\link{optim}},
-  \code{\link[nls]{nls}}, \code{\link{nlm}} or \code{\link[nlme]{nlme}}.
+  \code{\link{nls}}, \code{\link{nlm}} or \code{\link[nlme]{nlme}}.
   
 }
 \author{
   Karline Soetaert,
+  
   Thomas Petzoldt,
+
   R. Woodrow Setzer (Maintainer)
 }
 \references{
@@ -76,6 +78,10 @@ SIAM J. Sci. Stat. Comput., 10, pp. 1038-1051.
 
   \code{\link{rk}}, \code{\link{rk4}}, \code{\link{euler}} for Runge-Kutta
   solvers.
+
+  \code{\link{DLLfunc}}, \code{\link{DLLres}}, for testing model implementations
+  in compiled code.
+
 }
 
 \examples{

@@ -1,5 +1,5 @@
 Package: deSolve
-Version: 1.3
+Version: 1.5
 Title: General solvers for initial value problems of ordinary
         differential equations (ODE), partial differential equations
         (PDE) and differential algebraic equations (DAE)
@@ -7,7 +7,7 @@ Author: Karline Soetaert <k.soetaert@nioo.knaw.nl>, Thomas Petzoldt
         <thomas.petzoldt@tu-dresden.de>, R. Woodrow Setzer
         <setzer.woodrow@epa.gov>
 Maintainer: R. Woodrow Setzer <setzer.woodrow@epa.gov>
-Depends: R (>= 2.01)
+Depends: R (>= 2.6.0)
 Description: Functions that solve initial value problems of a system of
         first-order ordinary differential equations (ODE), of partial
         differential equations (PDE) and of differential algebraic
@@ -19,10 +19,10 @@ Description: Functions that solve initial value problems of a system of
         designed for solving ODEs resulting from 1-D, 2-D and 3-D
         partial differential equations (PDE) that have been converted
         to ODEs by numerical differencing.
-License: GPL
+License: GPL (>= 2)
 LazyData: yes
 Repository: CRAN
 Repository/R-Forge/Project: desolve
-Repository/R-Forge/Revision: 180
-Date/Publication: 2009-06-25 07:25:20
-Packaged: 2009-06-24 03:17:11 UTC; rforge
+Repository/R-Forge/Revision: 259
+Date/Publication: 2009-10-16 14:05:03
+Packaged: 2009-10-11 20:10:44 UTC; rforge

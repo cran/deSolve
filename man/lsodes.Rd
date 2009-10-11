@@ -1,6 +1,6 @@
 \name{lsodes}
 \alias{lsodes}
-\title{General Solver for Ordinary Differential Equations (ODE) With
+\title{Solver for Ordinary Differential Equations (ODE) With
   Sparse Jacobian
 }
 \description{
@@ -8,7 +8,7 @@
   differential equations (ODE) in the form: \deqn{dy/dt = f(t,y)} and
   where the Jacobian matrix df/dy has an arbitrary sparse structure.
   
-  The \R function \code{lsodes} provides an interface to the Fortran ODE
+  The \R function \code{lsodes} provides an interface to the FORTRAN ODE
   solver of the same name, written by Alan C. Hindmarsh and Andrew
   H. Sherman.
 
@@ -23,7 +23,8 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   hmax = NULL, hini = 0, ynames = TRUE, maxord = NULL,
   maxsteps = 5000, lrw = NULL, liw = NULL, dllname = NULL,
   initfunc = dllname, initpar = parms, rpar = NULL,
-  ipar = NULL, nout = 0, outnames = NULL, ...)
+  ipar = NULL, nout = 0, outnames = NULL, forcings=NULL,
+  initforc = NULL, fcontrol=NULL, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -40,10 +41,10 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     function in a dynamically loaded shared library.
   
     If \code{func} is an \R-function, it must be defined as:
-    \code{yprime = func(t, y, parms, ...)}.  \code{t} is the current
+     \code{func <- function(t, y, parms,...)}.  \code{t} is the current
     time point in the integration, \code{y} is the current estimate of
     the variables in the ODE system.  If the initial values \code{y} has
-    a names attribute, the names will be available inside \code{func}.
+    a \code{names} attribute, the names will be available inside \code{func}.
     \code{parms} is a vector or list of parameters; ... (optional) are
     any other arguments passed to the function.
   
@@ -69,17 +70,19 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     long as \code{y}.  See details.
   }
   \item{jacvec }{if not \code{NULL}, an \R function that computes a
-    column of the jacobian of the system of differential equations
+    column of the Jacobian of the system of differential equations
     dydot(i)/dy(j), or a string giving the name of a function or
     subroutine in \file{dllname} that computes the column of the
-    jacobian (see Details below for more about this option).  The \R
+    Jacobian (see vignette \code{"compiledCode"} for more about this option).
+
+    The \R
     calling sequence for \code{jacvec} is identical to that of
     \code{func}, but with extra parameter \code{j}, denoting the column
     number.  Thus, \code{jacvec} should be called as: \code{jacvec =
     func(t, y, j, parms)} and \code{jacvec} should return a vector
-    containing column \code{j} of the jacobian, i.e.  its i-th value is
+    containing column \code{j} of the Jacobian, i.e.  its i-th value is
     dydot(i)/dy(j). If this function is absent, \code{lsodes} will
-    generate the jacobian by differences.
+    generate the Jacobian by differences.
   }
   \item{sparsetype }{the sparsity structure of the Jacobian, one of
     "sparseint" or "sparseusr", sparsity estimated internally by lsodes
@@ -93,11 +96,10 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     ignored.
   }
   \item{verbose }{if \code{TRUE}: full output to the screen, e.g. will
-    output the settings of vectors \bold{istate} and \bold{rstate} - see
-    details.
+    print the \code{diagnostiscs} of the integration - see details.
   }
   \item{tcrit }{if not \code{NULL}, then \code{lsodes} cannot integrate
-    past \code{tcrit}. The Fortran routine \code{lsodes} overshoots its
+    past \code{tcrit}. The FORTRAN routine \code{lsodes} overshoots its
     targets (times points in the vector \code{times}), and interpolates
     values for the desired time points.  If there is a time beyond which
     integration should not proceed (perhaps because of a singularity),
@@ -115,8 +117,8 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{hini }{initial step size to be attempted; if 0, the initial step
     size is determined by the solver.
   }
-  \item{ynames }{if FALSE: names of state variables are not passed
-    to function \code{func} ; this may speed up the simulation
+  \item{ynames }{logical, if \code{FALSE} names of state variables are
+    not passed to function \code{func}; this may speed up the simulation
     especially for multi-D models.
   }
   \item{maxord }{the maximum order to be allowed. \code{NULL} uses the
@@ -152,7 +154,7 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{initpar }{only when \file{dllname} is specified and an
     initialisation function \code{initfunc} is in the dll: the
     parameters passed to the initialiser, to initialise the common
-    blocks (fortran) or global variables (C, C++).
+    blocks (FORTRAN) or global variables (C, C++).
   }
   \item{rpar }{only when \file{dllname} is specified: a vector with
     double precision values passed to the dll-functions whose names are
@@ -173,35 +175,46 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{outnames }{only used if \file{dllname} is specified and
     \code{nout} > 0: the names of output variables calculated in the
     compiled function \code{func}, present in the shared library.
+    These names will be used to label the output matrix.
+  }
+  \item{forcings }{only used if \file{dllname} is specified: a list with
+    the forcing function data sets, each present as a two-columned matrix,
+    with (time,value); interpolation outside the interval
+    [min(\code{times}), max(\code{times})] is done by taking the value at
+    the closest data extreme.
+
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See \link{forcings} or vignette \code{compiledCode}.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.
   }
 }
 \value{
-  A matrix with up to as many rows as elements in \code{times} and as many
-  columns as elements in \code{y} plus the number of "global" values
-  returned in the next elements of the return from \code{func}, plus an
-  additional column (the first) for the time value.  There will be one
-  row for each element in \code{times} unless the Fortran routine
-  \code{lsodes} returns with an unrecoverable error.  If \code{y} has a
-  names attribute, it will be used to label the columns of the output
-  value.
-      
-  The output will have the attributes \code{istate}, and \code{rstate},
-  two vectors with several useful elements.  See details.  The first
-  element of istate returns the conditions under which the last call to
-  lsodes returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
-  TRUE, the settings of istate and rstate will be written to the screen.
+  A matrix of class \code{deSolve} with up to as many rows as elements
+  in \code{times} and as many columns as elements in \code{y} plus the number of "global"
+  values returned in the next elements of the return from \code{func},
+  plus and additional column for the time value.  There will be a row
+  for each element in \code{times} unless the FORTRAN routine `lsoda'
+  returns with an unrecoverable error. If \code{y} has a names
+  attribute, it will be used to label the columns of the output value.
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{
 ## Various ways to solve the same model.
 
-## =============================
-## The example from lsodes code
+## =======================================================================
+## The example from lsodes source code
 ## A chemical model
-## =============================
+## =======================================================================
 
 n  <- 12
 y  <- rep(1, n)
@@ -244,18 +257,18 @@ chemistry <- function (time,Y,pars)
   })
 }
 
-## --------------------------------------------------------------
-## application 1. lsodes estimates the structure of the jacobian
-##                and calculates the jacobian by differences
-## --------------------------------------------------------------
+## =======================================================================
+## application 1. lsodes estimates the structure of the Jacobian
+##                and calculates the Jacobian by differences
+## =======================================================================
 out <- lsodes(func = chemistry, y = y, parms = parms, times = times,
               atol = atol, rtol = rtol, verbose = TRUE)
 
-## --------------------------------------------------------------
-## application 2. the structure of the jacobian is input
-##                lsodes calculates the jacobian by differences
+## =======================================================================
+## application 2. the structure of the Jacobian is input
+##                lsodes calculates the Jacobian by differences
 ##                this is not so efficient...
-## --------------------------------------------------------------
+## =======================================================================
 
 ## elements of Jacobian that are not zero
 nonzero <-  matrix(nc = 2, byrow = TRUE, data = c(
@@ -279,10 +292,10 @@ out2 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
             sparsetype = "sparseusr", inz = nonzero,   
              atol = atol, rtol = rtol, verbose = TRUE, lrw = 351)
                             
-## --------------------------------------------------------------
-## application 3. lsodes estimates the structure of the jacobian
-##                the jacobian (vector) function is input
-## --------------------------------------------------------------
+## =======================================================================
+## application 3. lsodes estimates the structure of the Jacobian
+##                the Jacobian (vector) function is input
+## =======================================================================
 chemjac <- function (time, Y, j, pars)
 {
   with (as.list(pars), {
@@ -348,11 +361,11 @@ chemjac <- function (time, Y, j, pars)
 out3 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
               jacvec = chemjac, atol = atol, rtol = rtol)
 
-## --------------------------------------------------------------------
-## application 4. The structure of the jacobian (nonzero elements) AND
-##                the jacobian (vector) function is input
+## =======================================================================
+## application 4. The structure of the Jacobian (nonzero elements) AND
+##                the Jacobian (vector) function is input
 ##                not very efficient...
-## --------------------------------------------------------------------
+## =======================================================================
 out4 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
                lrw = 351, sparsetype = "sparseusr", inz = nonzero,
                jacvec = chemjac, atol = atol, rtol = rtol,
@@ -373,7 +386,7 @@ out4 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
 }
 \details{
 
-  The work is done by the Fortran subroutine \code{lsodes}, whose
+  The work is done by the FORTRAN subroutine \code{lsodes}, whose
   documentation should be consulted for details (it is included as
   comments in the source file \file{src/opkdmain.f}). The implementation
   is based on the November, 2003 version of lsodes, from Netlib.
@@ -390,16 +403,16 @@ out4 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
   If matrix \code{inz} is present, then it should contain indices (row,
   column) to the nonzero elements in the Jacobian matrix.
   
-  If  \code{jacvec} and \code{inz} are present, then the jacobian is
+  If  \code{jacvec} and \code{inz} are present, then the Jacobian is
   fully specified by the user.
   
   If \code{jacvec} is present, but not \code{nnz} then the structure of
-  the jacobian will be obtained from NEQ + 1 calls to \code{jacvec}.
+  the Jacobian will be obtained from NEQ + 1 calls to \code{jacvec}.
   
-  If \code{nnz} is present, but not \code{jacvec} then the jacobian will
+  If \code{nnz} is present, but not \code{jacvec} then the Jacobian will
   be estimated internally, by differences. 
   
-  If neither \code{nnz} nor \code{jacvec} is present, then the jacobian
+  If neither \code{nnz} nor \code{jacvec} is present, then the Jacobian
   will be generated internally by differences, its structure (indices to
   nonzero elements) will be obtained from NEQ + 1 initial calls to
   \code{func}.
@@ -411,48 +424,22 @@ out4 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
   \bold{error control} performed by the solver.  See \code{\link{lsoda}}
   for details.
    
-  \bold{Models} may be defined in compiled C or Fortran code, as well as
-  in an \R-function. See package vignette \code{"compiledCode"} for details.
-  
-  
-  The output will have the attributes  \bold{istate}, and
-  \bold{rstate}, two vectors with several useful elements.
-  
-  If \code{verbose = TRUE}, the settings of istate and rstate will be
-  written to the screen.
-      
-  The following elements of \bold{istate} are meaningful:
-  
-  \itemize{
-    \item el 1 : returns the conditions under which the last call to lsodes returned. 
-      2  if lsodes was successful,
-      -1 if excess work done,
-      -2 means excess accuracy requested. (Tolerances too small),
-      -3 means illegal input detected. (See printed message.),
-      -4 means repeated error test failures. (Check all input),
-      -5 means repeated convergence failures. (Perhaps bad Jacobian supplied or wrong choice of MF or tolerances),
-      -6 means error weight became zero during problem. (Solution component i vanished, and atol or atol(i) = 0).
-    \item el 12 : The number of steps taken for the problem so far.
-    \item el 13 : The number of function evaluations for the problem so far, excluding those for structure determination.
-    \item el 14 : The number of Jacobian evaluations  and LU decompositions so far, excluding those for structure determination.
-    \item el 15 : The method order last used (successfully).,
-    \item el 16 : The order to be attempted on the next step.,
-    \item el 17 : if el 1 = -4,-5: the largest component in the error vector,
-    \item el 18 : The length of rwork actually required.,
-    \item el 19 : The length of iwork actually required.,
-    \item el 20 : The number of nonzero elements in the sparse jacobian.
-  }
-  \bold{rstate} contains the following:
-  \itemize{
-    \item 1: The step size in t last used (successfully).
-    \item 2: The step size to be attempted on the next step.
-    \item 3: The current value of the independent variable which the
-      solver has actually reached, i.e. the current internal mesh point
-      in t.
-    \item 4: A tolerance scale factor, greater than 1.0, computed when a
-      request for too much accuracy was detected.
-  }
-  For more information, see the comments in the original code lsodes.f
+  The diagnostics of the integration can be printed to screen
+  by calling \code{\link{diagnostics}}. If \code{verbose} = \code{TRUE},
+  the diagnostics will written to the screen at the end of the integration.
+
+  See vignette("deSolve") for an explanation of each element in the vectors
+  containing the diagnostic properties and how to directly access them.
+
+  \bold{Models} may be defined in compiled C or FORTRAN code, as well as
+  in an R-function. See package vignette \code{"compiledCode"} for details.
+
+  More information about models defined in compiled code is in the package
+  vignette ("compiledCode"); information about linking forcing functions
+  to compiled code is in \link{forcings}.
+
+  Examples in both C and FORTRAN are in the \file{dynload} subdirectory
+  of the \code{deSolve} package directory.
 }
 \seealso{
   \itemize{

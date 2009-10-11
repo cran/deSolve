@@ -9,7 +9,7 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   SEXP Parms, SEXP Nout, SEXP Rho,
   SEXP Rtol, SEXP Atol, SEXP Tcrit, SEXP Verbose,
   SEXP Hmin, SEXP Hmax, SEXP Hini, SEXP Rpar, SEXP Ipar,
-  SEXP Method, SEXP Maxsteps) {
+  SEXP Method, SEXP Maxsteps, SEXP Flist) {
 
   /**  Initialization **/
   init_N_Protect();
@@ -20,15 +20,15 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   SEXP  R_yout;
   double *y0,  *y1,  *y2,  *dy1,  *dy2, *out, *yout;
 
-  double err=0, dtnew=0, t, dt, t_ext, tmax;
+  double err=0, errold=0, dtnew=0, t, dt, t_ext, tmax;
 
-  SEXP R_FSAL, Interpolate;
+  SEXP R_FSAL, Alpha, Beta;
   int fsal = FALSE;       /* assume no FSAL */
   int interpolate = TRUE; /* polynomial interpolation is done by default */
 
   int i = 0, j=0, j1=0, k, it=0, it_tot=0, it_ext=0, nt = 0, neq=0;
   int accept = 0;
-  int one=1;
+  int one=1, isForcing;
 
   /*------------------------------------------------------------------------*/
   /* Processing of Arguments                                                */
@@ -70,10 +70,15 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   PROTECT(R_D = getListElement(Method, "d")); incr_N_Protect();
   if (length(R_D)) dd = REAL(R_D);
 
-  PROTECT(Interpolate = getListElement(Method, "interpolate")); incr_N_Protect();
-  if (length(Interpolate)) interpolate = INTEGER(Interpolate)[0];
-
   double  qerr  = REAL(getListElement(Method, "Qerr"))[0];
+  double  beta  = 0;      //0.4/qerr;
+
+  PROTECT(Beta = getListElement(Method, "beta")); incr_N_Protect();
+  if (length(Beta)) beta = REAL(Beta)[0];
+
+  double  alpha = 1/qerr - 0.75 * beta;
+  PROTECT(Alpha = getListElement(Method, "alpha")); incr_N_Protect();
+  if (length(Alpha)) alpha = REAL(Alpha)[0];
 
   PROTECT(R_FSAL = getListElement(Method, "FSAL")); incr_N_Protect();
   if (length(R_FSAL)) fsal = INTEGER(R_FSAL)[0];
@@ -89,9 +94,8 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* DLL, ipar, rpar (for compatibility with lsoda)                         */
   /*------------------------------------------------------------------------*/
-   int isDll = FALSE;
+  int isDll = FALSE;
   int ntot  =  0;
-  int isOut = FALSE; /* do I need this? */
   int lrpar= 0, lipar = 0;
   int *ipar = NULL;
 
@@ -141,10 +145,16 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   rr  =  (double *) R_alloc(neq * 5, sizeof(double));
 
   /* matrix for polynomial interpolation */
-  int nknots = 4;  /* 3rd order polynomials */
-  int iknots = 0;  /* counter for knotes buffer */
+  SEXP R_nknots;
+  int nknots = 6;  /* 6 = 5th order polynomials by default*/
+  int iknots = 0;  /* counter for knots buffer */
   double *yknots;
 
+  PROTECT(R_nknots = getListElement(Method, "nknots")); incr_N_Protect();
+  if (length(R_nknots)) nknots = INTEGER(R_nknots)[0] + 1;
+
+  if (nknots < 2) {nknots=1; interpolate = FALSE;}
+  
   yknots = (double *) R_alloc((neq + 1) * (nknots + 1), sizeof(double));
 
   /* matrix for holding states and global outputs */
@@ -165,6 +175,7 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
   initParms(Initfunc, Parms);
+  isForcing = initForcings(Flist);
 
   /*------------------------------------------------------------------------*/
   /* Initialization of Integration Loop                                     */
@@ -223,7 +234,8 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
         }
         /******  Compute Derivatives ******/
         /* pass option to avoid unnecessary copying in derivs */
-        derivs(Func, t + dt * cc[j], tmp, Parms, Rho, FF, out, j, neq, ipar, isDll);
+        derivs(Func, t + dt * cc[j], tmp, Parms, Rho, FF, out, j, neq, 
+               ipar, isDll, isForcing);
     }
 
     /*====================================================================*/
@@ -243,19 +255,24 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     /*====================================================================*/
     /*      stepsize adjustment                                           */
     /*====================================================================*/
+    
     err = maxerr(y1, y2, atol, rtol, neq);
-
     dtnew = dt;
-    accept = TRUE;
-    if (err == 0) {  /* use fixed time step hmax if all tolerances are zero */
+    //accept = TRUE;
+    if (err == 0) {  /* use max scale if all tolerances are zero */
+      dtnew = fmin(dt * 10, hmax);
+      errold = fmax(err, 1e-4); // 1e-4 taken from Press et al.
       accept = TRUE;
-      dtnew = hmax;
     } else if (err < 1.0) {
+      //dtnew = fmin(hmax, dt * 0.9 * pow(err, -1.0/qerr));
+      // increase step size only if last one was accepted
+      if (accept) dtnew = fmin(hmax, dt * 0.9 * pow(err, -alpha) * pow(errold, beta));
+      errold = fmax(err, 1e-4); // 1e-4 taken from Press et al.
       accept = TRUE;
-      dtnew = fmin(hmax, dt * 0.9 * pow(err, -1.0/qerr));
     } else if (err > 1.0) {
       accept = FALSE;
-      dtnew = dt * fmax(0.9 * pow(err, -1.0/qerr), 0.2);
+      //dtnew = dt * fmax(0.9 * pow(err, -1.0/qerr), 0.2);
+      dtnew = dt * fmax(0.9 * pow(err, -alpha), 0.2);
     }
 
     if (dtnew < hmin) {
@@ -314,9 +331,9 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
         }
       } else {
         /*--------------------------------------------------------------------*/
-        /* store outputs without interpolation                                */
+        /* Case C) no interpolation at all (for testing purposes)             */
         /* Note that this works only if time steps match exactly              */
-        /* i.e. not in all cases because of floating point rounding errors    */
+        /* i.e. not in all cases because of floating point inaccuracy         */
         /* but that's the price for "no interpolation"                        */
         /*--------------------------------------------------------------------*/
         t_ext = tt[it_ext];
@@ -361,7 +378,7 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   for (int j = 0; j < nt; j++) {
     t = yout[j];
     for (i = 0; i < neq; i++) tmp[i] = yout[j + nt * (1 + i)];
-    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll);
+    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll, isForcing);
     for (i = 0; i < nout; i++) {
       yout[j + nt * (1 + neq + i)] = out[i];
     }

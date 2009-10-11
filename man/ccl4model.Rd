@@ -107,7 +107,7 @@ legend("topright", lty = c(NA, 1), pch = c(1, NA), lwd = c(NA, 2),
   Try \code{demo(CCL4model)} for how this model has been fitted to the
   dataset \code{\link{ccl4data},}
 
-  \code{\link{aquaphy}}, another Fortran model, describing growth in
+  \code{\link{aquaphy}}, another FORTRAN model, describing growth in
   aquatic phytoplankton.
 }
 \keyword{models}
