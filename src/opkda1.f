@@ -1371,7 +1371,7 @@ CKS
  75       SAVF(I) = 0.0D0
 CKS
         CALL JAC (NEQ, TN, Y, J, IWK(IPIAN), IWK(IPJAN), SAVF,
-     &	  rpar,ipar)
+     &      rpar,ipar)
         DO 80 I = 1,N
           IF (ABS(SAVF(I)) .LE. SETH) GO TO 80
           IF (I .EQ. J) GO TO 80
@@ -1631,7 +1631,7 @@ C----------------------- End of Subroutine CNTNZU ----------------------
       END
 *DECK DPRJS
       SUBROUTINE DPRJS (NEQ,Y,YH,NYH,EWT,FTEM,SAVF,WK,IWK,F,JAC,
-     & 	rpar,ipar)
+     &    rpar,ipar)
       EXTERNAL F,JAC
 CKS: added rpar,ipar
       integer ipar(*)
@@ -7758,7 +7758,7 @@ C-----------------------------------------------------------------------
         ENDIF
 CKS
       CALL DSETPK (NEQ, Y, YH1, EWT, ACOR, SAVF, JOK, WM, IWM, F, JAC,
-     &	rpar,ipar)
+     &    rpar,ipar)
       IPUP = 0
       RC = 1.0D0
       DRC = 0.0D0

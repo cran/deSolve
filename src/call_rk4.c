@@ -8,7 +8,7 @@
 
 SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 	      SEXP Parms, SEXP Nout, SEXP Rho, SEXP Verbose,
-	      SEXP Rpar, SEXP Ipar) {
+	      SEXP Rpar, SEXP Ipar, SEXP Flist) {
 
   /*  Initialization */
   init_N_Protect();
@@ -24,6 +24,7 @@ SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 
   double t, dt;
   int i = 0, j=0, it=0, nt = 0, neq=0;
+  int isForcing;
 
   /*------------------------------------------------------------------------*/
   /* Processing of Arguments                                                */
@@ -47,7 +48,6 @@ SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   int isDll = FALSE;
   int ntot  =  0;
-  int isOut = FALSE; //?? do I need this?
   int lrpar= 0, lipar = 0;
   int *ipar = NULL;
 
@@ -122,6 +122,7 @@ SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
 
   initParms(Initfunc, Parms);
+  isForcing = initForcings(Flist); 
   /*------------------------------------------------------------------------*/
   /* Initialization of Integration Loop                                     */
   /*------------------------------------------------------------------------*/
@@ -139,22 +140,22 @@ SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     dt = tt[it + 1] - t;
     if (verbose)
       Rprintf("Time steps = %d / %d time = %e\n", it + 1, nt, t);
-    derivs(Func, t, y0, Parms, Rho, f1, out, 0, neq, ipar, isDll);
+    derivs(Func, t, y0, Parms, Rho, f1, out, 0, neq, ipar, isDll, isForcing);
     for (i = 0; i < neq; i++) {
       f1[i] = dt * f1[i];
       f[i]  = y0[i] + 0.5 * f1[i];
     }
-    derivs(Func, t + 0.5*dt, f, Parms, Rho, f2, out, 0, neq, ipar, isDll);
+    derivs(Func, t + 0.5*dt, f, Parms, Rho, f2, out, 0, neq, ipar, isDll, isForcing);
     for (i = 0; i < neq; i++) {
       f2[i] = dt * f2[i];
       f[i]  = y0[i] + 0.5 * f2[i];
     }
-    derivs(Func, t + 0.5*dt, f, Parms, Rho, f3, out, 0, neq, ipar, isDll);
+    derivs(Func, t + 0.5*dt, f, Parms, Rho, f3, out, 0, neq, ipar, isDll, isForcing);
     for (i = 0; i < neq; i++) {
       f3[i] = dt * f3[i];
       f[i] = y0[i] + f3[i];
     }
-    derivs(Func, t + dt, f, Parms, Rho, f4, out, 0, neq, ipar, isDll);
+    derivs(Func, t + dt, f, Parms, Rho, f4, out, 0, neq, ipar, isDll, isForcing);
     for (i = 0; i < neq; i++) {
       f4[i] = dt * f4[i];
     }
@@ -178,7 +179,7 @@ SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   for (int j = 0; j < nt; j++) {
     t = yout[j];
     for (i = 0; i < neq; i++) tmp[i] = yout[j + nt * (1 + i)];
-    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll);
+    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll, isForcing);
     for (i = 0; i < nout; i++) {
       yout[j + nt * (1 + neq + i)] = out[i];
     }

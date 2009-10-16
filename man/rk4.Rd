@@ -11,10 +11,12 @@
 \usage{
 euler(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   dllname = NULL, initfunc = dllname, initpar = parms,
-  rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, ...)
+  rpar = NULL, ipar = NULL, nout = 0, outnames = NULL,
+  forcings=NULL, initforc = NULL, fcontrol=NULL, ...)
 rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   dllname = NULL, initfunc = dllname, initpar = parms,
-  rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, ...)
+  rpar = NULL, ipar = NULL, nout = 0, outnames = NULL,
+  forcings=NULL, initforc = NULL, fcontrol=NULL, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -30,10 +32,10 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     dynamically loaded shared library.
 
     If \code{func} is an \R-function, it must be defined as:
-    \code{yprime = func(t, y, parms, ...)}.  \code{t} is the current
+     \code{func <- function(t, y, parms,...)}.  \code{t} is the current
     time point in the integration, \code{y} is the current estimate of
     the variables in the ODE system.  If the initial values \code{y} has
-    a names attribute, the names will be available inside \code{func}.
+    a \code{names} attribute, the names will be available inside \code{func}.
     \code{parms} is a vector or list of parameters; ... (optional) are
     any other arguments passed to the function.
 
@@ -45,11 +47,12 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
 
 	  If \code{func} is a string, then \code{dllname} must give the name
     of the shared library (without extension) which must be loaded
-    before \code{lsoda()} is called. See package vignette
+    before \code{rk4} is called. See package vignette
     \code{"compiledCode"} for more
     details.
   }
-  \item{parms }{vector or list of parameters used in \code{func}}
+  \item{parms }{vector or list of parameters used in \code{func}.
+  }
   \item{verbose }{a logical value that, when TRUE, triggers more
     verbose output from the ODE solver.
   }
@@ -64,12 +67,12 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   }
   \item{initfunc }{if not \code{NULL}, the name of the initialisation function
     (which initialises values of parameters), as provided in
-    \file{dllname}. See package vignette \code{"compiledCode"}.
+    \file{dllname}. See package vignette \code{"compiledCode"},
   }
   \item{initpar }{only when \file{dllname} is specified and an
     initialisation function \code{initfunc} is in the dll: the
     parameters passed to the initialiser, to initialise the common
-    blocks (fortran) or global variables (C, C++).
+    blocks (FORTRAN) or global variables (C, C++).
   }
   \item{rpar }{only when \file{dllname} is specified: a vector with
     double precision values passed to the dll-functions whose names are
@@ -90,6 +93,23 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   \item{outnames }{only used if \file{dllname} is specified and
     \code{nout} > 0: the names of output variables calculated in the
     compiled function \code{func}, present in the shared library.
+  }
+  \item{forcings }{only used if \file{dllname} is specified: a list with
+    the forcing function data sets, each present as a two-columned matrix,
+    with (time,value); interpolation outside the interval
+    [min(\code{times}), max(\code{times})] is done by taking the value at
+    the closest data extreme.
+
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See \link{forcings} or vignette \code{compiledCode}.
   }
    \item{... }{additional arguments passed to \code{func} allowing this
     to be a generic function.
@@ -114,10 +134,21 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   Livermore family (ODEPACK, e.g. \code{\link{lsoda}}) are superior.
 }
 
+\value{
+  A matrix of class \code{deSolve} with up to as many rows as elements
+  in \code{times} and as many columns as elements in \code{y} plus the
+  number of "global" values returned in the next elements of the return
+  from \code{func}, plus and additional column for the time value.
+  There will be a row for each element in \code{times} unless the
+  integration routine returns with an unrecoverable error. If \code{y}
+  has a names attribute, it will be used to label the columns of the
+  output value.
+}
+
 \examples{
-## ===============================================================
+## =======================================================================
 ## Example: Analytical and numerical solutions of logistic growth
-## ===============================================================
+## =======================================================================
 
 ## the derivative of the logistic
 logist <- function(t, x, parms) {

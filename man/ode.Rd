@@ -1,15 +1,18 @@
 \name{ode}
 \alias{ode}
+\alias{print.deSolve}
 
 \title{General Solver for Ordinary Differential Equations}
 
-\description{Solves a system of ordinary differential equations.}
+\description{Solves a system of ordinary differential equations; a wrapper
+around the implemented ODE solvers}
 
 \usage{ode(y, times, func, parms, 
 method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
            "euler", "rk4", "ode23", "ode45"), ...)
-}
 
+\method{print}{deSolve}(x, \dots)
+}
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
     \code{y} has a name attribute, the names will be used to label the
@@ -24,10 +27,10 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     dynamically loaded shared library.
 
     If \code{func} is an \R-function, it must be defined as:
-    \code{yprime = func(t, y, parms,...)}.  \code{t} is the current time
+     \code{func <- function(t, y, parms,...)}.  \code{t} is the current time
     point in the integration, \code{y} is the current estimate of the
     variables in the ODE system.  If the initial values \code{y} has a
-    names attribute, the names will be available inside \code{func}.
+    \code{names} attribute, the names will be available inside \code{func}.
     \code{parms} is a vector or list of parameters; ... (optional) are
     any other arguments passed to the function.
   
@@ -39,9 +42,8 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
 
     If \code{func} is a string, then \code{dllname} must give the name
     of the shared library (without extension) which must be loaded
-    before \code{lsoda()} is called. See package vignette
+    before \code{ode} is called. See package vignette
     \code{"compiledCode"} for more details.
-    
   }
   \item{parms }{parameters passed to \code{func}.}
   \item{method }{the integrator to use, either a string (\code{"lsoda"},
@@ -49,25 +51,21 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     \code{"daspk"}, \code{"euler"}, \code{"rk4"}, \code{"ode23"} or
     \code{"ode45"}) or a function that performs integration, or a list
     of class \code{rkMethod}.}
-   \item{... }{additional arguments passed to the integrator.}
+   \item{x }{an object of class \code{deSolve}, as returned by the
+    integrators, and to be printed.}
+  \item{... }{additional arguments passed to the integrator or to the
+    methods.}
 }
 
 \value{
-  
-  A matrix with up to as many rows as elements in times and as many
+  A matrix of class \code{deSolve} with up to as many rows as elements in
+  \code{times} and as many
   columns as elements in \code{y} plus the number of "global" values
   returned in the second element of the return from \code{func}, plus an
   additional column (the first) for the time value.  There will be one
   row for each element in \code{times} unless the integrator returns
   with an unrecoverable error.  If \code{y} has a names attribute, it
   will be used to label the columns of the output value.
-    
-  The output will have the attributes \code{istate}, and \code{rstate},
-  two vectors with several useful elements. The first element of istate
-  returns the conditions under which the last call to the integrator
-  returned. Normal is \code{istate = 2}.  If \code{verbose = TRUE}, the
-  settings of istate and rstate will be written to the screen. See the
-  help for the selected integrator for details.
 
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
@@ -83,6 +81,7 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
 
 \seealso{
   \itemize{
+    \item \code{\link{plot.deSolve}} for plotting the outputs,
     \item \code{\link{ode.band}} for solving models with a banded
       Jacobian,
     \item \code{\link{ode.1D}} for integrating 1-D models,
@@ -100,14 +99,12 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
 \keyword{math}
 \examples{
 
-## =============================================
+## =======================================================================
 ## Example1: Predator-Prey Lotka-Volterra model
-## =============================================
+## =======================================================================
 
-LVmod <- function(Time, State, Pars)
-{
-  with(as.list(c(State, Pars)),
-  {
+LVmod <- function(Time, State, Pars) {
+  with(as.list(c(State, Pars)), {
     Ingestion    <- rIng  * Prey*Predator
     GrowthPrey   <- rGrow * Prey*(1-Prey/K)
     MortPredator <- rMort * Predator
@@ -123,7 +120,7 @@ pars    <- c(rIng   = 0.2,    # /day, rate of ingestion
              rGrow  = 1.0,    # /day, growth rate of prey
              rMort  = 0.2 ,   # /day, mortality rate of predator
              assEff = 0.5,    # -, assimilation efficiency
-             K      = 10  )   # mmol/m3, carrying capacity
+             K      = 10)     # mmol/m3, carrying capacity
 
 yini    <- c(Prey = 1, Predator = 2)
 times   <- seq(0, 200, by = 1)
@@ -134,32 +131,30 @@ matplot(out$time,out[,2:3],type = "l",xlab = "time",ylab = "Conc",
         main = "Lotka-Volterra",lwd = 2)
 legend("topright", c("prey", "predator"), col = 1:2, lty = 1:2)
 
-## ==========================================================
-## Example2: Resource-producer-consumer Lotka-Volterra model
-## ==========================================================
+## =======================================================================
+## Example2: Substrate-Producer-Consumer Lotka-Volterra model
+## =======================================================================
 
 ## Note:
-## 1. parameter and state variable names made
-##    accessible via "with" statement
-## 2. function sigimp passed as an argument (input) to model
-##    (see also lsoda and rk examples)
+## Function sigimp passed as an argument (input) to model
+##   (see also lsoda and rk examples)
 
-lvmodel <- function(t, x, parms, input)  {
+SPCmod <- function(t, x, parms, input)  {
   with(as.list(c(parms, x)), {
     import <- input(t)
-    dS <- import - b*S*P + g*K    # substrate
-    dP <- c*S*P  - d*K*P          # producer
-    dK <- e*P*K  - f*K            # consumer
-    res <- c(dS, dP, dK)
+    dS <- import - b*S*P + g*C    # substrate
+    dP <- c*S*P  - d*C*P          # producer
+    dC <- e*P*C  - f*C            # consumer
+    res <- c(dS, dP, dC)
     list(res)
   })
 }
 
 ## The parameters 
-parms  <- c(b = 0.0, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
+parms  <- c(b = 0.001, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
 
 ## vector of timesteps
-times  <- seq(0, 100, length = 101)
+times  <- seq(0, 200, length = 101)
 
 ## external signal with rectangle impulse
 signal <- as.data.frame(list(times = times,
@@ -171,16 +166,22 @@ sigimp <- approxfun(signal$times, signal$import, rule = 2)
 
 
 ## Start values for steady state
-xstart <- c(S = 1, P = 1, K = 1)
+xstart <- c(S = 1, P = 1, C = 1)
 
 ## Solve model
-out <- as.data.frame(ode(y = xstart,times = times, 
-                     func = lvmodel, parms, input = sigimp))
+out <- ode(y = xstart,times = times,
+           func = SPCmod, parms, input = sigimp)
 
-## Display results
-par(mfrow=c(1,2))
-matplot(out[,1], out[,2:4], type="l", xlab="time", ylab="state")
-legend("topright", col = 1:3, lty = 1:3, legend = c("S", "P", "K"))
-plot(out$P, out$K, type = "l", lwd = 2, xlab = "producer", ylab = "consumer")
+## Default plot method
+plot(out, type="l")
+
+## User specified plotting
+mf <- par(mfrow = c(1, 2))
+matplot(out[,1], out[,2:4], type = "l", xlab = "time", ylab = "state")
+legend("topright", col = 1:3, lty = 1:3, legend = c("S", "P", "C"))
+plot(out[,"P"], out[,"C"], type = "l", lwd = 2, xlab = "producer",
+  ylab = "consumer")
+par(mfrow=mf)
+
 }
 

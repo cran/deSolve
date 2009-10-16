@@ -7,8 +7,8 @@
 #include "rk_util.h"
 
 SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
-	      SEXP Parms, SEXP Nout, SEXP Rho, SEXP Verbose,
-	      SEXP Rpar, SEXP Ipar) {
+	        SEXP Parms, SEXP Nout, SEXP Rho, SEXP Verbose,
+		SEXP Rpar, SEXP Ipar, SEXP Flist) {
 
   /* Initialization */
   init_N_Protect();
@@ -21,6 +21,7 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 
   double t, dt;
   int i = 0, j=0, it=0, nt = 0, neq=0;
+  int isForcing;
 
   /*------------------------------------------------------------------------*/
   /* Processing of Arguments                                                */
@@ -44,7 +45,6 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   int isDll = FALSE;
   int ntot  =  0;
-  int isOut = FALSE; /* do I need this? */
   int lrpar= 0, lipar = 0;
   int *ipar = NULL;
 
@@ -109,11 +109,12 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
   initParms(Initfunc, Parms);
+  isForcing = initForcings(Flist);
 
   /*------------------------------------------------------------------------*/
   /* Initialization of Integration Loop                                     */
   /*------------------------------------------------------------------------*/
-  yout[0] = tt[0]; //initial time
+  yout[0] = tt[0]; /* initial time */
   for (i = 0; i < neq; i++) {
     y0[i]              = xs[i];
     yout[(i + 1) * nt] = y0[i];
@@ -127,7 +128,7 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     dt = tt[it + 1] - t;
     if (verbose)
       Rprintf("Time steps = %d / %d time = %e\n", it + 1, nt, t);
-    derivs(Func, t, y0, Parms, Rho, f, out, 0, neq, ipar, isDll);
+    derivs(Func, t, y0, Parms, Rho, f, out, 0, neq, ipar, isDll, isForcing);
     for (i = 0; i < neq; i++) {
       y0[i]  = y0[i] + dt * f[i];
     }
@@ -143,7 +144,7 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   for (int j = 0; j < nt; j++) {
     t = yout[j];
     for (i = 0; i < neq; i++) tmp[i] = yout[j + nt * (1 + i)];
-    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll);
+    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll, isForcing);
     for (i = 0; i < nout; i++) {
       yout[j + nt * (1 + neq + i)] = out[i];
     }

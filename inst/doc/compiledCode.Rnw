@@ -16,7 +16,7 @@
 \newcommand{\DLLmodels}{\textbf{\textsf{DLL models}}\xspace}
 
 \title{\proglang{R} Package \pkg{deSolve}, Writing Code in Compiled
-Language}
+Languages}
 
 \Plaintitle{R Package deSolve, Writing Code in Compiled Languages}
 
@@ -47,7 +47,7 @@ performance, FORTRAN, C}
 \Plainauthor{Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer}
 
 \Abstract{This document describes how to use the \pkg{deSolve} package
-to solve models that are written in \proglang{FORTRAN} or
+\citep{deSolve} to solve models that are written in \proglang{FORTRAN} or
 \proglang{C}.}
 
 %% The address of (at least) one author should be given
@@ -84,7 +84,7 @@ to solve models that are written in \proglang{FORTRAN} or
 <<preliminaries,echo=FALSE,results=hide>>=
 library("deSolve")
 options(prompt = "R> ")
-options(width=50)
+options(width=70)
 @
 
 \maketitle
@@ -100,10 +100,11 @@ One of the prominent features of \pkg{deSolve} is that it allows
 specifying the differential equations either as:
 
 \begin{itemize}
-\item pure \proglang{R} code,
-\item functions defined in lower-level languages such as \proglang{FORTRAN},
-\proglang{C}, or \proglang{C++}, which are compiled into a dynamically linked
-library (DLL) and loaded into \proglang{R}.
+\item pure \proglang{R} code \citep{Rcore},
+\item functions defined in lower-level languages such as
+  \proglang{FORTRAN}, \proglang{C}, or \proglang{C++}, which are
+  compiled into a dynamically linked library (DLL) and loaded into
+  \proglang{R}.
 \end{itemize}
 
 In what follows, these implementations will be referred to as \Rmodels
@@ -121,29 +122,34 @@ Here are some rules of thumb when it is worthwhile or not to switch to
 
 \begin{itemize}
 \item As long as one makes use only of \proglang{R} s high-level
-commands, the time gain will be modest. This was demonstrated in
-\citet{Soetaert08b}, where a formulation of two interacting
-populations dispersing on a 1-dimensional or a 2-dimensional grid led
-to a time gain of a factor two only when using \DLLmodels.
+  commands, the time gain will be modest. This was demonstrated in
+  \citet{Soetaert08b}, where a formulation of two interacting
+  populations dispersing on a 1-dimensional or a 2-dimensional grid
+  led to a time gain of a factor two only when using \DLLmodels.
 
 \item Generally, the more statements in the model, the higher will be
-the gain of using compiled code. Thus, in the same paper (Soetaert et
-al. subm.), a very simple, 0-D, Lotka-Volterrra type of model
-describing only 2 state variables was solved 50 times faster when
-using compiled code.
+  the gain of using compiled code. Thus, in the same paper (Soetaert
+  et al. subm.), a very simple, 0-D, Lotka-Volterrra type of model
+  describing only 2 state variables was solved 50 times faster when
+  using compiled code.
 
 \item As even \Rmodels are quite performant, the time gain induced by
-compiled code will often not be discernible when the model is only
-solved once (who can grasp the difference between a run taking 0.001
-or 0.05 seconds to finish).  However, if the model is to be applied
-multiple times, e.g.  because the model is to be fitted to data, or
-its sensitivity is to be tested, then it may be worthwhile to
-implement the model in a compiled language.
+  compiled code will often not be discernible when the model is only
+  solved once (who can grasp the difference between a run taking 0.001
+  or 0.05 seconds to finish).  However, if the model is to be applied
+  multiple times, e.g.  because the model is to be fitted to data, or
+  its sensitivity is to be tested, then it may be worthwhile to
+  implement the model in a compiled language.
 \end{itemize}
+
+Starting from \pkg{deSolve} version 1.4, it is now also possible to use
+\emph{forcing functions} in compiled code. These forcing functions are
+automatically updated by the integrators. See last chapter.
 
 \section{A simple ODE example}
 
-Assume the following simple ODE (which is from the \code{LSODA} source code):
+Assume the following simple ODE (which is from the \code{LSODA} source
+code):
 
 \begin{align*}
  \frac{{dy_1}}{{dt}} &=  - k_1 \cdot y_1 + k_2 \cdot y_2 \cdot y_3 \\
@@ -151,15 +157,16 @@ Assume the following simple ODE (which is from the \code{LSODA} source code):
  \frac{{dy_3}}{{dt}} &= k_3 \cdot y_2 \cdot y_2 \\
 \end{align*}
 
-where $y_1$, $y_2$ and $y_3$ are state variables, and $k_1$, $k_2$
-and $k_3$ are parameters.
+where $y_1$, $y_2$ and $y_3$ are state variables, and $k_1$, $k_2$ and
+$k_3$ are parameters.
 
 We first implement and run this model in pure \proglang{R}, then show
 how to do this in \proglang{C} and in \proglang{FORTRAN}.
 
 \subsection{ODE model implementation in R}
 
-An ODE model implemented in \textbf{pure \proglang{R}} should be defined as:
+An ODE model implemented in \textbf{pure \proglang{R}} should be
+defined as:
 
 \begin{verbatim}
  yprime = func(t, y, parms,...)
@@ -168,26 +175,24 @@ An ODE model implemented in \textbf{pure \proglang{R}} should be defined as:
 where \code{t} is the current time point in the integration, \code{y}
 is the current estimate of the variables in the ODE system, and
 \code{parms} is a vector or list containing the parameter
-values. ... (optional) are any other arguments passed to the function.
-The return value of \code{func} should be a list, whose first element
-is a vector containing the derivatives of \code{y} with respect to
-time, and whose next elements contain output variables that are
-required at each point in time.
+values. \code{\dots} (optional) are any other arguments passed to the
+function.  The return value of \code{func} should be a list, whose
+first element is a vector containing the derivatives of \code{y} with
+respect to time, and whose next elements contain output variables that
+are required at each point in time.
 
 The \proglang{R} implementation of the simple ODE is given below:
 
 <<the_Rmodel>>=
-model <- function(t, Y, parameters)
-{
+model <- function(t, Y, parameters) {
+  with (as.list(parameters),{
 
- with (as.list(parameters),{
+    dy1 = -k1*Y[1] + k2*Y[2]*Y[3]
+    dy3 = k3*Y[2]*Y[2]
+    dy2 = -dy1 - dy3
 
-   dy1 = -k1*Y[1] + k2*Y[2]*Y[3]
-   dy3 = k3*Y[2]*Y[2]
-   dy2 = -dy1 - dy3
-
-   list(c(dy1, dy2, dy3))
-                            })
+    list(c(dy1, dy2, dy3))
+  })
 }
 @
 
@@ -196,21 +201,19 @@ The Jacobian ($\frac{{\partial y'}}{{\partial y}}$) associated to the
 above example is:
 
 <<Jacobian_in_R>>=
-jac <- function (t, Y, parameters)
-{
+jac <- function (t, Y, parameters) {
+  with (as.list(parameters),{
 
- with (as.list(parameters),{
+    PD[1,1] = -k1
+    PD[1,2] = k2*Y[3]
+    PD[1,3] = k2*Y[2]
+    PD[2,1] = k1
+    PD[2,3] = -PD[1,3]
+    PD[3,2] = k3*Y[2]
+    PD[2,2] = -PD[1,2] - PD[3,2]
 
-   PD[1,1] = -k1
-   PD[1,2] = k2*Y[3]
-   PD[1,3] = k2*Y[2]
-   PD[2,1] = k1
-   PD[2,3] = -PD[1,3]
-   PD[3,2] = k3*Y[2]
-   PD[2,2] = -PD[1,2] - PD[3,2]
-
-   return(PD)
-                            })
+    return(PD)
+  })
 }
 @
 
@@ -218,15 +221,23 @@ This model can then be run as follows:
 
 <<Run_Rmodel>>=
 parms <- c(k1 = 0.04, k2 = 1e4, k3=3e7)
-Y     <- c(1.0,0.0,0.0)
-times <- c(0,0.4*10^(0:11) )
-PD    <- matrix(nrow=3,ncol=3,data=0)
-out   <- ode(Y,times,model,parms=parms,
-             jacfunc=jac)
+Y     <- c(1.0, 0.0, 0.0)
+times <- c(0, 0.4*10^(0:11) )
+PD    <- matrix(nrow = 3, ncol = 3, data = 0)
+out   <- ode(Y, times, model, parms = parms, jacfunc = jac)
 @
 
 \subsection{ODE model implementation in C}
 \label{sec:Cexamp}
+
+In order to create compiled models (.DLL = dynamic link libraries on
+Windows or .so = shared objects on other systems) you must have a
+recent version of the GNU compiler suite installed, which is quite
+standard for Linux. Windows users find all the required tools on
+\url{http://www.murdoch-sutherland.com/Rtools/}.  Getting DLLs
+produced by other compilers to communicate with R is much more
+complicated and therefore not recommended. More details can be found
+on \url{http://cran.r-project.org/doc/manuals/R-admin.html}.
 
 The call to the derivative and Jacobian function is more complex for
 compiled code compared to \proglang{R}-code, because it has to comply
@@ -240,77 +251,77 @@ The implementation in \proglang{C} consists of three parts:
 
 \begin{enumerate}
 \item After defining the parameters in global \proglang{C}-variables,
-through the use of \code{\#define} statements, a function called
-\code{initmod} initialises the parameter values, passed from the
-\proglang{R}-code.
+  through the use of \code{\#define} statements, a function called
+  \code{initmod} initialises the parameter values, passed from the
+  \proglang{R}-code.
 
-This function has as its sole argument a pointer to
-\proglang{C}-function \code{odeparms} that fills a double array with double
-precision values, to copy the parameter values into the global
-variable.
+  This function has as its sole argument a pointer to
+  \proglang{C}-function \code{odeparms} that fills a double array with
+  double precision values, to copy the parameter values into the
+  global variable.
 
 \item Function \code{derivs} then calculates the values of the
-derivatives. The derivative function is defined as:
+  derivatives. The derivative function is defined as:
 
 \begin{verbatim}
 void derivs (int *neq, double *t, double *y, double *ydot,
              double *yout, int *ip)
 \end{verbatim}
 
-where \code{*neq} is the number of equations, \code{*t} is the value
-of the independent variable, \code{y} points to a double precision
-array of length \code{*neq} that contains the current value of the
-state variables, and \code{ydot} points to an array that will contain
-the calculated derivatives.
+  where \code{*neq} is the number of equations, \code{*t} is the value
+  of the independent variable, \code{y} points to a double precision
+  array of length \code{*neq} that contains the current value of the
+  state variables, and \code{ydot} points to an array that will
+  contain the calculated derivatives.
 
-\code{yout} points to a double precision vector whose first
-\code{nout} values are other output variables (different from the
-state variables y), and the next values are double precision values as
-passed by parameter \code{rpar} when calling the integrator.  The key
-to the elements of \code{yout} is set in \code{*ip}
+  \code{yout} points to a double precision vector whose first
+  \code{nout} values are other output variables (different from the
+  state variables y), and the next values are double precision values
+  as passed by parameter \code{rpar} when calling the integrator.  The
+  key to the elements of \code{yout} is set in \code{*ip}
 
-\code{*ip} points to an integer vector whose length is at least 3; the
-first element (\code{ip[0]}) contains the number of output values
-(which should be equal or larger than \code{nout}), its second element
-contains the length of \code{*yout}, and the third element contains
-the length of \code{*ip}; next are integer values, as passed by
-parameter \code{ipar} when calling the integrator.\footnote{Readers
-familiar with the source code of the \pkg{ODEPACK} solvers may be
-surprised to find the double precision vector \code{yout} and
-the integer vector \code{ip} at the
-end. Indeed none of the \pkg{ODEPACK} functions allow this, although
-it is standard in the \code{vode} and \code{daspk} codes.  To make all
-integrators compatible (and as we think the omission of these vectors
-in the \pkg{ODEPACK} solvers is a design flaw), we have altered the
-\pkg{ODEPACK} \proglang{FORTRAN} codes to consistently pass these
-vectors. }
+  \code{*ip} points to an integer vector whose length is at least 3;
+  the first element (\code{ip[0]}) contains the number of output
+  values (which should be equal or larger than \code{nout}), its
+  second element contains the length of \code{*yout}, and the third
+  element contains the length of \code{*ip}; next are integer values,
+  as passed by parameter \code{ipar} when calling the
+  integrator.\footnote{Readers familiar with the source code of the
+    \pkg{ODEPACK} solvers may be surprised to find the double
+    precision vector \code{yout} and the integer vector \code{ip} at
+    the end. Indeed none of the \pkg{ODEPACK} functions allow this,
+    although it is standard in the \code{vode} and \code{daspk} codes.
+    To make all integrators compatible, we have altered the
+    \pkg{ODEPACK} \proglang{FORTRAN} codes to consistently pass these
+    vectors. }
 
-Note that, in function \code{derivs}, we start by checking whether
-enough room is allocated for the output variables (\code{if (ip[0] < 1)}),
-else an error is passed to \proglang{R} and the integration is stopped.
+  Note that, in function \code{derivs}, we start by checking whether
+  enough room is allocated for the output variables (\code{if (ip[0] <
+    1)}), else an error is passed to \proglang{R} and the integration
+  is stopped.
 
 \item In \proglang{C}, the call to the function that generates the
-Jacobian is as:
+  Jacobian is as:
 
 \begin{verbatim}
 void jac(int *neq, double *t, double *y, int *ml,
            int *mu, double *pd, int *nrowpd, double *yout, int *ip)
 \end{verbatim}
 
-where \code{*ml} and \code{*mu} are the number of non-zero bands below
-and above the diagonal of the Jacobian respectively. These integers
-are only relevant if the option of a banded Jacobian is
-selected. \code{*nrow} contains the number of rows of the Jacobian.
-Only for full Jacobian matrices, this is equal to \code{*neq}. In case
-the Jacobian is banded, \code{*nrowpd} will be equal to
-\code{*mu+*ml+1}.\footnote{Readers familiar with the implementation of
-the \proglang{FORTRAN} code \code{DVODE} may notice that this is not
-the format in which \code{DVODE} requires the specification of the
-Jacobian; this code needs an extra \code{mu} empty rows. As we have
-taken the philosophy to make the model specification independent of
-the integrator that will be used, the facility to use \code{vode} with
-a Jacobian specified in compiled code has been toggled off.  Use the
-related code \code{lsode} instead.}
+  where \code{*ml} and \code{*mu} are the number of non-zero bands
+  below and above the diagonal of the Jacobian respectively. These
+  integers are only relevant if the option of a banded Jacobian is
+  selected. \code{*nrow} contains the number of rows of the Jacobian.
+  Only for full Jacobian matrices, this is equal to \code{*neq}. In
+  case the Jacobian is banded, \code{*nrowpd} will be equal to
+  \code{*mu+*ml+1}.\footnote{Readers familiar with the implementation
+    of the \proglang{FORTRAN} code \code{DVODE} may notice that this
+    is not the format in which \code{DVODE} requires the specification
+    of the Jacobian; this code needs an extra \code{mu} empty rows. As
+    we have taken the philosophy to make the model specification
+    independent of the integrator that will be used, the facility to
+    use \code{vode} with a Jacobian specified in compiled code has
+    been toggled off.  Use the related code \code{lsode} instead.}
 \end{enumerate}
 
 
@@ -322,15 +333,16 @@ Models may also be defined in \proglang{FORTRAN}.
 \verbatiminput{mymod.f}
 
 In \proglang{FORTRAN}, parameters may be stored in a common block
-(here called \code{myparms}).  During the initialisation, this common block
-is defined to consist of a 3-valued vector (unnamed), but in the
+(here called \code{myparms}).  During the initialisation, this common
+block is defined to consist of a 3-valued vector (unnamed), but in the
 subroutines \code{derivs} and \code{jac}, the parameters are given a
 name (\code{k1},...).
 
 \subsection{Running ODE models implemented in compiled code}
 
 To run the models described above, the code in \code{mymod.f} and
-\code{mymod.c} must first be compiled.
+\code{mymod.c} must first be compiled\footnote{This requires a
+  correctly installed GNU compiler, see above.}.
 
 This can simply be done in \proglang{R} itself, using the
 \code{system} command:
@@ -354,12 +366,12 @@ model can be run:
 dyn.load("mymod.dll")
 
 parms <- c(k1 = 0.04, k2 = 1e4, k3=3e7)
-Y     <- c(y1=1.0,y2=0.0,y3=0.0)
-times <- c(0,0.4*10^(0:11) )
+Y     <- c(y1 = 1.0, y2 = 0.0, y3 = 0.0)
+times <- c(0, 0.4*10^(0:11) )
 
-out <- ode(Y,times,func="derivs",parms=parms,
-           jacfunc="jac",dllname="mymod",
-           initfunc="initmod",nout=1,outnames="Sum" )
+out <- ode(Y, times, func = "derivs", parms = parms,
+           jacfunc = "jac", dllname = "mymod",
+           initfunc = "initmod", nout = 1, outnames = "Sum")
 @
 
 The integration routine (here \code{ode}) recognizes that the model is
@@ -369,14 +381,14 @@ strings. Thus, the integrator will check whether the function is
 loaded in the DLL with name "mymod".
 
 Note that "mymod", as specified by \code{dllname} gives the name of
-the shared library \emph{without extension}. This DLL should contain all
-the compiled function or subroutine definitions referred to in
+the shared library \emph{without extension}. This DLL should contain
+all the compiled function or subroutine definitions referred to in
 \code{func}, \code{jacfunc} and \code{initfunc}.
 
-Also, if \code{func} is specified in compiled code, then \code{jacfunc}
-and \code{initfunc} (if present) should also be specified in a
-compiled language.  It is not allowed to mix \proglang{R}-functions
-and compiled functions
+Also, if \code{func} is specified in compiled code, then
+\code{jacfunc} and \code{initfunc} (if present) should also be
+specified in a compiled language.  It is not allowed to mix
+\proglang{R}-functions and compiled functions
 
 Note also that, when invoking the integrator, we have to specify the
 number of ordinary output variables, \code{nout}. This is because the
@@ -400,10 +412,10 @@ names of the state variables are known through their initial condition
 \label{sec:parms}
 
 All of the solvers in \pkg{deSolve} take an argument \code{parms}
-which may be an arbitrary \proglang{R} object.  In models defined in \proglang{R}
-code, this argument is passed unprocessed to the various functions
-that make up the model.  It is possible, as well, to pass such objects
-to models defined in native code.
+which may be an arbitrary \proglang{R} object.  In models defined in
+\proglang{R} code, this argument is passed unprocessed to the various
+functions that make up the model.  It is possible, as well, to pass
+such objects to models defined in native code.
 
 The problem is that data passed to, say, \code{ode} in the argument
 \code{parms} is not visible by default to the routines that define the
@@ -494,9 +506,81 @@ can solve \DLLmodels. They are:
 \end{itemize}
 
 For some of these solvers the interface is slightly different
-(e.g. \code{daspk}), while in others (\code{lsodar}, \code{lsodes})
+(e.g. \code{zvode, daspk}), while in others (\code{lsodar}, \code{lsodes})
 different functions can be defined.  How this is implemented in a
 compiled language is discussed next.
+
+\subsection{Complex numbers, function zvode}
+
+\code{zvode} solves ODEs that are composed of complex variables.
+
+The program below uses \code{zvode} to solve the following system of
+2 ODEs:
+
+\begin{align*}
+ \frac{{dz}}{{dt}} &=  i \cdot z\\
+ \frac{{dw}}{{dt}} &= -i \cdot w \cdot w \cdot z\\
+\end{align*}
+where
+\begin{align*}
+w(0) = 1/2.1 \\
+z(0) = 1
+\end{align*}
+on the interval t = [0, 2 $\pi$]
+
+The example is implemented in \proglang{FORTRAN}%
+\footnote{this can be found in file "zvodedll.f",
+in the dynload subdirectory of the package},
+\code{FEX} implements the function \code{func}:
+
+\begin{verbatim}
+      SUBROUTINE FEX (NEQ, T, Y, YDOT, RPAR, IPAR)
+      INTEGER NEQ, IPAR(*)
+      DOUBLE COMPLEX Y(NEQ), YDOT(NEQ), RPAR(*), CMP
+      DOUBLE PRECISION T
+      character(len=100) msg
+
+c the imaginary unit i
+      CMP = DCMPLX(0.0D0,1.0D0)
+
+      YDOT(1) = CMP*Y(1)
+      YDOT(2) = -CMP*Y(2)*Y(2)*Y(1)
+
+      RETURN
+      END
+\end{verbatim}
+\code{JEX} implements the function \code{jacfunc}
+\begin{verbatim}
+      SUBROUTINE JEX (NEQ, T, Y, ML, MU, PD, NRPD, RPAR, IPAR)
+      INTEGER NEQ, ML, MU, NRPD, IPAR(*)
+      DOUBLE COMPLEX Y(NEQ), PD(NRPD,NEQ), RPAR(*), CMP
+      DOUBLE PRECISION T
+c the imaginary unit i
+      CMP = DCMPLX(0.0D0,1.0D0)
+
+      PD(2,3) = -2.0D0*CMP*Y(1)*Y(2)
+      PD(2,1) = -CMP*Y(2)*Y(2)
+      PD(1,1) = CMP
+      RETURN
+      END
+\end{verbatim}
+
+Assuming this code has been compiled and is in a DLL called "zvodedll.dll",
+this model is solved in R as follows:
+
+\begin{verbatim}
+dyn.load("zvodedll.dll")
+outF <- zvode(func = "fex", jacfunc = "jex", y = yini, parms = NULL,
+          times = times, atol = 1e-10, rtol = 1e-10, dllname = "zvodedll",
+          initfunc = NULL)
+\end{verbatim}
+
+Note that in \proglang{R} names of \proglang{FORTRAN} DLL functions
+(e.g. for \code{func} and \code{jacfunc}) have to be given in
+lowercase letters, even if they are defined upper case in
+\proglang{FORTRAN}.
+
+Also, there is no initialiser function here (\code{initfunc = NULL}).
 
 \subsection{DAE models, integrator daspk}
 
@@ -648,6 +732,20 @@ Finally, in integration function \code{lsodes}, not the Jacobian
 matrix is specified, but a vector, one for each column of the
 Jacobian.  This function is specified via argument \code{jacvec}.
 
+In \proglang{FORTRAN}, the calling sequence for \code{jacvec} is:
+
+\begin{verbatim}
+SUBROUTINE JAC (NEQ, T, Y, J, IAN, JAN, PDJ, OUT, IP)
+DOUBLE PRECISION T, Y(*), IAN(*), JAN(*), PDJ(*), OUT(*)
+INTEGER NEQ, J, IP(*)
+\end{verbatim}
+
+
+\subsection{jacvec, the Jacobian vector for integrator lsodes}
+
+Finally, in integration function \code{lsodes}, not the Jacobian
+matrix is specified, but a vector, one for each column of the
+Jacobian.  This function is specified via argument \code{jacvec}.
 
 In \proglang{FORTRAN}, the calling sequence for \code{jacvec} is:
 
@@ -657,6 +755,459 @@ DOUBLE PRECISION T, Y(*), IAN(*), JAN(*), PDJ(*), OUT(*)
 INTEGER NEQ, J, IP(*)
 \end{verbatim}
 
+\section{Testing functions written in compiled code}
+
+Two utilities have been included to test the function implementation
+in compiled code:
+
+\begin{itemize}
+\item \code{DLLfunc} to test the implementation of the derivative
+  function as used in ODEs. This function returns the derivative
+  $\frac{dy}{dt}$ and the output variables.
+\item \code{DLLres} to test the implementation of the residual function
+  as used in DAEs. This function returns the residual function
+  $\frac{dy}{dt}-f(y,t)$ and the output variables.
+\end{itemize}
+
+These functions serve no other purpose than to test whether the
+compiled code returns what it should.
+
+\subsection{DLLfunc}
+
+We test whether the ccl4 model, which is part of \code{deSolve}
+package, returns the proper rates of changes.  (Note: see
+\code{example(ccl4model)} for a more comprehensive implementation)
+
+<<>>=
+## Parameter values and initial conditions
+Parms <- c(0.182, 4.0, 4.0, 0.08, 0.04, 0.74, 0.05, 0.15, 0.32,
+        16.17, 281.48, 13.3, 16.17, 5.487, 153.8, 0.04321671,
+        0.4027255, 1000, 0.02, 1.0, 3.8)
+
+yini <- c( AI=21, AAM=0, AT=0, AF=0, AL=0, CLT=0,  AM=0  )
+
+## the rate of change
+DLLfunc(y = yini, dllname = "deSolve", func = "derivsccl4",
+        initfunc = "initccl4", parms = Parms, times = 1,
+        nout = 3, outnames = c("DOSE", "MASS", "CP")  )
+@
+
+\subsection{DLLres}
+
+The deSolve package contains a FORTRAN implementation of the chemical
+model described above (section 4.1), where the production rate is
+included as a forcing function (see next section).
+
+Here we use \code{DLLres} to test it:
+
+<<>>=
+pars <- c(K = 1, ka   = 1e6, r    = 1)
+
+## Initial conc; D is in equilibrium with A,B
+y     <- c(A = 2, B = 3, D = 2*3/pars["K"])
+
+## Initial rate of change
+dy  <- c(dA = 0, dB = 0, dD = 0)
+
+## production increases with time
+prod <- matrix(nc=2,data=c(seq(0,100,by=10),seq(0.1,0.5,len=11)))
+
+DLLres(y=y,dy=dy,times=5,res="chemres",
+          dllname="deSolve", initfunc="initparms",
+          initforc="initforcs", parms=pars, forcings=prod,
+          nout=2, outnames=c("CONC","Prod"))
+
+@
+
+\section{Using forcing functions}
+
+Forcing functions in DLLs are implemented in a similar way as
+parameters.  This means:
+
+\begin{itemize}
+\item They are initialised by means of an initialiser function. Its
+  name should be passed to the solver via argument \code{initforc}.
+
+  Similar as the parameter initialiser function, the function denoted
+  by \code{initforc} has as its sole argument a pointer to the vector
+  that contains the forcing funcion values in the compiled code. In
+  case of \proglang{C} code, this will be a global vector; in case of
+  \proglang{FORTRAN}, this will be a vector in a common block.
+
+  The solver puts a pointer to this vector and updates the forcing
+  functions in this memory area at each time step. Hence, within the
+  compiled code, forcing functions can be assessed as if they are
+  parameters (although, in contrast to the latter, their values will
+  generally change).  No need to update the values for the current
+  time step; this has been done before entering the \code{derivs}
+  function.
+\item The forcing function data series are passed to the integrator,
+  via argument \code{forcings}; if there is only one forcing function
+  data set, then a 2-columned matrix (time, value) will do; else the
+  data should be passed as a list, containing (time, value) matrices
+  with the individual forcing function data sets. Note that the data
+  sets in this list should be \emph{in the same ordering} as the
+  declaration of the forcings in the compiled code.
+\end{itemize}
+
+A number of options allow to finetune certain settings. They are in a
+list called \code{fcontrol} which can be supplied as argument when
+calling the solvers. The options are similar to the arguments from R
+function \code{approx}, howevers the default settings are often
+different.
+
+The following options can be specified:
+
+\begin{itemize}
+\item \code{method} specifies the interpolation method to be used.
+  Choices are "linear" or "constant", the default is "linear", which
+  means linear interpolation (same as \code{approx})
+\item \code{rule}, an integer describing how interpolation is to take
+  place \emph{outside} the interval [min(times), max(times)].  If
+  \code{rule} is \code{1} then an error will be triggered and the
+  calculation will stop if interpolation is necessary.  If it is
+  \code{2}, the default, the value at the closest data extreme is
+  used, a warning will be printed if \code{verbose} is TRUE.
+
+  Note that the default differs from the \code{approx} default.
+\item \code{f}, for method=\code{"constant"} is a number between
+  \code{0} and \code{1} inclusive, indicating a compromise between
+  left- and right-continuous step functions. If \code{y0} and
+  \code{y1} are the values to the left and right of the point then the
+  value is \code{y0*(1-f)+y1*f} so that \code{f=0} is right-continuous
+  and \code{f=1} is left-continuous. The default is to have
+  \code{f=0}.  For some data sets it may be more realistic to set
+  \code{f=0.5}.
+\item \code{ties}, the handling of tied \code{times} values. Either a
+  function with a single vector argument returning a single number
+  result or the string "ordered".
+
+  Note that the default is "ordered", hence the existence of ties will
+  NOT be investigated; in practice this means that, if ties exist, the
+  first value will be used; if the dataset is not ordered, then
+  nonsense will be produced.
+
+  Alternative values for \code{ties} are \code{mean}, \code{min}
+  etc...  which will average, or take the minimal value if multiple
+  values exist at one time level.
+\end{itemize}
+
+The default settings of \code{fcontrol} are:
+
+\code{fcontrol=list(method="linear", rule = 2, f = 0, ties =
+  "ordered")}
+
+Note that only ONE specification is allowed, even if there is more
+than one forcing function data set. (may/should change in the future).
+
+\subsection{A simple FORTRAN example}
+
+We implement the example from chapter 3 of the book \citep{Soetaert08}
+in FORTRAN.
+
+This model describes the oxygen consumption of a (marine) sediment in
+response to deposition of organic matter (the forcing function). One
+state variable, the organic matter content in the sediment is modeled;
+it changes as a function of the deposition \code{Flux} (forcing) and
+organic matter decay (first-order decay rate \code{k}).
+
+\[
+ \frac{dC}{dt}=Flux_t-k \cdot C
+\]
+
+with initial condition $C(t=0)=C_0$; the latter is estimated as the
+mean of the flux divided by the decay rate.
+
+The FORTRAN code looks like this:
+
+\begin{verbatim}
+c Initialiser for parameter common block
+      subroutine scocpar(odeparms)
+
+      external odeparms
+      integer N
+      double precision parms(2)
+      common /myparms/parms
+
+      N = 1
+      call odeparms(N, parms)
+      return
+      end
+
+c Initialiser for forcing common block
+      subroutine scocforc(odeforcs)
+
+      external odeforcs
+      integer N
+      double precision forcs(1)
+      common /myforcs/forcs
+
+      N = 1
+      call odeforcs(N, forcs)
+      return
+      end
+
+c Rate of change and output variables
+
+      subroutine scocder (neq, t, y, ydot,out,IP)
+
+      integer          neq, IP(*)
+      double precision t, y(neq), ydot(neq), out(*), k, depo
+      common /myparms/k
+      common /myforcs/depo
+
+      if(IP(1) < 2) call rexit("nout should be at least 2")
+
+      ydot(1) = -k*y(1) + depo
+
+      out(1)= k*y(1)
+      out(2)= depo
+
+      return
+      end
+
+\end{verbatim}
+
+Here the subroutine \code{scocpar} is business as usual; it
+initialises the parameter common block (there is only one parameter).
+Subroutine \code{odeforcs} does the same for the forcing function,
+which is also positioned in a common block, called \code{myforcs}.
+This common block is made available in the derivative subroutine (here
+called \code{scocder}), where the forcing function is named
+\code{depo}.
+
+At each time step, the integrator updates the value of this forcing
+function to the correct time point. In this way, the forcing functions
+can be used as if they are (time-varying) parameters.  All that's left
+to do is to pass the forcing function data set and the name of the
+forcing function initialiser routine. This is how to do it in R.
+
+First the data are inputted:
+
+<<>>=
+Flux <- matrix(ncol=2,byrow=TRUE,data=c(
+  1, 0.654, 11, 0.167,   21, 0.060, 41, 0.070, 73,0.277, 83,0.186,
+  93,0.140,103, 0.255,  113, 0.231,123, 0.309,133,1.127,143,1.923,
+  153,1.091,163,1.001,  173, 1.691,183, 1.404,194,1.226,204,0.767,
+  214, 0.893,224,0.737, 234,0.772,244, 0.726,254,0.624,264,0.439,
+  274,0.168,284 ,0.280, 294,0.202,304, 0.193,315,0.286,325,0.599,
+  335, 1.889,345, 0.996,355,0.681,365,1.135))
+head(Flux)
+@
+
+and the parameter given a value (there is only one)
+
+<<>>=
+parms <- 0.01
+@
+
+The initial condition \code{Yini} is estimated as the annual mean of
+the Flux and divided by the decay rate (parameter).
+
+<<>>=
+meanDepo <- mean(approx(Flux[,1],Flux[,2], xout=seq(1,365,by=1))$y)
+Yini <- c(y=meanDepo/parms)
+@
+
+After defining the output times, the model is run, using integration routine
+\code{ode}.
+
+The \emph{name} of the derivate function \code{"scocder"}, of the dll
+\code{"deSolve"}\footnote{this example is made part of the deSolve
+  package, hence the name of the dll is "deSolve"} and of the
+initialiser function \code{"scocpar"} are passed, as in previous
+examples.
+
+In addition, the forcing function data set is also passed
+(\code{forcings=Flux}) as is the name of the forcing initialisation
+function (\code{initforc="scocforc"}).
+
+<<>>=
+times <- 1:365
+out <- as.data.frame( ode(y=Yini, times, func = "scocder",
+    parms = parms, dllname = "deSolve",
+    initforc="scocforc",  forcings=Flux,
+    initfunc = "scocpar", nout = 2,
+    outnames = c("Mineralisation","Depo")))
+head(out)
+@
+
+Now, the way the forcing functions are interpolated are changed:
+Rather than linear interpolation, constant (block, step) interpolation is used.
+
+<<>>=
+fcontrol <- list(method="constant")
+out2 <- as.data.frame( ode(y=Yini, times, func = "scocder",
+    parms = parms, dllname = "deSolve",
+    initforc="scocforc",  forcings=Flux, fcontrol=fcontrol,
+    initfunc = "scocpar", nout = 2,
+    outnames = c("Mineralisation","Depo")))
+@
+
+Finally, the results are plotted:
+
+<<label=scoc,include=FALSE>>=
+par (mfrow=c(1,2))
+plot(out$time, out$Depo, type="l", col="red",
+  xlab="days", ylab="mmol C/m2/ d", main="method='linear'")
+lines(out$time, out$Mineralisation, lwd=2, col="blue")
+legend("topleft",lwd=1:2,col=c("red","blue"), c("Flux","Mineralisation"))
+
+plot(out2$time, out2$Depo, type="l", col="red",
+  xlab="days", ylab="mmol C/m2/ d", main="method='constant'")
+lines(out2$time, out2$Mineralisation, lwd=2, col="blue")
+@
+\setkeys{Gin}{width=0.8\textwidth}
+
+\begin{figure}
+\begin{center}
+<<label=figscoc,fig=TRUE,echo=FALSE, width=13, height=6>>=
+<<scoc>>
+@
+\end{center}
+\caption{Solution of the SCOC model, implemented in compiled code, and
+including a forcing function - see text for R-code}
+\label{fig:scoc}
+\end{figure}
+
+\subsection{An example in C}
+
+Consider the following R-code which implements a
+resource-producer-consumer Lotka-Volterra type of model in R (it is a
+modified version of the example of function \code{ode}):
+
+<<>>=
+SPCmod <- function(t, x, parms, input)  {
+  with(as.list(c(parms, x)), {
+    import <- input(t)
+    dS <- import - b*S*P + g*C    # substrate
+    dP <- c*S*P  - d*C*P          # producer
+    dC <- e*P*C  - f*C            # consumer
+    res <- c(dS, dP, dC)
+    list(res, signal = import)
+  })
+}
+
+## The parameters
+parms  <- c(b = 0.1, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
+
+## vector of timesteps
+times  <- seq(0, 100, by=0.1)
+
+## external signal with several rectangle impulses
+signal <- as.data.frame(list(times = times,
+                 import = rep(0, length(times))))
+
+signal$import <- ifelse((trunc(signal$times) %% 2 == 0), 0, 1)
+sigimp <- approxfun(signal$times, signal$import, rule = 2)
+
+## Start values for steady state
+xstart <- c(S = 1, P = 1, C = 1)
+
+## Solve model
+print (system.time(
+out <- ode(y = xstart,times = times,
+           func = SPCmod, parms, input = sigimp)
+))
+@
+
+All output is printed at once:
+
+<<label=lv,include=FALSE>>=
+plot(out, type="l")
+@
+
+\setkeys{Gin}{width=1.0\textwidth}
+\begin{figure}
+\begin{center}
+<<label=figlv,fig=TRUE,echo=FALSE>>=
+<<lv>>
+@
+\end{center}
+\caption{Solution of the lotka-volterra resource (S)-producer (P) -
+consumer (C) model with time-variable input (signal) - see text for R-code}
+\label{fig:lv}
+\end{figure}
+
+The C-code, in file \url{Forcing\_lv.c}, can be found in the packages
+\url{/inst/dynload} subdirectory. It can be compiled, from within R by
+
+\begin{verbatim}
+system("R CMD SHLIB Forcing_lv.c")
+\end{verbatim}
+
+After defining the parameter and forcing vectors, and giving them
+comprehensible names, the parameter and forcing initialiser functions
+are defined (\code{parmsc} and \code{forcc} respectively). Next is the
+derivative function, \code{derivsc}.
+
+\begin{verbatim}
+#include <R.h>
+
+static double parms[6];
+static double forc[1];
+
+/* A trick to keep up with the parameters and forcings */
+#define b parms[0]
+#define c parms[1]
+#define d parms[2]
+#define e parms[3]
+#define f parms[4]
+#define g parms[5]
+
+#define import forc[0]
+
+/* initializers: */
+void odec(void (* odeparms)(int *, double *))
+{
+    int N=6;
+    odeparms(&N, parms);
+}
+
+void forcc(void (* odeforcs)(int *, double *))
+{
+    int N=1;
+    odeforcs(&N, forc);
+}
+
+/* derivative function */
+void derivsc(int *neq, double *t, double *y, double *ydot,
+  double *yout, int*ip)
+{
+    if (ip[0] <2) error("nout should be at least 2");
+    ydot[0] = import - b*y[0]*y[1] + g*y[2];
+    ydot[1] =          c*y[0]*y[1] - d*y[2]*y[1];
+    ydot[2] =          e*y[1]*y[2] - f*y[2];
+
+    yout[0] = y[0] + y[1] + y[2];
+    yout[1] = import;
+}
+
+\end{verbatim}
+
+After defining the forcing function time series, which is to be
+interpolated by the integration routine, and loading the DLL, the
+model is run:
+
+\begin{verbatim}
+Sigimp <- approx(signal$times, signal$import, xout=ftime,rule = 2)$y
+forcings <- cbind(ftime,Sigimp)
+
+dyn.load("Forcing_lv.dll")
+out <- ode(y=xstart, times, func = "derivsc",
+   parms = parms, dllname = "Forcing_lv",initforc = "forcc",
+   forcings=forcings, initfunc = "parmsc", nout = 2,
+   outnames = c("Sum","signal"), method = rkMethod("rk34f"))
+dyn.unload("Forcing_lv.dll")
+\end{verbatim}
+
+This code executes about 30 times faster than the R-code.
+
+With a longer simulation time, the difference becomes more pronounced,
+e.g. with times till 800 days, the DLL code executes 200 times faster%
+\footnote{this is due to the sequential update of the forcing
+  functions by the solvers, compared to the bisectioning approach used
+  by approxfun}.
 
 \section{Final remark}
 
@@ -672,12 +1223,11 @@ is lost. Moreover, mistakes are easily made and paid harder in
 compiled code: often a programming error will terminate
 \proglang{R}. In addition, these errors may not be simple to trace.
 
-
+\clearpage
 %% this adds References to the PDF-Index without adding an obsolete section
 \phantomsection
 \addcontentsline{toc}{section}{References}
 \bibliography{integration}
-
 
 \end{document}
 

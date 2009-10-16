@@ -1,6 +1,6 @@
 \name{daspk}
 \alias{daspk}
-\title{General Solver for Differential Algebraic Equations (DAE)}
+\title{Solver for Differential Algebraic Equations (DAE)}
 \description{
   Solves either:
   \itemize{
@@ -12,7 +12,7 @@
   using a combination of backward differentiation formula (BDF) and a
   direct linear system solution method (dense or banded).
   
-  The \R function \code{daspk} provides an interface to the Fortran DAE
+  The \R function \code{daspk} provides an interface to the FORTRAN DAE
   solver of the same name, written by Linda R. Petzold, Peter N. Brown,
   Alan C. Hindmarsh and Clement W. Ulrich.
     
@@ -29,7 +29,8 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   hini = 0, ynames = TRUE, maxord = 5, bandup = NULL,
   banddown = NULL, maxsteps = 5000, dllname = NULL,
   initfunc = dllname, initpar = parms, rpar = NULL,
-  ipar = NULL, nout = 0, outnames = NULL,  ...)
+  ipar = NULL, nout = 0, outnames = NULL,
+  forcings=NULL, initforc = NULL, fcontrol=NULL,  ...)
 }
 
 \arguments{
@@ -46,10 +47,10 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     values of the derivatives in the ODE system (the \emph{model
     definition}) at time t.
   
-    \code{func} must be defined as: \code{yprime = func(t, y,
-    parms,...)}.  \cr \code{t} is the current time point in the
+    \code{func} must be defined as:  \code{func <- function(t, y, parms,...)}.
+    \cr \code{t} is the current time point in the
     integration, \code{y} is the current estimate of the variables in
-    the ODE system.  If the initial values \code{y} has a names
+    the ODE system.  If the initial values \code{y} has a \code{names}
     attribute, the names will be available inside \code{func}, unless
     \code{ynames} is FALSE.  \code{parms} is a vector or list of
     parameters.  \code{...} (optional) are any other arguments passed to
@@ -77,14 +78,14 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     defininition) at time \code{t}, or a character string giving the
     name of a compiled function in a dynamically loaded shared library.
       
-    If \code{res} is a user-supplied R-function, it must be called as:
-    \code{F = func(t, y, dy, parms, ...)}.
+    If \code{res} is a user-supplied R-function, it must be defined as:
+    \code{res <- function(t, y, dy, parms, ...)}.
     
     Here \code{t} is the current time point in the integration, \code{y}
     is the current estimate of the variables in the ODE system,
-    \code{dy} are the corresponding rates of change.  If the initial
-    \code{y} or \code{dy} have a names attribute, the names will be
-    available inside \code{func}, unless \code{ynames} is \code{FALSE}.
+    \code{dy} are the corresponding derivatives.  If the initial
+    \code{y} or \code{dy} have a \code{names} attribute, the names will be
+    available inside \code{res}, unless \code{ynames} is \code{FALSE}.
     \code{parms} is a vector of parameters.
     
     The return value of \code{res} should be a list, whose first element
@@ -110,46 +111,47 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     one value for each y.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function that computes the
-    jacobian of the system of differential equations. Only used in case
+    Jacobian of the system of differential equations. Only used in case
     the system is an ODE (y' = f(t,y)), specified by \code{func}. The \R
     calling sequence for \code{jacfunc} is identical to that of
     \code{func}.
     
-    If the jacobian is a full matrix, \code{jacfunc} should return a
+    If the Jacobian is a full matrix, \code{jacfunc} should return a
     matrix dydot/dy, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
-    matrix elements by columns (the way \R and Fortran store matrices).
+    matrix elements by columns (the way \R and FORTRAN store matrices).
     
-    If the jacobian is banded, \code{jacfunc} should return a matrix
-    containing only the nonzero bands of the jacobian, rotated
+    If the Jacobian is banded, \code{jacfunc} should return a matrix
+    containing only the nonzero bands of the Jacobian, rotated
     row-wise. See first example of lsode.
   }
   \item{jacres }{ \code{jacres} and not \code{jacfunc} should be used if
     the system is specified by the residual function F(t,y,y'),
     i.e. \code{jacres} is used in conjunction with \code{res}.
     
-    If \code{jacres} is an R-function, the calling sequence for
+    If \code{jacres} is an \R-function, the calling sequence for
     \code{jacres} is identical to that of \code{res}, but with extra
     parameter \code{cj}.  Thus it should be called as: \code{jacres = 
     func(t, y, dy, parms, cj, ...)}.  Here \code{t} is the current time
     point in the integration, \code{y} is the current estimate of the
-    variables in the ODE system, \eqn{y'} are the corresponding rates of
-    change and \code{cj} is a scalar, which is normally proportional to
-    the inverse of the stepsize. If the initial y or dy have a names
-    attribute, the names will be available inside jacres, unless
+    variables in the ODE system, \eqn{y'} are the corresponding derivatives
+    and \code{cj} is a scalar, which is normally proportional to
+    the inverse of the stepsize. If the initial \code{y} or \code{dy}
+    have a \code{names} attribute, the names will be available inside
+    \code{jacres}, unless
     \code{ynames} is \code{FALSE}. \code{parms} is a vector of
     parameters (which may have a names attribute).
     
-    If the jacobian is a full matrix, \code{jacres} should return the
+    If the Jacobian is a full matrix, \code{jacres} should return the
     matrix dG/dy + cj*dG/dyprime, where the ith row is the sum of the
     derivatives of \eqn{G_i} with respect to \eqn{y_j} and the scaled
     derivatives of \eqn{G_i} with respect to \eqn{dy_j}.
     
-    Ff the jacobian is banded, \code{jacres} should return only the
-    nonzero bands of the jacobian, rotated rowwise. See details for the
+    If the Jacobian is banded, \code{jacres} should return only the
+    nonzero bands of the Jacobian, rotated rowwise. See details for the
     calling sequence when \code{jacres} is a string.
   }
-  \item{jactype }{the structure of the jacobian, one of
+  \item{jactype }{the structure of the Jacobian, one of
     \code{"fullint"}, \code{"fullusr"}, \code{"bandusr"} or
     \code{"bandint"} - either full or banded and estimated internally or
     by the user.
@@ -161,10 +163,10 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     case, the number of algebraic equations must be given (\code{nalg}).
     If \code{estini} = 2: \code{y} will be estimated from \code{dy}.
   }
-  \item{verbose }{if TRUE: full output to the screen, e.g. will output
-    the settings of vector \bold{istate} and \bold{rstate} - see details.
+  \item{verbose }{if TRUE: full output to the screen, e.g. will
+    print the \code{diagnostiscs} of the integration - see details.
   }
-  \item{tcrit }{the Fortran routine \code{daspk} overshoots its targets
+  \item{tcrit }{the FORTRAN routine \code{daspk} overshoots its targets
     (times points in the vector \code{times}), and interpolates values
     for the desired time points.  If there is a time beyond which
     integration should not proceed (perhaps because of a singularity),
@@ -182,19 +184,19 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   \item{hini }{initial step size to be attempted; if 0, the initial step
     size is determined by the solver
   }
-  \item{ynames }{if FALSE: names of state variables are not passed to
-    function \code{func} ; this may speed up the simulation especially
+  \item{ynames }{logical, if \code{FALSE}, names of state variables are not
+    passed to function \code{func}; this may speed up the simulation especially
     for large models.
   }
   \item{maxord }{the maximum order to be allowed. Reduce \code{maxord}
     to save storage space ( <= 5)
   }
   \item{bandup }{number of non-zero bands above the diagonal, in case
-    the jacobian is banded (and \code{jactype} one of
+    the Jacobian is banded (and \code{jactype} one of
     "bandint","bandusr")
   }
   \item{banddown }{number of non-zero bands below the diagonal, in case
-    the jacobian is banded (and \code{jactype} one of
+    the Jacobian is banded (and \code{jactype} one of
     "bandint","bandusr")
   }
   \item{maxsteps }{maximal number of steps per output interval taken by the
@@ -204,8 +206,8 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   }
   \item{dllname }{a string giving the name of the shared library
     (without extension) that contains all the compiled function or
-    subroutine definitions referred to in \code{func}/or \code{res} and
-    \code{jacfunc}.  See package vignette \code{"compiledCode"}.
+    subroutine definitions referred to in \code{res} and
+    \code{jacres}.  See package vignette \code{"compiledCode"}.
   }
   \item{initfunc }{if not \code{NULL}, the name of the initialisation function
     (which initialises values of parameters), as provided in
@@ -214,19 +216,19 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   \item{initpar }{only when \file{dllname} is specified and an
     initialisation function \code{initfunc} is in the dll: the
     parameters passed to the initialiser, to initialise the common
-    blocks (fortran) or global variables (C, C++).
+    blocks (FORTRAN) or global variables (C, C++).
   }
   \item{rpar }{only when \file{dllname} is specified: a vector with
     double precision values passed to the dll-functions whose names are
-    specified by \code{func} and \code{jacfunc}.
+    specified by \code{res} and \code{jacres}.
   }
   \item{ipar }{only when \file{dllname} is specified: a vector with
     integer values passed to the dll-functions whose names are specified
-    by \code{func} and \code{jacfunc}.
+    by \code{res} and \code{jacres}.
   }
   \item{nout }{only used if \file{dllname} is specified and the model is
     defined in compiled code: the number of output variables calculated
-    in the compiled function \code{func}, present in the shared
+    in the compiled function \code{res}, present in the shared
     library. Note: it is not automatically checked whether this is
     indeed the number of output variables calculed in the dll - you have
     to perform this check in the code - See package vignette
@@ -234,7 +236,25 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   }
   \item{outnames }{only used if \file{dllname} is specified and
     \code{nout} > 0: the names of output variables calculated in the
-    compiled function \code{func}, present in the shared library.
+    compiled function \code{res}, present in the shared library.
+    These names will be used to label the output matrix.
+  }
+  \item{forcings }{only used if \file{dllname} is specified: a list with
+    the forcing function data sets, each present as a two-columned matrix,
+    with (time,value); interpolation outside the interval
+    [min(\code{times}), max(\code{times})] is done by taking the value at
+    the closest data extreme.
+
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See \link{forcings} or vignette \code{compiledCode}.
   }
   \item{... }{additional arguments passed to \code{func},
     \code{jacfunc}, \code{res} and \code{jacres}, allowing this to be a
@@ -242,24 +262,20 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   }
 }
 \value{
-  A matrix with up to as many rows as elements in times and as many
+  A matrix of class \code{deSolve} with up to as many rows as elements in
+  \code{times} and as many
   columns as elements in \code{y} plus the number of "global" values
   returned in the next elements of the return from \code{func} or
   \code{res}, plus an additional column (the first) for the time value.
   There will be one row for each element in \code{times} unless the
-  Fortran routine `daspk' returns with an unrecoverable error.  If
+  FORTRAN routine `daspk' returns with an unrecoverable error.  If
   \code{y} has a names attribute, it will be used to label the columns
   of the output value.
       
-  The output will have the attributes \code{istate}, and \code{rstate},
-  two vectors with several useful elements.  See details.  The first
-  element of istate returns the conditions under which the last call to
-  daspk returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
-  TRUE, the settings of istate and rstate will be written to the screen.
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{
-## ====================================================
+## =======================================================================
 ## Coupled chemical reactions including an equilibrium
 ## modeled as (1) an ODE and (2) as a DAE
 ##
@@ -267,7 +283,8 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
 ## subjected to equilibrium reaction D <- > A + B
 ## D is produced at a constant rate, prod
 ## B is consumed at 1s-t order rate, r
-## ====================================================
+## Chemical problem formulation 1: ODE
+## =======================================================================
 
 ## Dissociation constant
 K <- 1 
@@ -278,9 +295,6 @@ pars <- c(
         r    = 1,
         prod = 0.1)
 
-## ====================================
-## Chemical problem formulation 1: ODE
-## ====================================
 
 Fun_ODE <- function (t, y, pars)
 {
@@ -297,14 +311,14 @@ Fun_ODE <- function (t, y, pars)
   })
 }
 
-## ======================================================
+## =======================================================================
 ## Chemical problem formulation 2: DAE
 ## 1. get rid of the fast reactions ra and rb by taking
 ## linear combinations   : dD+dA = prod (res1) and
 ##                         dB-dA = -r*B (res2)
 ## 2. In addition, the equilibrium condition (eq) reads:
 ## as ra = rb : ka*D = ka/K*A*B = >      K*D = A*B
-## ======================================================
+## =======================================================================
 
 Res_DAE <- function (t, y, yprime, pars)
 {
@@ -342,7 +356,8 @@ DAE <- as.data.frame(daspk(y = y, dy = dy, times = times,
 ## plotting output
 ## ================
 opa <- par(mfrow = c(2,2))
-for (i in 2:5) 
+
+for (i in 2:5)
 {
 plot(ODE$time,ODE[,i],xlab = "time",
      ylab = "conc",main = names(ODE)[i],type = "l")
@@ -354,9 +369,11 @@ legend("bottomright",lty = c(1,NA),pch = c(NA,1),
 # difference between both implementations:
 max(abs(ODE-DAE))
 
-## ======================================
-## same DAE model, now with the jacobian
-## ======================================
+par(mfrow = opa)
+
+## =======================================================================
+## same DAE model, now with the Jacobian
+## =======================================================================
 jacres_DAE <- function (t, y, yprime, pars, cj)
 {
     with (as.list(c(y, yprime, pars)), {
@@ -385,6 +402,35 @@ DAE2 <- as.data.frame(daspk(y = y, dy = dy, times = times,
 max(abs(DAE-DAE2))
 
 ## See \dynload subdirectory for a FORTRAN implementation of this model
+
+## =======================================================================
+## The chemical model as a DLL, with production a forcing function
+## =======================================================================
+times <- seq(0, 100, by = 2)
+
+pars <- c(K = 1, ka   = 1e6, r    = 1)
+
+## Initial conc; D is in equilibrium with A,B
+y     <- c(A = 2, B = 3, D = 2*3/pars["K"])
+
+## Initial rate of change
+dy  <- c(dA = 0, dB = 0, dD = 0)
+
+# production increases with time
+prod <- matrix(nc=2,data=c(seq(0,100,by=10),0.1*(1+runif(11)*1)))
+
+ODE_dll <- as.data.frame(daspk(y=y,dy=dy,times=times,res="chemres",
+          dllname="deSolve", initfunc="initparms",
+          initforc="initforcs", parms=pars, forcings=prod,
+          atol=1e-10,rtol=1e-10,nout=2, outnames=c("CONC","Prod")))
+
+opa <- par(mfrow = c(1,2))
+plot(ODE_dll$time,ODE_dll$Prod,xlab = "time",
+     ylab = "/day",main = "production rate",type = "l")
+plot(ODE_dll$time,ODE_dll$D,xlab = "time",
+     ylab = "conc",main = "D",type = "l")
+par(mfrow = opa)
+
 }
 \references{
   L. R. Petzold, A Description of DASSL: A Differential/Algebraic
@@ -430,21 +476,21 @@ max(abs(DAE-DAE2))
   y' and algebraic variables (their number specified with \code{nalg})
   will be estimated, when \code{estini} = 2, y will be estimated.
   
-  The form of the \bold{jacobian} can be specified by
+  The form of the \bold{Jacobian} can be specified by
   \code{jactype}. This is one of:
   
   \describe{
-    \item{jactype = "fullint":}{a full jacobian, calculated internally
+    \item{jactype = "fullint":}{a full Jacobian, calculated internally
       by \code{daspk}, the default,
     }
-    \item{jactype = "fullusr":}{a full jacobian, specified by user
+    \item{jactype = "fullusr":}{a full Jacobian, specified by user
       function \code{jacfunc} or \code{jacres},
     }
-    \item{jactype = "bandusr":}{a banded jacobian, specified by user
+    \item{jactype = "bandusr":}{a banded Jacobian, specified by user
       function \code{jacfunc} or \code{jacres}; the size of the bands
       specified by \code{bandup} and \code{banddown},
     }
-    \item{jactype = "bandint":}{a banded jacobian, calculated by
+    \item{jactype = "bandint":}{a banded Jacobian, calculated by
       \code{daspk}; the size of the bands specified by \code{bandup} and
       \code{banddown}.
     }
@@ -461,58 +507,28 @@ max(abs(DAE-DAE2))
   precision exceeds the capabilities of the machine, daspk will return
   an error code. See \code{\link{lsoda}} for details.
   
-  \bold{res and jacres} may be defined in compiled C or Fortran code, as
+  \bold{res and jacres} may be defined in compiled C or FORTRAN code, as
   well as in an R-function. See package vignette \code{"compiledCode"}
   for details.  Examples
-  in Fortran are in the \file{dynload} subdirectory of the
+  in FORTRAN are in the \file{dynload} subdirectory of the
   \code{deSolve} package directory.
 
-  The output will have the attributes \bold{istate}, and \bold{rstate}, two
-  vectors with several useful elements.
+  The diagnostics of the integration can be printed to screen
+  by calling \code{\link{diagnostics}}. If \code{verbose} = \code{TRUE},
+  the diagnostics will written to the screen at the end of the integration.
 
-  If \code{verbose} = TRUE, the settings of istate and rstate will be
-  written to the screen.
-  
-  The following elements of \bold{istate} are meaningful:
-  \itemize{
-    \item el 1 : returns the conditions under which the last call to
-      daspk returned.
-      2  if daspk was successful,
-      -1 if excess work done,
-      -2 means excess accuracy requested. (Tolerances too small),
-      -3 means illegal input detected. (See printed message.),
-      -4 means repeated error test failures. (Check all input),
-      -5 means repeated convergence failures.
-        (Perhaps bad Jacobian supplied or wrong choice of MF or tolerances.),
-      -6 means error weight became zero during problem.
-	(Solution component i vanished, and atol or atol(i) = 0.)
-    \item el 12 : The number of steps taken for the problem so far.
-    \item el 13 : The number of function evaluations for the problem so
-      far.,
-    \item el 14 : The number of Jacobian evaluations so far.,
-    \item el 15 : The method order last used (successfully).,
-    \item el 16 : The order to be attempted on the next step.,
-    \item el 17 : if el 1 = -4,-5: the largest component in the error
-      vector,
-    \item el 20 : The number of matrix LU decompositions so far.,
-    \item el 21 : The number of nonlinear (Newton) iterations so far.,
-    \item el 22 : The number of convergence failures of the solver so
-      far ,
-    \item el 23 : The number of error test failures of the integrator so
-      far.
-  }
-  \bold{rstate} contains the following:
-  \itemize{
-    \item 1: The step size in t last used (successfully).
-    \item 2: The step size to be attempted on the next step.
-    \item 3: The current value of the independent variable which the
-      solver has actually reached, i.e. the current internal mesh point
-      in t.
-    \item 4: A tolerance scale factor, greater than 1.0, computed when a
-      request for too much accuracy was detected.
-  }
-  For more information about possible options, see the comments in the
-  original code daspk.f.
+  See vignette("deSolve") for an explanation of each element in the vectors
+  containing the diagnostic properties and how to directly access them.
+
+  \bold{Models} may be defined in compiled C or FORTRAN code, as well as
+  in an R-function. See package vignette \code{"compiledCode"} for details.
+
+  More information about models defined in compiled code is in the package
+  vignette ("compiledCode"); information about linking forcing functions
+  to compiled code is in \link{forcings}.
+
+  Examples in both C and FORTRAN are in the \file{dynload} subdirectory
+  of the \code{deSolve} package directory.
 }
 \seealso{
   \itemize{

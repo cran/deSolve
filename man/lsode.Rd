@@ -1,14 +1,14 @@
 \name{lsode}
 \alias{lsode}
 
-\title{General Solver for Ordinary Differential Equations (ODE)}
+\title{Solver for Ordinary Differential Equations (ODE)}
 
 \description{
   Solves the initial value problem for stiff or nonstiff systems of
   ordinary differential equations (ODE) in the form: \deqn{dy/dt = 
   f(t,y)}.
   
-  The \R function \code{lsode} provides an interface to the Fortran ODE
+  The \R function \code{lsode} provides an interface to the FORTRAN ODE
   solver of the same name, written by Alan C. Hindmarsh and Andrew
   H. Sherman.
     
@@ -32,7 +32,8 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   ynames = TRUE, maxord = NULL, bandup = NULL, banddown = NULL,
   maxsteps = 5000, dllname = NULL, initfunc = dllname,
   initpar = parms, rpar = NULL, ipar = NULL, nout = 0,
-  outnames = NULL, ...)
+  outnames = NULL, forcings=NULL,
+  initforc = NULL, fcontrol=NULL, ...)
 }
 
 \arguments{
@@ -50,10 +51,10 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     dynamically loaded shared library.
   
     If \code{func} is an \R-function, it must be defined as:
-    \code{yprime = func(t, y, parms, ...)}.  \code{t} is the current time
+     \code{func <- function(t, y, parms,...)}.  \code{t} is the current time
     point in the integration, \code{y} is the current estimate of the
     variables in the ODE system.  If the initial values \code{y} has a
-    names attribute, the names will be available inside \code{func}.
+    \code{names} attribute, the names will be available inside \code{func}.
     \code{parms} is a vector or list of parameters; ... (optional) are
     any other arguments passed to the function.
   
@@ -79,23 +80,25 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     long as \code{y}. See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function that computes the
-    jacobian of the system of differential equations dydot(i)/dy(j), or
+    Jacobian of the system of differential equations dydot(i)/dy(j), or
     a string giving the name of a function or subroutine in
-    \file{dllname} that computes the jacobian (see Details below for
-    more about this option).  In some circumstances, supplying
+    \file{dllname} that computes the Jacobian (see vignette
+    \code{"compiledCode"} for more about this option).
+
+    In some circumstances, supplying
     \code{jacfunc} can speed up the computations, if the system is
     stiff.  The \R calling sequence for \code{jacfunc} is identical to
     that of \code{func}.
 
-    If the jacobian is a full matrix,
+    If the Jacobian is a full matrix,
     \code{jacfunc} should return a matrix dydot/dy, where the ith row
     contains the derivative of \eqn{dy_i/dt} with respect to \eqn{y_j},
     or a vector containing the matrix elements by columns (the way \R
-    and Fortran store matrices).  \cr If the jacobian is banded,
+    and FORTRAN store matrices).  \cr If the Jacobian is banded,
     \code{jacfunc} should return a matrix containing only the nonzero
-    bands of the jacobian, rotated row-wise. See first example of \code{lsode}.
+    bands of the Jacobian, rotated row-wise. See first example of \code{lsode}.
   }
-  \item{jactype }{the structure of the jacobian, one of
+  \item{jactype }{the structure of the Jacobian, one of
     \code{"fullint"}, \code{"fullusr"}, \code{"bandusr"} or
     \code{"bandint"} - either full or banded and estimated internally or
     by user; overruled if \code{mf}is not \code{NULL}.
@@ -104,11 +107,11 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     \code{jactype} - provides more options than \code{jactype} - see
     details.
   }
-  \item{verbose }{if TRUE: full output to the screen, e.g. will output
-    the settings of vectors \bold{istate} and \bold{rstate} - see details.
+  \item{verbose }{if TRUE: full output to the screen, e.g. will
+    print the \code{diagnostiscs} of the integration - see details.
   }
   \item{tcrit }{if not \code{NULL}, then \code{lsode} cannot integrate
-    past \code{tcrit}. The Fortran routine \code{lsode} overshoots its
+    past \code{tcrit}. The FORTRAN routine \code{lsode} overshoots its
     targets (times points in the vector \code{times}), and interpolates
     values for the desired time points.  If there is a time beyond which
     integration should not proceed (perhaps because of a singularity),
@@ -126,8 +129,8 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{hini }{initial step size to be attempted; if 0, the initial step
     size is determined by the solver.
   }
-  \item{ynames }{if FALSE: names of state variables are not passed to
-    function \code{func} ; this may speed up the simulation especially
+  \item{ynames }{logical, if \code{FALSE} names of state variables are not
+    passed to function \code{func}; this may speed up the simulation especially
     for multi-D models.
   }
   \item{maxord }{the maximum order to be allowed. \code{NULL} uses the default,
@@ -135,10 +138,10 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     method (meth = 2). Reduce maxord to save storage space.
   }
   \item{bandup }{number of non-zero bands above the diagonal, in case
-    the jacobian is banded.
+    the Jacobian is banded.
   }
   \item{banddown }{number of non-zero bands below the diagonal, in case
-    the jacobian is banded.
+    the Jacobian is banded.
   }
   \item{maxsteps }{maximal number of steps per output interval taken by the
     solver.
@@ -155,7 +158,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{initpar }{only when \file{dllname} is specified and an
     initialisation function \code{initfunc} is in the dll: the
     parameters passed to the initialiser, to initialise the common
-    blocks (fortran) or global variables (C, C++).
+    blocks (FORTRAN) or global variables (C, C++).
   }
   \item{rpar }{only when \file{dllname} is specified: a vector with
     double precision values passed to the dll-functions whose names are
@@ -176,34 +179,45 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{outnames }{only used if \file{dllname} is specified and
     \code{nout} > 0: the names of output variables calculated in the
     compiled function \code{func}, present in the shared library.
+    These names will be used to label the output matrix.
+  }
+  \item{forcings }{only used if \file{dllname} is specified: a list with
+    the forcing function data sets, each present as a two-columned matrix,
+    with (time,value); interpolation outside the interval
+    [min(\code{times}), max(\code{times})] is done by taking the value at
+    the closest data extreme.
+
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{initforc }{if not \code{NULL}, the name of the forcing function
+    initialisation function, as provided in
+    \file{dllname}. It MUST be present if \code{forcings} has been given a
+    value.
+    See \link{forcings} or package vignette \code{"compiledCode"}.
+  }
+  \item{fcontrol }{A list of control parameters for the forcing functions.
+    See \link{forcings} or vignette \code{compiledCode}.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.
   }
 }
 \value{
-  
-  A matrix with up to as many rows as elements in times and as many
-  columns as elements in \code{y} plus the number of "global" values
-  returned in the next elements of the return from \code{func}, plus an
-  additional column (the first) for the time value.  There will be one
-  row for each element in \code{times} unless the Fortran routine
-  `lsode' returns with an unrecoverable error.  If \code{y} has a names
+  A matrix of class \code{deSolve} with up to as many rows as elements
+  in \code{times} and as many columns as elements in \code{y} plus the number of "global"
+  values returned in the next elements of the return from \code{func},
+  plus and additional column for the time value.  There will be a row
+  for each element in \code{times} unless the FORTRAN routine `lsoda'
+  returns with an unrecoverable error. If \code{y} has a names
   attribute, it will be used to label the columns of the output value.
-      
-  The output will have the attributes \code{istate}, and \code{rstate},
-  two vectors with several useful elements.  See details.  The first
-  element of istate returns the conditions under which the last call to
-  lsode returned. Normal is \code{istate[1] = 2}.  If \code{verbose} =
-  TRUE, the settings of istate and rstate will be written to the screen
 
 }
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{
-## ========================================
+## =======================================================================
 ## Example 1:
 ##   Various ways to solve the same model.
-## ========================================
+## =======================================================================
 
 ## the model, 5 state variables
 f1 <- function  (t, y, parms)
@@ -219,7 +233,7 @@ f1 <- function  (t, y, parms)
   return(list(ydot))
 }
 
-## the jacobian, written as a full matrix
+## the Jacobian, written as a full matrix
 fulljac <- function  (t, y, parms)
 {
    jac <- matrix(nrow = 5, ncol = 5, byrow = TRUE,
@@ -231,7 +245,7 @@ fulljac <- function  (t, y, parms)
    return(jac)
 }
 
-## the jacobian, written in banded form
+## the Jacobian, written in banded form
 bandjac <- function  (t, y, parms)
 {
    jac <- matrix(nrow = 3, ncol = 5, byrow = TRUE,
@@ -245,30 +259,30 @@ bandjac <- function  (t, y, parms)
 yini  <- 1:5
 times <- 1:20
 
-## default: stiff method, internally generated, full jacobian
+## default: stiff method, internally generated, full Jacobian
 out   <- lsode(yini, times, f1, parms = 0, jactype = "fullint")
 
-## stiff method, user-generated full jacobian
+## stiff method, user-generated full Jacobian
 out2  <- lsode(yini, times, f1, parms = 0, jactype = "fullusr",
               jacfunc = fulljac)
 
-## stiff method, internally-generated banded jacobian
+## stiff method, internally-generated banded Jacobian
 ## one nonzero band above (up) and below(down) the diagonal
 out3  <- lsode(yini, times, f1, parms = 0, jactype = "bandint",
                               bandup = 1, banddown = 1)
 
-## stiff method, user-generated banded jacobian
+## stiff method, user-generated banded Jacobian
 out4  <- lsode(yini, times, f1, parms = 0, jactype = "bandusr",
               jacfunc = bandjac, bandup = 1, banddown = 1)
 
 ## non-stiff method
 out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
 
-## =====================================
+## =======================================================================
 ## Example 2:
 ##   diffusion on a 2-D grid
-##   partially specified jacobian
-## =====================================
+##   partially specified Jacobian
+## =======================================================================
 
 diffusion2D <- function(t, Y, par)
 {
@@ -306,11 +320,14 @@ for (i in 1:n) {
 }
 filled.contour(y, color.palette = terrain.colors)
 
-## jacfunc need not be estimated exactly
-## a crude approximation, with a smaller bandwidth will do.
-## Here the half-bandwidth 1 is used, whereas the true
-## half-bandwidths are equal to n.
-## This corresponds to ignoring the y-direction coupling in the ODEs.
+## =======================================================================
+## Example 3:
+##   jacfunc need not be estimated exactly
+##   a crude approximation, with a smaller bandwidth will do.
+##   Here the half-bandwidth 1 is used, whereas the true
+##   half-bandwidths are equal to n.
+##   This corresponds to ignoring the y-direction coupling in the ODEs.
+## =======================================================================
 
 print(system.time(
   for (i in 1:20) {
@@ -331,7 +348,7 @@ par(ask = pa)
   (North-Holland, Amsterdam, 1983), pp. 55-64.
 }
 \details{
-  The work is done by the Fortran subroutine \code{lsode}, whose
+  The work is done by the FORTRAN subroutine \code{lsode}, whose
   documentation should be consulted for details (it is included as
   comments in the source file \file{src/opkdmain.f}). The implementation
   is based on the November, 2003 version of lsode, from Netlib.
@@ -347,17 +364,17 @@ par(ask = pa)
   The options for \bold{jactype} are
   
   \describe{
-    \item{jactype = "fullint"}{a full jacobian, calculated internally by
+    \item{jactype = "fullint"}{a full Jacobian, calculated internally by
       lsode, corresponds to \code{mf} = 22,
     }
-    \item{jactype = "fullusr"}{a full jacobian, specified by user
+    \item{jactype = "fullusr"}{a full Jacobian, specified by user
       function \code{jacfunc}, corresponds to \code{mf} = 21,
     }
-    \item{jactype = "bandusr"}{a banded jacobian, specified by user
+    \item{jactype = "bandusr"}{a banded Jacobian, specified by user
       function \code{jacfunc}; the size of the bands specified by
       \code{bandup} and \code{banddown}, corresponds to \code{mf} = 24,
     }
-    \item{jactype = "bandint"}{a banded jacobian, calculated by lsode;
+    \item{jactype = "bandint"}{a banded Jacobian, calculated by lsode;
       the size of the bands specified by \code{bandup} and
       \code{banddown}, corresponds to \code{mf} = 25.
     }
@@ -392,50 +409,28 @@ par(ask = pa)
   If MITER = 1 or 4, the user must supply a subroutine \code{jacfunc}.
   
   Inspection of the example below shows how to specify both a banded and
-  full jacobian.
+  full Jacobian.
   
   The input parameters \code{rtol}, and \code{atol} determine the
   \bold{error control} performed by the solver.  See \code{\link{lsoda}}
   for details.
    
-  \bold{Models} may be defined in compiled C or Fortran code, as well as
-  in an \R-function. See package vignette \code{"compiledCode"} for details.
-  
-  The output will have the attributes \bold{istate}, and \bold{rstate},
-  two vectors with several useful elements.
-  
-  If \code{verbose} = TRUE, the settings of istate and rstate will be
-  written to the screen.
-      
-  The following elements of \bold{istate} are meaningful:
+  The diagnostics of the integration can be printed to screen
+  by calling \code{\link{diagnostics}}. If \code{verbose} = \code{TRUE},
+  the diagnostics will written to the screen at the end of the integration.
 
-  \itemize{
-    \item el 1 : returns the conditions under which the last call to lsode returned. 
-      2  if lsode was successful,
-      -1 if excess work done,
-      -2 means excess accuracy requested. (Tolerances too small), 
-      -3 means illegal input detected. (See printed message.),
-      -4 means repeated error test failures. (Check all input),
-      -5 means repeated convergence failures. (Perhaps bad Jacobian supplied or wrong choice of MF or tolerances.),
-      -6 means error weight became zero during problem. (Solution component i vanished, and atol or atol(i) = 0.)
-    \item el 12 : The number of steps taken for the problem so far.
-    \item el 13 : The number of evaluations for the problem so far.
-    \item el 14 : The number of Jacobian evaluations  and LU decompositions so far.
-    \item el 15 : The method order last used (successfully).
-    \item el 16 : The order to be attempted on the next step.
-    \item el 17 : if el 1 = -4,-5: the largest component in the error vector,
-  }
-  \bold{rstate} contains the following:
-  \itemize{
-    \item 1: The step size in t last used (successfully).
-    \item 2: The step size to be attempted on the next step.
-    \item 3: The current value of the independent variable which the
-       solver has actually reached, i.e. the current internal mesh point
-       in t.
-    \item 4: A tolerance scale factor, greater than 1.0, computed when
-       a request for too much accuracy was detected.
-  }
-  For more information, see the comments in the original code lsode.f
+  See vignette("deSolve") for an explanation of each element in the vectors
+  containing the diagnostic properties and how to directly access them.
+
+  \bold{Models} may be defined in compiled C or FORTRAN code, as well as
+  in an R-function. See package vignette \code{"compiledCode"} for details.
+
+  More information about models defined in compiled code is in the package
+  vignette ("compiledCode"); information about linking forcing functions
+  to compiled code is in \link{forcings}.
+
+  Examples in both C and FORTRAN are in the \file{dynload} subdirectory
+  of the \code{deSolve} package directory.
 }
 \seealso{
   \itemize{

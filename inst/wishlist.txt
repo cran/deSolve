@@ -1,8 +1,0 @@
-Wishlist for Future Releases:
-
-- code + doc for interpolation in C and Fortran
-- improve diagnostics (S3 classes)
-- more diagnostics for rk
-- PID stepsize control for rk
-
-

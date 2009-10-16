@@ -49,136 +49,136 @@
 #=======================
 # the model definition
 #=======================
-Pollution <- function (t,y,pars)
-{
+Pollution <- function (t, y, pars) {
 
- r  <- vector(length=25)
- dy <- vector(length=length(y))
-      r[ 1] = k1 *y[ 1]
-      r[ 2] = k2 *y[ 2]*y[4]
-      r[ 3] = k3 *y[ 5]*y[2]
-      r[ 4] = k4 *y[ 7]
-      r[ 5] = k5 *y[ 7]
-      r[ 6] = k6 *y[ 7]*y[6]
-      r[ 7] = k7 *y[ 9]
-      r[ 8] = k8 *y[ 9]*y[6]
-      r[ 9] = k9 *y[11]*y[2]
-      r[10] = k10*y[11]*y[1]
-      r[11] = k11*y[13]
-      r[12] = k12*y[10]*y[2]
-      r[13] = k13*y[14]
-      r[14] = k14*y[ 1]*y[6]
-      r[15] = k15*y[ 3]
-      r[16] = k16*y[ 4]
-      r[17] = k17*y[ 4]
-      r[18] = k18*y[16]
-      r[19] = k19*y[16]
-      r[20] = k20*y[17]*y[6]
-      r[21] = k21*y[19]
-      r[22] = k22*y[19]
-      r[23] = k23*y[ 1]*y[4]
-      r[24] = k24*y[19]*y[1]
-      r[25] = k25*y[20]
+  r  <- vector(length = 25)
+  dy <- vector(length = length(y))
+
+  r[ 1] <- k1  * y[ 1]
+  r[ 2] <- k2  * y[ 2]*y[4]
+  r[ 3] <- k3  * y[ 5]*y[2]
+  r[ 4] <- k4  * y[ 7]
+  r[ 5] <- k5  * y[ 7]
+  r[ 6] <- k6  * y[ 7]*y[6]
+  r[ 7] <- k7  * y[ 9]
+  r[ 8] <- k8  * y[ 9]*y[6]
+  r[ 9] <- k9  * y[11]*y[2]
+  r[10] <- k10 * y[11]*y[1]
+  r[11] <- k11 * y[13]
+  r[12] <- k12 * y[10]*y[2]
+  r[13] <- k13 * y[14]
+  r[14] <- k14 * y[ 1]*y[6]
+  r[15] <- k15 * y[ 3]
+  r[16] <- k16 * y[ 4]
+  r[17] <- k17 * y[ 4]
+  r[18] <- k18 * y[16]
+  r[19] <- k19 * y[16]
+  r[20] <- k20 * y[17]*y[6]
+  r[21] <- k21 * y[19]
+  r[22] <- k22 * y[19]
+  r[23] <- k23 * y[ 1]*y[4]
+  r[24] <- k24 * y[19]*y[1]
+  r[25] <- k25 * y[20]
 
 
-      dy[1]  = dy[1]  -r[1]-r[10]-r[14]-r[23]-r[24]+r[2]+r[3]+
-                       r[9]+r[11]+r[12]+r[22]+r[25]
-      dy[2]  = dy[2]  -r[2]-r[3]-r[9]-r[12]+r[1]+r[21]
-      dy[3]  = dy[3]  -r[15]+r[1]+r[17]+r[19]+r[22]
-      dy[4]  = dy[4]  -r[2]-r[16]-r[17]-r[23]+r[15]
-      dy[5]  = dy[5]  -r[3]+r[4]+r[4]+r[6]+r[7]+r[13]+r[20]
-      dy[6]  = dy[6]  -r[6]-r[8]-r[14]-r[20]+r[3]+r[18]+r[18]
-      dy[7]  = dy[7]  -r[4]-r[5]-r[6]+r[13]
-      dy[8]  = dy[8]  +r[4]+r[5]+r[6]+r[7]
-      dy[9]  = dy[9]  -r[7]-r[8]
-      dy[10] = dy[10] -r[12]+r[7]+r[9]
-      dy[11] = dy[11] -r[9]-r[10]+r[8]+r[11]
-      dy[12] = dy[12] +r[9]
-      dy[13] = dy[13] -r[11]+r[10]
-      dy[14] = dy[14] -r[13]+r[12]
-      dy[15] = dy[15] +r[14]
-      dy[16] = dy[16] -r[18]-r[19]+r[16]
-      dy[17] = dy[17] -r[20]
-      dy[18] = dy[18] +r[20]
-      dy[19] = dy[19] -r[21]-r[22]-r[24]+r[23]+r[25]
-      dy[20] = dy[20] -r[25]+r[24]
-      
-      return(list(c(dy= dy),rate= r))
+  dy[1]  <- dy[1]  - r[1]-r[10]-r[14]-r[23]-r[24]+r[2]+r[3]+
+                     r[9]+r[11]+r[12]+r[22]+r[25]
+  dy[2]  <- dy[2]  - r[2]-r[3]-r[9]-r[12]+r[1]+r[21]
+  dy[3]  <- dy[3]  - r[15]+r[1]+r[17]+r[19]+r[22]
+  dy[4]  <- dy[4]  - r[2]-r[16]-r[17]-r[23]+r[15]
+  dy[5]  <- dy[5]  - r[3]+r[4]+r[4]+r[6]+r[7]+r[13]+r[20]
+  dy[6]  <- dy[6]  - r[6]-r[8]-r[14]-r[20]+r[3]+r[18]+r[18]
+  dy[7]  <- dy[7]  - r[4]-r[5]-r[6]+r[13]
+  dy[8]  <- dy[8]  + r[4]+r[5]+r[6]+r[7]
+  dy[9]  <- dy[9]  - r[7]-r[8]
+  dy[10] <- dy[10] - r[12]+r[7]+r[9]
+  dy[11] <- dy[11] - r[9]-r[10]+r[8]+r[11]
+  dy[12] <- dy[12] + r[9]
+  dy[13] <- dy[13] - r[11]+r[10]
+  dy[14] <- dy[14] - r[13]+r[12]
+  dy[15] <- dy[15] + r[14]
+  dy[16] <- dy[16] - r[18]-r[19]+r[16]
+  dy[17] <- dy[17] - r[20]
+  dy[18] <- dy[18] + r[20]
+  dy[19] <- dy[19] - r[21]-r[22]-r[24]+r[23]+r[25]
+  dy[20] <- dy[20] - r[25]+r[24]
+
+  return(list(c(dy = dy), rate = r))
 }
 
 #=============================
 # parameters, state variables
 #=============================
 # The species names:
-spnames <- c("NO2","NO","O3P","O3","HO2","OH","HCHO","CO","ALD","MEO2", 
-       "C2O3","CO2","PAN","CH3O","HNO3","O1D","SO2","SO4","NO3","N2O5")
+spnames <- c("NO2", "NO", "O3P", "O3", "HO2", "OH", "HCHO", "CO", "ALD", "MEO2",
+       "C2O3", "CO2", "PAN", "CH3O", "HNO3", "O1D", "SO2", "SO4", "NO3", "N2O5")
 
 # Parameters: rate coefficients
-   k1=.35
-   k2=.266e2
-   k3=.123e5
-   k4=.86e-3
-   k5=.82e-3
-   k6=.15e5
-   k7=.13e-3
-   k8=.24e5
-   k9=.165e5
-   k10=.9e4
-   k11=.22e-1
-   k12=.12e5
-   k13=.188e1
-   k14=.163e5
-   k15=.48e7
-   k16=.35e-3
-   k17=.175e-1
-   k18=.1e9
-   k19=.444e12
-   k20=.124e4
-   k21=.21e1
-   k22=.578e1
-   k23=.474e-1
-   k24=.178e4
-   k25=.312e1
+k1 <- .35
+k2 <- .266e2
+k3 <- .123e5
+k4 <- .86e-3
+k5 <- .82e-3
+k6 <- .15e5
+k7 <- .13e-3
+k8 <- .24e5
+k9 <- .165e5
+k10 <- .9e4
+k11 <- .22e-1
+k12 <- .12e5
+k13 <- .188e1
+k14 <- .163e5
+k15 <- .48e7
+k16 <- .35e-3
+k17 <- .175e-1
+k18 <- .1e9
+k19 <- .444e12
+k20 <- .124e4
+k21 <- .21e1
+k22 <- .578e1
+k23 <- .474e-1
+k24 <- .178e4
+k25 <- .312e1
 
 # State variable initial condition
-   y <- rep(0,20)
-   y[2]  = 0.2
-   y[4]  = 0.04
-   y[7]  = 0.1
-   y[8]  = 0.3
-   y[9]  = 0.01
-   y[17] = 0.007
+y <- rep(0, 20)
+y[2]  <- 0.2
+y[4]  <- 0.04
+y[7]  <- 0.1
+y[8]  <- 0.3
+y[9]  <- 0.01
+y[17] <- 0.007
 
 #=============================
 # application 1.   
 #=============================
 
-times <- seq(0,10,0.1)   
+times <- seq(0, 10, 0.1)
 
 # run with default tolerances, short period of time
-out   <- vode(y,times,Pollution,parms=NULL)
+out   <- vode(y, times, Pollution, parms = NULL)
 
 # increasing tolerance
-out2  <- vode(y,times,Pollution,parms=NULL,
-              atol=1e-10,rtol=1e-10) 
-colnames(out)[1:(1+length(spnames))] <- c("time",spnames)
+out2  <- vode(y, times, Pollution, parms = NULL,
+              atol = 1e-10, rtol = 1e-10)
+colnames(out)[1:(1+length(spnames))] <- c("time", spnames)
 
 # run for longer period
-Times <- seq (0,2000,10)
-out3 <- vode(y,Times,Pollution,parms=NULL,
-             atol=1e-10,rtol=1e-10)
+Times <- seq (0, 2000, 10)
+out3 <- vode(y, Times, Pollution, parms = NULL,
+             atol = 1e-10, rtol = 1e-10)
 
-# plotting output
-mf    <-par(mfrow=c(2,2))
-plot (times,out[,6],type="l",log="y",ylab="log",main=colnames(out)[6])
-lines(times,out2[,6],lty=2,col="red")
-legend("topright",c("tol=1e-8","tol=1e-10"),col=c("black","red"),lty=1)
-plot(times,out2[,8],type="l",main=colnames(out)[8])
-plot(Times,out3[,6],type="l",log="y",ylab="log",main=colnames(out)[6])
-plot(Times,out3[,8],type="l",main=colnames(out)[8])
+# plotting output; omit the first row to avoud zero in logarithmic plots
+mf    <-par(mfrow = c(2, 2))
+plot (times[-1], out[-1, 6], type = "l", log = "y", ylab = "log", main = colnames(out)[6])
+lines(times[-1], out2[-1, 6], lty = 2, col = "red")
+legend("topright", c("tol = 1e-8", "tol = 1e-10"), col = c("black", "red"), lty = 1)
+plot(times[-1], out2[-1, 8], type = "l", main = colnames(out)[8])
+plot(Times[-1], out3[-1, 6], type = "l", log = "y", ylab = "log", main = colnames(out)[6])
+plot(Times[-1], out3[-1, 8], type = "l", main = colnames(out)[8])
 
-mtext(side=3,outer=TRUE,line=-1.5,cex=1.5,"Pollution problem")
-par (mfrow=mf)
+mtext(side = 3, outer = TRUE, line = -1.5, cex = 1.5, "Pollution problem")
+par (mfrow = mf)
 
 #=============================
 # application 2
@@ -186,49 +186,53 @@ par (mfrow=mf)
 
 #  Testing vode, lsode, lsoda, lsodes and daspk for precision and speed: 
 
-# reference output at t=60 (from http://www.dm.uniba.it/~testset)
-ytrue <- c(0.5646255480022769e-1,0.1342484130422339,0.4139734331099427e-8,
-0.5523140207484359e-2,0.2018977262302196e-6,0.1464541863493966e-6,
-0.7784249118997964e-1,0.3245075353396018,0.7494013383880406e-2,
-0.1622293157301561e-7,0.1135863833257075e-7,0.2230505975721359e-2,
-0.2087162882798630e-3,0.1396921016840158e-4,0.8964884856898295e-2,
-0.4352846369330103e-17,0.6899219696263405e-2,0.1007803037365946e-3,
-0.1772146513969984e-5,0.5682943292316392e-4)
+# reference output at t = 60 (from http://www.dm.uniba.it/~testset)
+ytrue <- c(0.5646255480022769e-1,  0.1342484130422339,    0.4139734331099427e-8,
+           0.5523140207484359e-2,  0.2018977262302196e-6, 0.1464541863493966e-6,
+           0.7784249118997964e-1,  0.3245075353396018,    0.7494013383880406e-2,
+           0.1622293157301561e-7,  0.1135863833257075e-7, 0.2230505975721359e-2,
+           0.2087162882798630e-3,  0.1396921016840158e-4, 0.8964884856898295e-2,
+           0.4352846369330103e-17, 0.6899219696263405e-2, 0.1007803037365946e-3,
+           0.1772146513969984e-5,  0.5682943292316392e-4)
 
-# generate output at t=60, and compare it with reference output
+# generate output at t = 60, and compare it with reference output
 # using the highest precision that does not provoke an error
 
-TT    <- c(0,60)
+TT    <- c(0, 60)
 s1<-system.time(
-Test1 <- vode(y,TT,Pollution,parms=NULL,atol=1e-17,rtol=1e-16,verbose=TRUE)
+  Test1 <- vode(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, verbose = TRUE)
 )["elapsed"]
 
 s2<-system.time(
-Test2 <- lsode(y,TT,Pollution,parms=NULL,atol=1e-17,rtol=1e-16, verbose=TRUE)
+  Test2 <- lsode(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, verbose = TRUE)
 )["elapsed"]
 
 s3<-system.time(
-Test3 <- lsoda(y,TT,Pollution,parms=NULL,atol=1e-14,rtol=1e-16, verbose=TRUE)
+  Test3 <- lsoda(y, TT, Pollution, parms = NULL, atol = 1e-14, rtol = 1e-17, verbose = TRUE)
 )["elapsed"]
 
 s4<-system.time(
-Test4 <- lsodes(y,TT,func=Pollution,parms=NULL,atol=1e-17,rtol=1e-16)
+  Test4 <- lsodes(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, verbose = TRUE)
 )["elapsed"]
 
 s5<-system.time(
-Test5 <- daspk(y,TT,func=Pollution,parms=NULL,atol=1e-14,rtol=1e-17,maxsteps=5000)
+  Test5 <- daspk(y, TT, Pollution, parms = NULL, atol = 1e-10, rtol = 1e-17, verbose = TRUE)
 )["elapsed"]
 
-print(  cbind(vode =(Test1[2,2:21]-ytrue),
-             lsode =(Test2[2,2:21]-ytrue),     
-             lsoda =(Test3[2,2:21]-ytrue),
-             lsodes=(Test4[2,2:21]-ytrue),
-             daspk =(Test5[2,2:21]-ytrue))    )
+print(  cbind(vode = (Test1[2, 2:21] - ytrue),
+             lsode = (Test2[2, 2:21] - ytrue),
+             lsoda = (Test3[2, 2:21] - ytrue),
+             lsodes= (Test4[2, 2:21] - ytrue),
+             daspk = (Test5[2, 2:21] - ytrue))    )
 
-DF <- data.frame(method=c("vode","lsode","lsoda","lsodes","daspk"),
-"maximal deviation"=c(max(abs(Test1[2,2:21]-ytrue)),
-max(abs(Test2[2,2:21]-ytrue)),max(abs(Test3[2,2:21]-ytrue)),
-max(abs(Test4[2,2:21]-ytrue)),max(abs(Test5[2,2:21]-ytrue))),
-"timing"=c(s1,s2,s3,s4,s5))
+DF <- data.frame(
+               method = c("vode", "lsode", "lsoda", "lsodes", "daspk"),
+  "maximal deviation" = c(max(abs(Test1[2, 2:21] - ytrue)),
+                          max(abs(Test2[2, 2:21] - ytrue)),
+                          max(abs(Test3[2, 2:21] - ytrue)),
+                          max(abs(Test4[2, 2:21] - ytrue)),
+                          max(abs(Test5[2, 2:21] - ytrue))),
+             "timing" = c(s1, s2, s3, s4, s5)
+)
 
 print(DF)

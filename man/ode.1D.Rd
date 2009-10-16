@@ -23,10 +23,10 @@
     function in a dynamically loaded shared library.
   
     If \code{func} is an \R-function, it must be defined as:
-    \code{yprime = func(t, y, parms,...)}.  \code{t} is the current time
+     \code{func <- function(t, y, parms,...)}.  \code{t} is the current time
     point in the integration, \code{y} is the current estimate of the
     variables in the ODE system.  If the initial values \code{y} has a
-    names attribute, the names will be available inside \code{func}.
+    \code{names} attribute, the names will be available inside \code{func}.
     \code{parms} is a vector or list of parameters; ... (optional) are
     any other arguments passed to the function.
   
@@ -78,14 +78,14 @@
 
 \author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
 \examples{
-## example 1
 
-##=====================================================
+## =======================================================================
+## example 1
 ## a predator and its prey diffusing on a flat surface
 ## in concentric circles
 ## 1-D model with using cylindrical coordinates
 ## Lotka-Volterra type biology
-##=====================================================
+## =======================================================================
 
 ## ================
 ## Model equations
@@ -170,11 +170,11 @@ filled.contour(x = times, y = r, PREY, color = topo.colors,
                xlab = "time, days", ylab = "Distance, m",
                main = "Prey density")
 
+## =======================================================================
 ## Example 2.
-##==========================================================
 ## Biochemical Oxygen Demand (BOD) and oxygen (O2) dynamics
 ## in a river
-##==========================================================
+## =======================================================================
 
 ## ================
 ## Model equations
