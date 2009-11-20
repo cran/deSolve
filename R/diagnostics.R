@@ -83,7 +83,7 @@ df <- c( "The return code :",                                              #1
          "The number of backsolves so far",
          "The number of times a new coefficient matrix has been formed so far",
          "The number of times the order of the method has been changed so far")
-  
+
   if (is.na(istate[14])) istate[14]<-istate[4]+istate[10]  # Jacobian+LU
   cat("\n--------------------\n")
   cat("INTEGER values\n")
@@ -117,7 +117,7 @@ printRstate <- function( rstate) {
 ## print all diagnostic messages
 ## =============================================================================
 
-diagnostics <- function(obj, Full = FALSE) {
+diagnostics.deSolve <- function(obj, Full = FALSE, ...) {
   Attr <- attributes(obj)
   name <- Attr$type
 
@@ -151,3 +151,8 @@ diagnostics <- function(obj, Full = FALSE) {
   } else
   invisible(list(istate=istate, rstate=rstate))
 }
+
+diagnostics.default <- function(obj, ...)
+  warning("No diagnostics available for class '", class(obj), "'")
+
+diagnostics <- function(obj, ...) UseMethod("diagnostics")

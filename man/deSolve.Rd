@@ -27,8 +27,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.5\cr
-    Date:    \tab 2009-06-25\cr
+    Version: \tab 1.5-1\cr
+    Date:    \tab 2009-10-23\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
@@ -102,9 +102,9 @@ demo("CCL4model")  # a model fitting example (this will take some time)
 browseURL(paste(system.file(package = "deSolve"), "/demo", sep = ""))
 
 ## open the directory with R sourcecode examples
-browseURL(paste(system.file(package = "deSolve"), "/examples", sep = ""))
+browseURL(paste(system.file(package = "deSolve"), "/doc/examples", sep = ""))
 ## open the directory with C and FORTRAN sourcecode examples
-browseURL(paste(system.file(package = "deSolve"), "/dynload", sep = ""))
+browseURL(paste(system.file(package = "deSolve"), "/doc/examples/dynload", sep = ""))
 
 ## show package vignette with how to use deSolve
 ## + source code of the vignette

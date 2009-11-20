@@ -243,7 +243,8 @@ plot(out[,"x"], out[,"y"], type = "l", main = "Lorenz butterfly",
 ## =======================================================================
 ## ex. 2
 ## SCOC model, in FORTRAN  - to see the FORTRAN code:
-## browseURL(paste(system.file(package="deSolve"),"/dynload/scoc.f",sep=""))
+## browseURL(paste(system.file(package="deSolve"),
+##                             "/doc/examples/dynload/scoc.f",sep=""))
 ## example from Soetaert and Herman, 2009, chapter 3. (simplified)
 ## =======================================================================
 
