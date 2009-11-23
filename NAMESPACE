@@ -1,13 +1,16 @@
 useDynLib(deSolve)
 
 export(aquaphy, ccl4model, SCOC, daspk, lsoda, lsodar, lsode, lsodes,
-       ode, ode.1D, ode.2D, ode.3D, ode.band, vode, diagnostics)
-export(zvode)
+       ode, ode.1D, ode.2D, ode.3D, ode.band, vode, zvode)
 
 export(rk, rk4, euler, rkMethod)
+
+exportPattern("^diagnostics.*")
 
 export(DLLfunc, DLLres)
 
 S3method("print", "deSolve")
 S3method("plot", "deSolve")
 S3method("hist", "deSolve")
+S3method("diagnostics", "deSolve")
+S3method("diagnostics", "default")

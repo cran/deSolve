@@ -22,7 +22,7 @@ setplotpar <- function(nmdots, dots, nv, ask) {
 
    ## interactively wait if there are remaining figures
     if (is.null(ask))
-      ask <- prod(par("mfrow")) < length(which) && dev.interactive()
+      ask <- prod(par("mfrow")) < nv && dev.interactive()
 
     return(ask)
 }
