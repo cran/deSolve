@@ -15,7 +15,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   bandup = NULL, banddown = NULL, maxsteps = 5000,
   dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL, 
   ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, ...)   {
+  initforc = NULL, fcontrol = NULL, events = NULL, ...)   {
 
 ### check input
   hmax <- checkInput (y, times, func, rtol, atol,
@@ -55,7 +55,9 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   JacFunc <- NULL
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
-
+  Eventfunc <- NULL
+  events <- checkevents(events, times, Ynames, dllname) 
+  
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
@@ -72,7 +74,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     rho <- NULL
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
-
+    Eventfunc <- events$func
   } else {
 
     if(is.null(initfunc))
@@ -96,6 +98,13 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
          attr(state,"names") <- Ynames
          jacfunc(time,state,parms,...)
        }
+       if (! is.null(events$Type))
+         if (events$Type == 2)
+           Eventfunc <- function(time,state) {
+             attr(state,"names") <- Ynames
+             events$func(time,state,parms,...) 
+           }
+       
     } else {                            # no ynames...
        Func    <- function(time,state)
          func   (time,state,parms,...)[1]
@@ -105,12 +114,21 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
          
        JacFunc <- function(time,state)
          jacfunc(time,state,parms,...)
+
+       if (! is.null(events$Type))
+          if (events$Type == 2)
+            Eventfunc <- function(time,state)  
+              events$func(time,state,parms,...) 
     }
         
     ## Check function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
+
+    if (! is.null(events$Type))
+      if (events$Type == 2) 
+        checkEventFunc(Eventfunc,times,y,rho)
 
     if (jt %in% c(1,4))  {
     tmp <- eval(JacFunc(times[1], y), rho)
@@ -163,12 +181,12 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   IN <-1
 
   out <- .Call("call_lsoda",y,times,Func,initpar,
-               rtol, atol, rho, tcrit, JacFunc, ModelInit,
+               rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(jt), as.integer(Nglobal),
                as.integer(lrw),as.integer(liw), as.integer(IN),
                NULL, as.integer(0), as.double(rpar), as.integer(ipar),
-               as.integer(0), flist, PACKAGE="deSolve")
+               as.integer(0), flist, events, PACKAGE="deSolve")
 
 ### saving results    
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,

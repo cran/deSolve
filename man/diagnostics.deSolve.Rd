@@ -27,7 +27,7 @@
   See tables 2 and 3 in vignette("deSolve") for what these vectors contain.
 }
 \details{
-  When the integration output is saved as a data.frame, then the required
+  When the integration output is saved as a \code{data.frame}, then the required
   attributes are lost and method \code{diagnostics} will not work anymore.
 }
 \examples{

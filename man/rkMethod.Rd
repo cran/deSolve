@@ -133,11 +133,10 @@ rkMethod(method = NULL, ...)
 
   \item{nknots}{integer value specifying the order of interpolation polynomials
     for methods without dense output (default = 5th order). If \code{nknots} < 2
-    internal
-    interpolation is switched off.  Note that this works only if time steps match
-    exactly. This may not work as expected for all cases because of
-    floating point rounding errors (see \R FAQ about ``Why doesn't \R
-    think these numbers are equal?'').
+    internal interpolation is switched off and integration is performed step by step
+    between external time steps. This avoids local interpolation errors but may 
+    slow down the algorithm a little bit, depending on the specific properties of 
+    the problem.
   }
 
   \item{alpha}{optional tuning parameter for stepsize
@@ -225,9 +224,14 @@ matplot(o1[,1], o1[,-1], type="l", xlab="Time", main="State Variables")
 matplot(o1[,1], o2[,-1], type="p", pch=16, add=TRUE)
 matplot(o0[,1], o1[,-1]-o0[,-1], type="l", lty="solid", xlab="Time",
   main="Difference: rk45dp7 - lsoda")
-matplot(o1[,1], o2[,-1]-o0[,-1], type="l", lty="dashed", xlab="Time",
+matplot(o1[,1], o2[,-1]-o1[,-1], type="l", lty="dashed", xlab="Time",
   main="difference: Neville-Aitken - Dense Output")
 abline(h=0, col="grey")
+
+## disable interpolation 
+## and integrate explicitly between external time steps
+o3 <- ode(x, times, func, parms, 
+  method = rkMethod("rk45dp7", d = NULL, nknots = 0))
 
 ## define and use a new rk method
 ode(x, times, func, parms, 

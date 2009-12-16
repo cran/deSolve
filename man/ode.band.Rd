@@ -76,7 +76,7 @@
 \examples{
 
 ## =======================================================================
-## The Aphid model from Soetaert and Herman, 20098.
+## The Aphid model from Soetaert and Herman, 2009.
 ## A practical guide to ecological modelling.
 ## Using R as a simulation platform. Springer.
 ## =======================================================================

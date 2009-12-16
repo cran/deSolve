@@ -30,7 +30,7 @@ SPCmod <- function(t, x, parms) {
 
 ## define states, time steps and parameters
 init  <- c(S = 1, P = 1, C = 1)      # initial conditions
-times  <- seq(0, 800, by=0.1)        # output times
+times  <- seq(0, 100, by=0.1)        # output times
 parms  <- c(b = 0.1, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
 
 ## external input signal with rectangle impulse
@@ -53,7 +53,10 @@ print(system.time(
   Out <- ode(xstart, times, SPCmod, parms))
 )
 
+## =============================================================================
 ## solve C version of the model
+## =============================================================================
+
 print(system.time(
   out <-  ode(y = y, times, func = "derivsc",
             parms = parms, dllname = "Forcing_lv", initforc="forcc",
@@ -63,17 +66,43 @@ print(system.time(
 
 
 ## Plotting
-out <- as.data.frame(out) # R version
-#out <- as.data.frame(Out) # C version
+plot(out, which = c("S","P","C"), type = "l")
+plot(out[,"P"], out[,"C"], type = "l", xlab = "producer", ylab = "consumer")
+#points(Out$P,Out$C)
+tail(out)
 
-mf <- par(mfrow = c(2,2))
-plot(out$time, out$S,  type = "l", ylab = "substrate")
-plot(out$time, out$P,  type = "l", ylab = "producer")
-plot(out$time, out$C,  type = "l", ylab = "consumer")
-plot(out$P, out$C,     type = "l", xlab = "producer", ylab = "consumer")
+
+## =============================================================================
+## now including an event - as a data.frame
+## =============================================================================
+eventdata <- data.frame(var=rep("C",10),time=seq(10,100,10),value=rep(0.5,10),
+  method=rep("multiply",10))
+eventdata
+
+## solve C version of the model
+print(system.time(
+  out2 <-  ode(y = y, times, func = "derivsc",
+            parms = parms, dllname = "Forcing_lv", initforc="forcc",
+            forcings = forcings, initfunc = "parmsc", nout = 2,
+            outnames = c("Sum", "signal"), events=list(data=eventdata))
+))
+
+
+## Plotting
+plot(out2, which = c("S","P","C"), type = "l")
+plot(out2[,"P"], out[,"C"], type = "l", xlab = "producer", ylab = "consumer")
 #points(Out$P,Out$C)
 
-par(mfrow = mf)
-tail(out)
+## =============================================================================
+## an event as a function
+## =============================================================================
+## solve C version of the model
+print(system.time(
+  out3 <-  ode(y = y, times, func = "derivsc",
+            parms = parms, dllname = "Forcing_lv", initforc="forcc",
+            forcings = forcings, initfunc = "parmsc", nout = 2,
+            outnames = c("Sum", "signal"), 
+            events = list(func="event",time=seq(10,90,10)))
+))
 
 dyn.unload(paste("Forcing_lv", .Platform$dynlib.ext, sep = ""))

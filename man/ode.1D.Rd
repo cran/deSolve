@@ -215,7 +215,7 @@ BOD_0   <- 1000      # mmol/m3 riverine BOD concentration
 
 ## initial conditions:
 state <- c(rep(200, N), rep(200, N))
-times     <- seq(0, 20, by = 1)
+times     <- seq(0, 20, by = 0.1)
 
 ## running the model
 ##  step 1  : model spinup

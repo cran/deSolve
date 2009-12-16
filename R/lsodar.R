@@ -23,7 +23,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   maxordn = 12, maxords = 5, bandup = NULL, banddown = NULL, 
   maxsteps = 5000, dllname=NULL,initfunc=dllname, initpar=parms,
   rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, ...)    {
+  initforc = NULL, fcontrol=NULL, events=NULL, ...)    {
 
 ### check input
   hmax <- checkInput (y, times, func, rtol, atol,
@@ -65,6 +65,8 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   RootFunc <- NULL
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
+  Eventfunc <- NULL
+  events <- checkevents(events, times, Ynames, dllname, TRUE) 
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
@@ -94,7 +96,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     rho <- NULL
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
-
+    Eventfunc <- events$func
   } else {
     if(is.null(initfunc))
       initpar <- NULL # parameter initialisation not needed if function is not a DLL
@@ -120,6 +122,12 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
         attr(state,"names") <- Ynames
         rootfunc(time,state,parms,...)
       }
+      if (! is.null(events$Type))
+       if (events$Type == 2)
+         Eventfunc <- function(time,state) {
+           attr(state,"names") <- Ynames
+           events$func(time,state,parms,...) 
+         }
     } else {                            # no ynames...
       Func    <- function(time,state)
         func   (time,state,parms,...)[1]
@@ -132,12 +140,22 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
       RootFunc <- function(time,state)
         rootfunc(time,state,parms,...)
+
+      if (! is.null(events$Type))
+       if (events$Type == 2)
+         Eventfunc <- function(time,state)  
+           events$func(time,state,parms,...) 
     }
         
-    ## Check function and return the number of output variables +name
+    ## Check derivative function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
+
+    ## Check event function
+    if (! is.null(events$Type))
+      if (events$Type == 2) 
+        checkEventFunc(Eventfunc,times,y,rho)
 
     ## and for rootfunc
     if (! is.null(rootfunc))  {
@@ -197,12 +215,12 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-4
   out <- .Call("call_lsoda",y,times,Func,initpar,
-               rtol, atol, rho, tcrit, JacFunc, ModelInit,
+               rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(jt),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(IN),RootFunc,
                as.integer(nroot), as.double (rpar), as.integer(ipar),
-               as.integer(0), flist, PACKAGE="deSolve")   #
+               as.integer(0), flist, events, PACKAGE="deSolve")   
 
 ### saving results    
   iroot  <- attr(out, "iroot")

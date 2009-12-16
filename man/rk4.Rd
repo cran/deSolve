@@ -118,10 +118,12 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
 \author{Thomas Petzoldt \email{thomas.petzoldt@tu-dresden.de}}
 \details{
   \code{rk4} and \code{euler} are special versions of the two fixed step
-  solvers with less overhead and less functionality (e.g. no interpolation)
-  compared to the generic Runge-Kutta codes called by \code{\link{rk}}.
+  solvers with less overhead and less functionality (e.g. no interpolation
+  and no events) compared to the generic Runge-Kutta codes called by 
+  \code{\link{rk}}.
    
-  If you need different internal and external time steps, you may use
+  If you need different internal and external time steps or want to use events, 
+  please use:
   \code{rk(y, times, func, parms, method="rk4")} or
   \code{rk(y, times, func, parms, method="euler")}.
 

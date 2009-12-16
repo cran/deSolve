@@ -50,7 +50,9 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     \code{"lsode"}, \code{"lsodes"}, \code{"lsodar"}, \code{"vode"},
     \code{"daspk"}, \code{"euler"}, \code{"rk4"}, \code{"ode23"} or
     \code{"ode45"}) or a function that performs integration, or a list
-    of class \code{rkMethod}.}
+    of class \code{rkMethod}.
+    The default integrator used is \link{lsoda}
+  }
    \item{x }{an object of class \code{deSolve}, as returned by the
     integrators, and to be printed.}
   \item{... }{additional arguments passed to the integrator or to the
@@ -77,6 +79,8 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
   compiled code.
   
   See the selected integrator for the additional options.
+  
+  The default integrator used is \link{lsoda}
 }
 
 \seealso{

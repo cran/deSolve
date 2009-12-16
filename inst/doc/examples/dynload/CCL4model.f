@@ -32,6 +32,18 @@ c parameters are divided into primary and derived parameters
        call derived()           
       return
       end
+
+c=======================================================================
+c In this "event", state variable 1 is increased with 1. DOES NOT WORK...
+c=======================================================================
+
+      subroutine eventfun(t, y)
+      double precision t, y(7)
+
+      y(1) = y(1) + 1
+      
+      end subroutine
+      
       
 c=======================================================================
 c Calculate derived parameters from primary parameters

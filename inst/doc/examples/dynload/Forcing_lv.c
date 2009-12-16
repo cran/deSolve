@@ -40,3 +40,6 @@ void derivsc(int *neq, double *t, double *y, double *ydot, double *yout, int *ip
     yout[1] = import;
 }
 
+void event(double *t, double *y) {
+   y[2] = y[2]*0.5;
+}

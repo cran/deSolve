@@ -110,6 +110,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
 
   if (!is.null(dllname))  {
+   if (! is.null(initfunc))  # KS: ADDED THAT to allow absence of initfunc
     if (is.loaded(initfunc, PACKAGE = dllname, type = "") ||
         is.loaded(initfunc, PACKAGE = dllname, type = "Fortran")) {
       ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
@@ -117,7 +118,10 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
        stop(paste("cannot integrate: initfunc not loaded ",initfunc))
     if (! is.null(forcings))
       flist <- checkforcings(forcings,times,dllname,initforc,verbose,fcontrol)
+   # Easier to deal with NA in C-code
+    if (is.null(initfunc)) ModelInit <- NA
   }
+
 
   ## If res is a character vector, then
   ## check to make sure it describes

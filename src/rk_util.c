@@ -65,7 +65,7 @@ SEXP getInputs(SEXP symbol, SEXP Rho) {
 /*----------------------------------------------------------------------------*/
 
 void blas_matprod1(double *x, int nrx, int ncx,
-		    double *y, int nry, int ncy, double *z)
+		    double *y, int nry, int ncy, double *z) 
 {
     const char *transa = "N", *transb = "N";
     int i;
@@ -127,15 +127,13 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
   double *yy;
   double ytmp[neq];
 
-  // Rprintf("i0, i1, i2, %d  %d  %d\n", ipar[0], ipar[1], ipar[2]);
-
   if (isDll) {
     /*------------------------------------------------------------------------*/
     /*   Function is a DLL function                                           */
     /*------------------------------------------------------------------------*/
-    deriv_func *cderivs;
+    C_deriv_func_type *cderivs;
     if (isForcing) updatedeforc(&t); 
-    cderivs = (deriv_func *) R_ExternalPtrAddr(Func);
+    cderivs = (C_deriv_func_type *) R_ExternalPtrAddr(Func);
     cderivs(&neq, &t, y, ytmp, yout, ipar);
     if (j >= 0)
       for (i = 0; i < neq; i++)  ydot[i + neq * j] = ytmp[i];
@@ -160,11 +158,10 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
     if (j < 0) {
       int elt = 1, ii = 0, l;
       for (i = 0; i < nout; i++)  {
-	l = LENGTH(VECTOR_ELT(Val, elt));
-        //Rprintf("len=%d \n", l);
+        l = LENGTH(VECTOR_ELT(Val, elt));
         if (ii == l) {
-	    ii = 0; elt++;
-	}
+	        ii = 0; elt++;
+	      }
         yout[i] = REAL(VECTOR_ELT(Val, elt))[ii];
         ii++;
       }
@@ -239,12 +236,11 @@ void neville(double *xx, double *y, double tnew, double *ynew, int n, int ksig) 
 /*============================================================================*/
 
 void shiftBuffer (double *x, int n, int k) {
-  /* n = rows, k=columns */
+  /* n = rows, k = columns */
   for (int i = 0; i < (n - 1); i++)
     for (int j = 0; j < k; j++)
       x[i + j * n] = x[i + 1 + j * n];
 }
-
 
 void setIstate(SEXP R_yout, SEXP R_istate, int *istate,
   int it_tot, int stage, int fsal, int qerr) {
@@ -254,4 +250,3 @@ void setIstate(SEXP R_yout, SEXP R_istate, int *istate,
   istate[14] = qerr;                    /* order of the method */
   setAttrib(R_yout, install("istate"), R_istate);
 }
-

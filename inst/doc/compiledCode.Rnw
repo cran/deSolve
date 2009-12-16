@@ -1209,6 +1209,69 @@ e.g. with times till 800 days, the DLL code executes 200 times faster%
   functions by the solvers, compared to the bisectioning approach used
   by approxfun}.
 
+\section{Implementing events in compiled code}
+  An \code{event} occurs when the value of a state variable is suddenly changed,
+  e.g. a certain amount is added, or part is removed. The integration 
+  routines cannot deal easily with such state variable changes. Typically these
+  events occur only at specific times.   
+  In \code{deSolve}, events can be imposed by means of an input file that 
+  specifies at which time a certain state variable is altered, or via
+  an event function. 
+
+  Both types of events combine with compiled code.
+  
+  Take the previous example, the Lotka-Volterra SPC model. Suppose that every 
+  10 days, half of the consumer is removed.
+
+  We first implement these events as a \code{data.frame}
+  
+<<>>=
+eventdata <- data.frame(var=rep("C",10),time=seq(10,100,10),value=rep(0.5,10),
+  method=rep("multiply",10))
+eventdata
+@
+
+  This model is solved, and plotted as:
+\begin{verbatim}
+dyn.load("Forcing_lv.dll")
+  out2 <-  ode(y = y, times, func = "derivsc",
+            parms = parms, dllname = "Forcing_lv", initforc="forcc",
+            forcings = forcings, initfunc = "parmsc", nout = 2,
+            outnames = c("Sum", "signal"), events=list(data=eventdata))
+dyn.unload("Forcing_lv.dll")
+plot(out2, which = c("S","P","C"), type = "l")
+
+\end{verbatim}
+  
+The event can also be implemented in \proglang{C} as:
+\begin{verbatim}
+void event(int *n, double *t, double *y) {
+   y[2] = y[2]*0.5;
+}
+\end{verbatim}
+Here n is the length of the state variable vector \code{y}.
+and is then solved as:
+\begin{verbatim}
+dyn.load("Forcing_lv.dll")
+  out3 <-  ode(y = y, times, func = "derivsc",
+            parms = parms, dllname = "Forcing_lv", initforc="forcc",
+            forcings = forcings, initfunc = "parmsc", nout = 2,
+            outnames = c("Sum", "signal"), 
+            events = list(func="event",time=seq(10,90,10)))
+dyn.unload("Forcing_lv.dll")
+\end{verbatim}
+ 
+\setkeys{Gin}{width=1.0\textwidth}
+\begin{figure}
+\begin{center}
+\includegraphics{comp-event}
+\end{center}
+\caption{Solution of the lotka-volterra resource (S)-producer (P) -
+consumer (C) model with time-variable input (signal) and with half of
+the consumer removed every 10 days - see text for R-code}
+\label{fig:lv2}
+\end{figure}
+  
 \section{Final remark}
 
 Detailed information about communication between \proglang{C},
