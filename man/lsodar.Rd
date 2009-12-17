@@ -23,6 +23,14 @@
     \item It finds the root of at least one of a set of constraint
       functions g(i) of the independent and dependent variables.
   }
+  
+  Two uses of \code{lsodar} are: 
+  \itemize{
+    \item To stop the simulation
+    \item To trigger an \link{events}, i.e. a sudden change in one of the 
+      state variables.
+  }
+   when a particular condition is met. 
 }
 \usage{lsodar(y, times, func, parms, rtol = 1e-6, atol = 1e-6, 
   jacfunc = NULL, jactype = "fullint", rootfunc = NULL,
@@ -31,7 +39,7 @@
   maxords = 5, bandup = NULL, banddown = NULL, maxsteps = 5000,
   dllname = NULL, initfunc = dllname, initpar = parms,
   rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, ...)
+  initforc = NULL, fcontrol=NULL, events=NULL, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -206,6 +214,9 @@
   \item{fcontrol }{A list of control parameters for the forcing functions.
     See \link{forcings} or vignette \code{compiledCode}.
   }
+  \item{events }{A list that specifies events, i.e. when the value of a 
+   state variable is suddenly changed. See \link{events} for more information.
+  }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.
   }
@@ -292,6 +303,33 @@ tout    <- c(0, 1e10)
 state   <- c(Bact = pars$Bini, Sub = pars$Sini)
 out     <- lsodar(state, tout, model, pars, rootfun = rootfun)
 print(out)
+
+
+## =======================================================================
+## Example 3:
+##   using lsodar to trigger an event
+## =======================================================================
+
+## a state variable is decaying at a first-order rate. 
+## when it reaches the value 0.1, a random amount is added.
+
+derivfun <- function (t,y,parms)
+  list (-0.05*y)
+
+rootfun <- function (t,y,parms)
+  return(y-0.1) 
+
+eventfun <- function(t,y,parms)
+  return(y+runif(1))  
+
+yini <- 0.8
+times <- 0:200
+
+out <- lsodar(func=derivfun, y = yini, times=times, 
+  rootfunc = rootfun, events = list(func=eventfun, root = TRUE))
+
+plot(out, type="l", lwd=2, main = "lsodar with event")
+  
 }
 \references{
 

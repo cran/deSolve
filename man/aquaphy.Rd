@@ -184,7 +184,7 @@ plot (times, out2$NCratio, type = "l", main = "NCratio",
 mtext(outer = TRUE, side = 3, "AQUAPHY, PAR=forcing", cex = 1.5)
 
 # Now all variables plotted in one figure...
-plot(out,type="l")
+plot(out,which= 1:9, type="l")
 
 par(mfrow=c(1,1))
 

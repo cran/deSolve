@@ -99,8 +99,8 @@ df <- c( "The return code :",                                              #1
 printRstate <- function( rstate) {
   df <- c( "The step size in t last used (successfully):",
     "The step size to be attempted on the next step:",
-    "The current value of the independent variable which the solver has actually reached:",
-    "Tolerance scale factor > 1.0 computed when a request for too much accuracy was detected:",
+    "The current value of the independent variable which the solver has reached:",
+    "Tolerance scale factor > 1.0 computed when requesting too much accuracy:",
     "The value of t at the time of the last method switch, if any:")
 
   cat("--------------------\n")

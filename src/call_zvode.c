@@ -29,8 +29,8 @@ static void cvode_derivs (int *neq, double *t, Rcomplex *y,
   int i;
   SEXP R_fcall, ans;     
 
-                              REAL(Time)[0]   = *t;
-  for (i = 0; i < *neq; i++)  COMPLEX (cY)[i] = y[i];
+  REAL(Time)[0]   = *t;
+  for (i = 0; i < *neq; i++)  COMPLEX(cY)[i] = y[i];
 
   PROTECT(R_fcall = lang3(cvode_deriv_func,Time,cY)) ;incr_N_Protect();
   PROTECT(ans = eval(R_fcall, vode_envir))           ;incr_N_Protect();
@@ -71,7 +71,7 @@ static void forc_zvode (int *neq, double *t, Rcomplex *y,
 
 
 /* give name to data types */
-typedef void cjac_func(int *, double *, Rcomplex *, int *,
+typedef void cjac_func_type(int *, double *, Rcomplex *, int *,
 		                  int *, Rcomplex *, int *, Rcomplex *, int *);
 
 /* MAIN C-FUNCTION, CALLED FROM R-code */
@@ -86,17 +86,14 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 /******                   DECLARATION SECTION                            ******/
 /******************************************************************************/
 
-/* These R-structures will be allocated and returned to R*/
-  SEXP   yout, yout2=NULL, ISTATE, RWORK;
-
   int    i, j, k, nt, latol, lrtol, lrw, liw, lzw;
   double*rwork, tin, tout, *Atol, *Rtol, ss;
   int    neq, itol, itask, istate, iopt, *iwork, jt, mflag, nout, 
          is, isDll, isForcing;
-  Rcomplex  *xytmp, *dy=NULL, *zwork;
+  Rcomplex  *xytmp, *dy = NULL, *zwork;
   
-  cderiv_func *derivs;
-  cjac_func   *jac=NULL;
+  cderiv_func_type *derivs;
+  cjac_func_type   *jac = NULL;
 
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
@@ -122,9 +119,9 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 
 /* is function a dll ?*/
   if (inherits(func, "NativeSymbol")) {
-   isDll = 1;
+    isDll = 1;
   } else {
-   isDll = 0;
+    isDll = 0;
   }
 
 /* initialise output for Complex variables ... */
@@ -133,32 +130,32 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 /* copies of all variables that will be changed in the FORTRAN subroutine */
  
   xytmp = (Rcomplex *) R_alloc(neq, sizeof(Rcomplex));
-    for (j = 0; j < neq; j++) xytmp[j] = COMPLEX(y)[j];
+  for (j = 0; j < neq; j++) xytmp[j] = COMPLEX(y)[j];
 
   latol = LENGTH(atol);
   Atol = (double *) R_alloc((int) latol, sizeof(double));
-    for (j = 0; j < latol; j++) Atol[j] = REAL(atol)[j];
+  for (j = 0; j < latol; j++) Atol[j] = REAL(atol)[j];
 
   lrtol = LENGTH(rtol);
   Rtol = (double *) R_alloc((int) lrtol, sizeof(double));
-    for (j = 0; j < lrtol; j++) Rtol[j] = REAL(rtol)[j];
+  for (j = 0; j < lrtol; j++) Rtol[j] = REAL(rtol)[j];
 
-  liw = INTEGER (lIw)[0];
+  liw = INTEGER(lIw)[0];
   iwork = (int *) R_alloc(liw, sizeof(int));   
-    for (j = 0; j < 30; j++) iwork[j] = INTEGER(iWork)[j];  
+  for (j = 0; j < 30; j++) iwork[j] = INTEGER(iWork)[j];  
 
-  lrw = INTEGER (lRw)[0];
+  lrw = INTEGER(lRw)[0];
   rwork = (double *) R_alloc(lrw, sizeof(double));
-    for (j = 0; j < 20; j++) rwork[j] = REAL(rWork)[j];
+  for (j = 0; j < 20; j++) rwork[j] = REAL(rWork)[j];
 
-  lzw = INTEGER (lZw)[0];
+  lzw = INTEGER(lZw)[0];
   zwork = (Rcomplex *) R_alloc(lzw, sizeof(Rcomplex));
 
   /* initialise global R-variables... */
   
   PROTECT(Time = NEW_NUMERIC(1))                  ;incr_N_Protect(); 
   PROTECT(cY = allocVector(CPLXSXP , neq) )       ;incr_N_Protect();        
-  PROTECT(yout = allocMatrix(CPLXSXP,ntot+1,nt))  ;incr_N_Protect();
+  PROTECT(YOUT = allocMatrix(CPLXSXP,ntot+1,nt))  ;incr_N_Protect();
   
   /**************************************************************************/
   /****** Initialization of Parameters and Forcings (DLL functions)    ******/
@@ -168,38 +165,34 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 
 /* pointers to functions derivs and jac, passed to the FORTRAN subroutine */
 
-  if (isDll==1) 
-    {/* DLL address passed to FORTRAN */
-      derivs = (cderiv_func *) R_ExternalPtrAddr(func);
-      /* no need to communicate with R - but output variables set here */      
-      if (isOut) {dy = (Rcomplex *) R_alloc(neq, sizeof(Rcomplex));
-                  // for (j = 0; j < neq; j++) dy[j] =  i0; 
-                  }
-	  /* here overruling derivs if forcing */
-      if (isForcing) {
-        cderfun = (cderiv_func *) R_ExternalPtrAddr(func);
-        derivs = (cderiv_func *) forc_zvode;
-      }
-
-    } else {  
-      /* interface function between FORTRAN and R passed to FORTRAN*/
-      derivs = (cderiv_func *) cvode_derivs;  
-      /* needed to communicate with R */
-      cvode_deriv_func = func; 
-      vode_envir = rho;       
-  
+  if (isDll == 1) { /* DLL address passed to FORTRAN */
+    derivs = (cderiv_func_type *) R_ExternalPtrAddr(func);
+    /* no need to communicate with R - but output variables set here */      
+    if (isOut) {
+      dy = (Rcomplex *) R_alloc(neq, sizeof(Rcomplex));
+      /* for (j = 0; j < neq; j++) dy[j] =  i0; */
     }
-    
-   if (!isNull(jacfunc))
-    {
-      if (isDll == 1)
-     	{
-	    jac = (cjac_func *) R_ExternalPtrAddr(jacfunc);
-	    } else {
+	  /* here overruling derivs if forcing */
+    if (isForcing) {
+      cderfun = (cderiv_func_type *) R_ExternalPtrAddr(func);
+      derivs = (cderiv_func_type *) forc_zvode;
+    }
+  } else {  
+    /* interface function between FORTRAN and R passed to FORTRAN*/
+    derivs = (cderiv_func_type *) cvode_derivs;  
+    /* needed to communicate with R */
+    cvode_deriv_func = func; 
+    vode_envir = rho;       
+  }
+  
+  if (!isNull(jacfunc)) {
+    if (isDll == 1) {
+	    jac = (cjac_func_type *) R_ExternalPtrAddr(jacfunc);
+    } else {
 	    cvode_jac_func = jacfunc;
 	    jac = cvode_jac;
-	    }
     }
+  }
 
 /* tolerance specifications */
   if (latol == 1 && lrtol == 1 ) itol = 1;
@@ -219,101 +212,75 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 
 /*                      #### initial time step ####                           */    
 
-/*  COMPLEX(yout)[0] = COMPLEX(times)[0];*/
-  for (j = 0; j < neq; j++)
-    {
-      COMPLEX(yout)[j+1] = COMPLEX(y)[j];
-    }      /* function in DLL and output */
+/*  COMPLEX(YOUT)[0] = COMPLEX(times)[0];*/
+  for (j = 0; j < neq; j++) {
+    COMPLEX(YOUT)[j+1] = COMPLEX(y)[j];
+  }      /* function in DLL and output */
 
-	  if (isOut == 1) {
-        tin = REAL(times)[0];
-        derivs (&neq, &tin, xytmp, dy, zout, ipar) ;
-	      for (j = 0; j < nout; j++)
-	       COMPLEX(yout)[j + neq + 1] = zout[j]; 
-               }  
+  if (isOut == 1) {
+    tin = REAL(times)[0];
+    derivs (&neq, &tin, xytmp, dy, zout, ipar) ;
+    for (j = 0; j < nout; j++)
+      COMPLEX(YOUT)[j + neq + 1] = zout[j]; 
+  }  
 
 /*                     ####   main time loop   ####                           */    
-
-  for (i = 0; i < nt-1; i++)
-  {
-    tin = REAL(times)[i];
-    tout = REAL(times)[i+1];
+  for (it = 0; it < nt-1; it++) {
+    tin = REAL(times)[it];
+    tout = REAL(times)[it+1];
       
  	  F77_CALL(zvode) (derivs, &neq, xytmp, &tin, &tout,
 			   &itol, Rtol, Atol, &itask, &istate, &iopt, zwork, &lzw, rwork,
 			   &lrw, iwork, &liw, jac, &jt, zout, ipar);
-	  if (istate == -1) {
+	  
+    if (istate == -1) {
       warning("an excessive amount of work (> mxstep ) was done, but integration was not successful - increase maxsteps ?");
-      }
-	  else if (istate == -2)  {
-	      warning("Excessive precision requested.  scale up `rtol' and `atol' e.g by the factor %g\n",10.0);
-	    }
-	  else if (istate == -4)  {
-       warning("repeated error test failures on a step, but integration was successful - singularity ?");
-      }
-    else if (istate == -5)  {
-       warning("repeated convergence test failures on a step, but integration was successful - inaccurate Jacobian matrix?");
-      }
-    else if (istate == -6)  {
-       warning("Error term became zero for some i: pure relative error control (ATOL(i)=0.0) for a variable which is now vanished");
-      }      
+    } else if (istate == -2)  {
+	    warning("Excessive precision requested.  scale up `rtol' and `atol' e.g by the factor %g\n",10.0);
+	  } else if (istate == -4)  {
+      warning("repeated error test failures on a step, but integration was successful - singularity ?");
+    } else if (istate == -5)  {
+      warning("repeated convergence test failures on a step, but integration was successful - inaccurate Jacobian matrix?");
+    } else if (istate == -6)  {
+      warning("Error term became zero for some i: pure relative error control (ATOL(i)=0.0) for a variable which is now vanished");
+    }      
     
-    if (istate == -3) 	{
-	      error("illegal input detected before taking any integration steps - see written message"); 
-    	  unprotect_all();
-  	}
-      else
-	  {
- 	/*   REAL(yout)[(i+1)*(ntot+1)] = tin;*/
-	   for (j = 0; j < neq; j++)
-	    COMPLEX(yout)[(i+1)*(ntot + 1) + j + 1] = xytmp[j];
+    if (istate == -3) {
+	    error("illegal input detected before taking any integration steps - see written message"); 
+      unprotect_all();
+  	} else {
+    	/*   REAL(YOUT)[(it+1)*(ntot+1)] = tin;*/
+      for (j = 0; j < neq; j++)
+	    COMPLEX(YOUT)[(it+1)*(ntot + 1) + j + 1] = xytmp[j];
    
-	  if (isOut == 1) 
-     {
+	    if (isOut == 1) {
         derivs (&neq, &tin, xytmp, dy, zout, ipar) ;
 	      for (j = 0; j < nout; j++)
-	       COMPLEX(yout)[(i+1)*(ntot + 1) + j + neq + 1] = zout[j]; 
+        COMPLEX(YOUT)[(it+1)*(ntot + 1) + j + neq + 1] = zout[j]; 
       }
     } 
 
 /*                    ####  an error occurred   ####                          */      
-  if (istate < 0 || tin < tout) {
-	  warning("Returning early from dvode  Results are accurate, as far as they go\n");
+    if (istate < 0 || tin < tout) {
+	    warning("Returning early from dvode  Results are accurate, as far as they go\n");
 
-	 /* redimension yout */
-	 PROTECT(yout2 = allocMatrix(CPLXSXP,ntot+1,(i+2)));incr_N_Protect();
+    	/* redimension YOUT */
+	    PROTECT(YOUT2 = allocMatrix(CPLXSXP,ntot+1,(it+2)));incr_N_Protect();
 
-	 for (k = 0; k < i+2; k++)
-	   for (j = 0; j < ntot+1; j++)
-	     COMPLEX(yout2)[k*(ntot+1) + j] = COMPLEX(yout)[k*(ntot+1) + j];
-	     break;
+  	  for (k = 0; k < it+2; k++)
+  	    for (j = 0; j < ntot+1; j++)
+  	      COMPLEX(YOUT2)[k*(ntot+1) + j] = COMPLEX(YOUT)[k*(ntot+1) + j];
+      break;
     }
   }  /* end main time loop */
 
 /*                   ####   returning output   ####                           */    
-       
-  PROTECT(ISTATE = allocVector(INTSXP, 23));incr_N_Protect();
-  for (k = 0;k<22;k++) INTEGER(ISTATE)[k+1] = iwork[k];
-
-  PROTECT(RWORK = allocVector(REALSXP, 4));incr_N_Protect();
-  for (k = 0;k<4;k++) REAL(RWORK)[k] = rwork[k+10]; 
-  /*  */
-
-  INTEGER(ISTATE)[0] = istate;  
-  if (istate > 0)
-    {
-      setAttrib(yout, install("istate"), ISTATE);
-       setAttrib(yout, install("rstate"), RWORK);       
-  } else {
-      setAttrib(yout2, install("istate"), ISTATE);
-      setAttrib(yout2, install("rstate"), RWORK);    
-  }
-/*                       ####   termination   ####                            */         
+  terminate(istate, 23, 0, 4, 10);      
   unprotect_all();
   if (istate > 0)
-    return(yout);
+    return(YOUT);
   else
-    return(yout2);
+    return(YOUT2);
 }
 
 

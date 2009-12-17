@@ -27,8 +27,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.5-1\cr
-    Date:    \tab 2009-10-23\cr
+    Version: \tab 1.6\cr
+    Date:    \tab 2009-11-23\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
@@ -82,6 +82,8 @@ SIAM J. Sci. Stat. Comput., 10, pp. 1038-1051.
   \code{\link{DLLfunc}}, \code{\link{DLLres}}, for testing model implementations
   in compiled code.
 
+  \code{\link{forcings}},  \code{\link{events}}, for how to implement forcing 
+  functions (external variables) and events (sudden changes in state variables)
 }
 
 \examples{

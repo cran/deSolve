@@ -95,6 +95,32 @@ for (cc in conc)
 
 legend("topright", lty = c(NA, 1), pch = c(1, NA), lwd = c(NA, 2),
        legend = c("data", "model"))
+
+## ================================== 
+## An example with tracer injection
+## ==================================
+# every day, a conc of 2 is added to AI.
+# 1. implemented as a data.frame
+eventdat <- data.frame(var = rep("AI", 6), time = 1:6 ,
+  value = rep(1,6), method =rep("add",6))
+
+eventdat
+
+print(system.time(
+out <-ccl4model(times, y, Pm, events=list(data=eventdat))
+))
+
+plot(out, mfrow=c(3,4), type="l", lwd=2)
+
+
+# 2. implemented as a function in a DLL!
+print(system.time(
+out2 <-ccl4model(times, y, Pm, events = list(func = "eventfun", time=1:6))
+))
+
+plot(out2, mfrow=c(3,4), type="l", lwd=2)
+
+
 }
 \details{
   The model is implemented primarily to demonstrate the linking of FORTRAN

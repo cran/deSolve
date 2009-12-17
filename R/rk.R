@@ -8,7 +8,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   method = rkMethod("rk45dp7", ... ), maxsteps = 5000,
   dllname = NULL, initfunc=dllname, initpar = parms,
   rpar = NULL,  ipar = NULL, nout = 0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, ...) {
+  initforc = NULL, fcontrol=NULL, events = NULL, ...) {
 
     ## Check inputs
     hmax <- checkInput(y, times, func, rtol, atol,
@@ -33,8 +33,8 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     if (nknots > 8) {
         warning("Large number of nknots does not make sense.")
     } else if (nknots < 2) {
-      cat("\nMethod without or with disabled interpolation\n")
-      nknots <- 1 # must be strictly positive
+      # cat("\nMethod without or with disabled interpolation\n")
+      method$nknots <- 0L
     } else {
       trange <- diff(range(times))
       ## ensure that we have at least nknots + 2 data points; + 0.5 for safety)
@@ -52,12 +52,15 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     }
 
     ## Model as shared object (DLL)?
-    Ynames <- attr(y,"names")
+    Ynames <- attr(y, "names")
     Initfunc <- NULL
+    Eventfunc <- NULL
+    events <- checkevents(events, times, Ynames, dllname) 
+    
     flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
 
-    if (is.character(func)) {
+    if (is.character(func)) { # function specified in a DLL
       DLL <- checkDLL(func, NULL, dllname,
                       initfunc, verbose, nout, outnames)
 
@@ -65,7 +68,8 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       Func     <- DLL$Func
       Nglobal  <- DLL$Nglobal
       Nmtot    <- DLL$Nmtot
-
+      Eventfunc <- events$func
+      
       if (! is.null(forcings))
         flist <- checkforcings(forcings, times, dllname, initforc, verbose, fcontrol)
 
@@ -79,20 +83,33 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 
       ## func is overruled, either including ynames, or not
       ## This allows to pass the "..." arguments and the parameters
-        if(ynames) {
-         Func   <- function(time,state,parms){
-           attr(state, "names") <- Ynames
-           func(time, state, parms, ...)}
-        } else {                            # no ynames...
-         Func   <- function(time,state,parms)
-           func(time, state, parms, ...)
-        }
+      if(ynames) {
+        Func   <- function(time,state,parms){
+          attr(state, "names") <- Ynames
+          func(time, state, parms, ...)}
+        if (! is.null(events$Type))
+          if (events$Type == 2)
+            Eventfunc <- function(time, state) {
+              attr(state, "names") <- Ynames
+              events$func(time, state, parms, ...) 
+            }  
+      } else {                            # no ynames...
+        Func   <- function(time, state, parms)
+          func(time, state, parms, ...)
+        if (! is.null(events$Type))
+          if (events$Type == 2)
+            Eventfunc <- function(time, state)  
+              events$func(time, state, parms,...) 
+      }
 
       ## Call func once to figure out whether and how many "global"
       ## results it wants to return and some other safety checks
       FF <- checkFuncEuler(Func, times, y, parms, rho, Nstates)
       Nglobal <- FF$Nglobal
       Nmtot   <- FF$Nmtot
+      
+      if (! is.null(events$Type))
+        if (events$Type == 2) checkEventFunc(Eventfunc, times, y, rho)
     }
 
     ## handle length of atol and rtol
@@ -112,7 +129,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     if (varstep) {  # methods with variable step size
       if (is.null(hini)) hini <- hmax
       out <- .Call("call_rkAuto", as.double(y), as.double(times),
-        Func, Initfunc, parms,
+        Func, Initfunc, parms, Eventfunc, events,
         as.integer(Nglobal), rho, as.double(atol),
         as.double(rtol), as.double(tcrit), as.integer(vrb),
         as.double(hmin), as.double(hmax), as.double(hini),
@@ -123,7 +140,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       ## that steps in "times" are used as they are
       if (is.null(hini)) hini <- 0
       out <- .Call("call_rkFixed", as.double(y), as.double(times),
-        Func, Initfunc, parms,
+        Func, Initfunc, parms, Eventfunc, events,
         as.integer(Nglobal), rho,
         as.double(tcrit), as.integer(vrb),
         as.double(hini), as.double(rpar), as.integer(ipar), method,

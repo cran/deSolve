@@ -27,8 +27,8 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   hini = hmax, ynames = TRUE, method = rkMethod("rk45dp7", ... ),
   maxsteps = 5000, dllname = NULL, initfunc = dllname,
   initpar = parms, rpar = NULL, ipar = NULL,
-  nout = 0, outnames = NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, ...)
+  nout = 0, outnames = NULL, forcings = NULL,
+  initforc = NULL, fcontrol = NULL, events = NULL, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -174,6 +174,13 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{fcontrol }{A list of control parameters for the forcing functions.
     See \link{forcings} or vignette \code{compiledCode}.
+  }
+  \item{events }{A list that specifies events, i.e. when the value of a 
+    state variable is suddenly changed. See \link{events} for more information.
+    Not also that if events are specified, then polynomial interpolation
+    is switched off and integration takes place from one external time step 
+    to the next, with an internal step size less than or equal the difference
+    of two adjacent points of \code{times}.
   }
   \item{... }{additional arguments passed to \code{func} allowing this
     to be a generic function.

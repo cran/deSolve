@@ -12,8 +12,8 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
   double *ytmp, *dy, tin, *delta, cj;
   int    ny, j,  type, ires, isDll, isForcing;
   
-  deriv_func *derivs;
-  res_func *res;
+  C_deriv_func_type *derivs;
+  C_res_func_type *res;
 
   init_N_Protect();
 
@@ -45,14 +45,14 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
   if(isForcing == 1)  updatedeforc(&tin);
 
   if (type == 1)   {
-    derivs = (deriv_func *) R_ExternalPtrAddr(func);
+    derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);
 
     derivs (&ny, &tin, ytmp, dy, out, ipar) ;
     for (j = 0; j < ny; j++)  REAL(yout)[j] = dy[j];
 
   } else {
 
-    res = (res_func *) R_ExternalPtrAddr(func);
+    res = (C_res_func_type  *) R_ExternalPtrAddr(func);
     delta = (double *) R_alloc(ny, sizeof(double));
     for (j = 0; j < ny; j++) delta[j] = 0.;
 

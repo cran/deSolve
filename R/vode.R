@@ -23,12 +23,11 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   bandup=NULL, banddown=NULL, maxsteps=5000, dllname=NULL, 
   initfunc=dllname, initpar=parms, rpar=NULL, ipar=NULL,
   nout=0, outnames=NULL, forcings=NULL, initforc = NULL,
-  fcontrol=NULL, ...)  {
+  fcontrol=NULL, events=NULL, ...)  {
 
 ### check input
   hmax <- checkInput (y, times, func, rtol, atol,
     jacfunc, tcrit, hmin, hmax, hini, dllname)
-
   n <- length(y)
 
   if (!is.null(maxord))
@@ -83,6 +82,8 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   Ynames <- attr(y,"names")
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
+  Eventfunc <- NULL
+  events <- checkevents(events, times, Ynames, dllname) 
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
@@ -100,7 +101,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
     rho <- NULL
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
-
+    Eventfunc <- events$func
      if (!is.null(jacfunc)) {
        #  if (miter == 4) Jacobian should have empty banddown empty rows
        # This is so for vode only; other solvers do not need this
@@ -131,6 +132,12 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
          attr(state,"names") <- Ynames
          rbind(jacfunc(time,state,parms,...),erow)
        }
+       if (! is.null(events$Type))
+         if (events$Type == 2)
+          Eventfunc <- function(time,state) {
+           attr(state,"names") <- Ynames
+           events$func(time,state,parms,...) 
+         }
     } else {                            # no ynames...
       Func    <- function(time,state)
         func   (time,state,parms,...)[1]
@@ -140,12 +147,21 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
          
       JacFunc <- function(time,state)
         rbind(jacfunc(time,state,parms,...),erow)
+
+      if (! is.null(events$Type))
+       if (events$Type == 2)
+         Eventfunc <- function(time,state)  
+           events$func(time,state,parms,...) 
     }
         
     ## Check function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
+
+    if (! is.null(events$Type))
+      if (events$Type == 2) 
+        checkEventFunc(Eventfunc,times,y,rho)
 
     if (miter %in% c(1,4)) {
       tmp <- eval(JacFunc(times[1], y), rho)
@@ -241,11 +257,12 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   IN <- 5   # vode is livermore solver type 5
   
   out <- .Call("call_lsoda", y, times, Func, initpar, rtol, atol,
-       rho, tcrit, JacFunc, ModelInit, as.integer(verbose),as.integer(itask),
+       rho, tcrit, JacFunc, ModelInit, Eventfunc, 
+       as.integer(verbose),as.integer(itask),
        as.double(rwork),as.integer(iwork), as.integer(imp),as.integer(Nglobal),
        as.integer(lrw),as.integer(liw),as.integer(IN),NULL,
        as.integer(0), as.double (rpar), as.integer(ipar),
-       as.integer(0), flist, PACKAGE = "deSolve")
+       as.integer(0), flist, events, PACKAGE = "deSolve")
 
 ### saving results    
 

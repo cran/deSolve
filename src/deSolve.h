@@ -1,53 +1,17 @@
 #include <R.h>
 #include <Rdefines.h>
-/* global variables */
+
+/*============================================================================
+  global R variables 
+============================================================================*/
+SEXP YOUT, YOUT2, ISTATE, RWORK, IROOT;    /* returned to R */
 SEXP Time, Y, YPRIME , Rin;
-extern SEXP de_gparms;
 
-typedef void deriv_func(int *, double *, double *,double *,double *, int *);
-deriv_func * derfun;
-
-typedef void res_func(double *, double *, double *, double*, double *,
-                      int*, double *, int*);
-res_func * res_fun;
-
-typedef void init_func (void (*)(int *, double *));
-
-void updatedeforc(double *);
-
-/* livermore solver globals */
-extern SEXP odesolve_deriv_func;
-extern SEXP odesolve_jac_func;
-extern SEXP odesolve_jac_vec;
-extern SEXP odesolve_root_func;
-extern SEXP odesolve_envir;
-
-/* daspk globals */
-extern SEXP daspk_res_func;
-extern SEXP daspk_jac_func;
-extern SEXP daspk_psol_func;
-extern SEXP daspk_envir;
-
-/* utilities */
-void init_N_Protect(void);
-void incr_N_Protect(void);
-void unprotect_all(void);
-void my_unprotect(int);
-
-
-/* declarations for initialisations;*/
-void initParms(SEXP Initfunc, SEXP Parms);
-void Initdeparms(int *, double *);
-void Initdeforc(int *, double *);
-void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
-
-
-void sparsity1D (SEXP Type, int* iwork, int neq, int liw);
-void sparsity2D (SEXP Type, int* iwork, int neq, int liw);
-void sparsity3D (SEXP Type, int* iwork, int neq, int liw);
+int    it, n_eq; 
+int    *iwork;   
+double *rwork;
 
 /* use in daspk */
-long int n_eq;
 long int mu;
 long int ml;
 long int nrowpd;
@@ -56,27 +20,85 @@ long int nrowpd;
 int nout, ntot, isOut, lrpar, lipar, *ipar;
 double *out;
 
-/* KS globals for the forcings */
-int initForcings(SEXP list);
-
-SEXP getListElement(SEXP list, const char *str);
-
+/* forcings  */
 long int nforc;  /* the number of forcings */
-
-/* Input data. three vectors:
-  tmat, fmat: time, forcing function data value
-  imat: index to start of each forcing function in tmat, fmat*/
-double * tvec;
-double * fvec;
-int    * ivec;
+double *tvec;
+double *fvec;
+int    *ivec;
 int    fmethod;
 
-/* for each forcing function: index to current position in tmat, fmat,
- current value, interpolation factor, current forcing time, next forcing time,
- max time (to be removed).....
-*/
-int    * findex;
-double * intpol;
-int    * maxindex;
+int    *findex;
+double *intpol;
+int    *maxindex;
 
-double * forcings;
+double *forcings;
+
+/* events */
+double tEvent;
+int iEvent, nEvent, typeevent, rootevent;
+
+double *timeevent, *valueevent;
+int *svarevent, *methodevent;
+
+/*============================================================================
+ type definitions for C functions
+============================================================================*/
+typedef void C_deriv_func_type(int*, double*, double*, double*, double*, int*);
+C_deriv_func_type* DLL_deriv_func;
+
+typedef void C_res_func_type(double*, double*, double*, double*, double*,
+                             int*, double*, int*);
+C_res_func_type* DLL_res_func;
+
+
+/* this is in compiled code */
+typedef void init_func_type (void (*)(int*, double*));
+
+/*============================================================================
+  solver R- global functions 
+============================================================================*/
+extern SEXP R_deriv_func;
+extern SEXP R_jac_func;
+extern SEXP R_jac_vec;
+extern SEXP R_root_func;
+extern SEXP R_event_func;
+extern SEXP R_envir;
+
+/* DAE globals */
+extern SEXP R_res_func;
+extern SEXP R_daejac_func;
+extern SEXP R_psol_func;
+
+extern SEXP de_gparms;
+SEXP getListElement(SEXP list, const char* str);
+
+/*============================================================================ 
+  C- utilities, functions 
+============================================================================*/
+void init_N_Protect(void);
+void incr_N_Protect(void);
+void unprotect_all(void);
+void my_unprotect(int);
+void returnearly (int);
+void terminate(int, int, int, int, int);
+
+/* declarations for initialisations */
+void initParms(SEXP Initfunc, SEXP Parms);
+void Initdeparms(int*, double*);
+void Initdeforc(int*, double*);
+void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
+void initOutdae(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
+
+/* sparsity of Jacobian */
+void sparsity1D(SEXP Type, int* iwork, int neq, int liw);
+void sparsity2D(SEXP Type, int* iwork, int neq, int liw);
+void sparsity3D(SEXP Type, int* iwork, int neq, int liw);
+
+void initglobals(int);
+void initdaeglobals(int);
+
+/* the forcings and event functions */
+void updatedeforc(double*);
+int initForcings(SEXP list);
+int initEvents(SEXP list, SEXP);
+void updateevent(double*, double*, int*);

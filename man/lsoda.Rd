@@ -36,8 +36,8 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   maxordn = 12, maxords = 5, bandup = NULL, banddown = NULL,
   maxsteps = 5000, dllname = NULL, initfunc = dllname,
   initpar = parms, rpar = NULL, ipar = NULL, nout = 0,
-  outnames = NULL, forcings=NULL, initforc = NULL,
-  fcontrol=NULL,  ...)
+  outnames = NULL, forcings = NULL, initforc = NULL,
+  fcontrol = NULL, events = NULL, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -197,6 +197,9 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{fcontrol }{A list of control parameters for the forcing functions.
     See \link{forcings} or vignette \code{compiledCode}.
+  }
+  \item{events }{A list that specifies events, i.e. when the value of a 
+   state variable is suddenly changed. See \link{events} for more information.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.

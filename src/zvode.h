@@ -2,8 +2,9 @@
 #include <Rdefines.h>
 /* global variables */
 
-typedef void cderiv_func(int *, double *, Rcomplex *,Rcomplex *, Rcomplex *, int *);
-  cderiv_func *cderfun;  
+typedef void cderiv_func_type (int *, double *, Rcomplex *,Rcomplex *, 
+  Rcomplex *, int *);
+cderiv_func_type *cderfun;  
 
 SEXP cY;
 

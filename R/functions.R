@@ -75,6 +75,23 @@ checkFunc<- function (Func2, times, y, rho) {
 }
 
 ## ========================================================================
+## Check event function calls
+## ========================================================================
+
+checkEventFunc<- function (Func, times, y, rho) { 
+    ## Call func once 
+    tmp <- eval(Func(times[1], y), rho)
+
+    if (length(tmp) != length(y))
+      stop(paste("The number of values returned by events$func() (",
+                 length(tmp),
+                 ") must equal the length of the initial conditions vector (",
+                 length(y),")",sep=""))
+    if (!is.vector(tmp))
+      stop("The event function 'events$func' must return a vector\n")
+}
+
+## ========================================================================
 ## Check ode function call - euler and rk solvers
 ## ========================================================================
 

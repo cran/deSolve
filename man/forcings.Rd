@@ -4,38 +4,46 @@
   Passing forcing functions to models written in R or compiled code.
 }
 \description{
-  Models may be defined in compiled C or FORTRAN code, as well as
-  in an R-function.
-                                   
-  If a model uses "external variables" (or "forcing variables"), their value
-  at each time point needs to be estimated by interpolation of a data series.
-  
-  If the models are defined in R-code, then forcing function interpolation 
-  is most efficiently done using \R's function \code{approxfun}. 
-  
-  If the models are defined in compiled C or FORTRAN code, it is possible to
-  use \code{deSolve}s forcing function update algorithm. This is the
-  compiled-code equivalent of \code{approxfun} or \code{approx}, 
+  A \code{forcing function} is an external variable that is essential to the 
+  model, but not explicitly modeled. Rather, it is imposed as a time-series.
+  Thus, if a model uses forcing variables, their value at each time point 
+  needs to be estimated by interpolation of a data series.
 }
 
 \details{
+ 
+  The \code{forcing functions} are imposed as a data series, that contains
+  the values of the forcings at specified times.
+   
+  Models may be defined in compiled C or FORTRAN code, as well as in R.
 
   If the model is defined in \emph{R code}, it is most efficient to:
   
   1. define  a function that performs the linear interpolation,
-  using \R's \link[stats]{approxfun}.
+    using \R's \link[stats]{approxfun}. It is generally recommended to use 
+    \code{rule=2}, such as to allow extrapolation outside of the time interval,
+    especially when using the livermore solvers, as these may exceed the last
+    time point.
   
   2. call this function within the model's derivative function, 
-  to interpolate at the current timestep.
-  
-  See first example
-  
-  If the model is defined in \emph{compiled code}, the forcing function 
-  data series is provided by means of argument \code{forcings}, 
-  \code{initforc} is the name of the forcing function initialisation function, 
-  as provided in \file{dllname}, while \code{fcontrol} is a list used to 
-  finetune how the forcing update should be performed.
+    to interpolate at the current timestep.
 
+  See first example.
+  
+  If the models are defined in \emph{compiled C or FORTRAN code}, it is possible to
+  use \code{deSolve}s forcing function update algorithm. This is the
+  compiled-code equivalent of \code{approxfun} or \code{approx}.
+
+  In this case:
+  1. the forcing function data series is provided by means 
+  of argument \code{forcings}, 
+  
+  2. \code{initforc} is the name of the forcing function initialisation function, 
+  as provided in \file{dllname}, while 
+  
+  3. \code{fcontrol} is a list used to finetune how the forcing update should 
+  be performed.
+  
   The \bold{fcontrol} argument is a list that can supply any of the following
   components (conform the definitions in the \link[stats]{approxfun} function):
   \describe{
@@ -94,10 +102,12 @@
 }
 \seealso{
   \code{approx} or \link[stats]{approxfun}, the \R function
+  
+  \link{events} for how to implement events.
 }
 \examples{
 ## =============================================================================
-# The sediment oxygen consumption example - R-code:
+# FORCING FUNCTION: The sediment oxygen consumption example - R-code:
 ## =============================================================================
 
 # Forcing function data
@@ -118,13 +128,13 @@ times <- 1:365
 sediment <- function( t, O2, k) 
   list (c(Depo(t) - k*O2), depo = Depo(t))
 
-# the forcing functions
-Depo <- approxfun(x=Flux[,1], y= Flux[,2], method="linear")
+# the forcing functions; rule = 2 avoids NaNs in interpolation
+Depo <- approxfun(x=Flux[,1], y= Flux[,2], method="linear", rule=2)
 
 Out <- ode(times = times, func= sediment, y = c(O2=63), parms=parms)
   
 # same forcing functions, now constant interpolation
-Depo <- approxfun(x=Flux[,1], y= Flux[,2], method="constant", f=0.5)
+Depo <- approxfun(x=Flux[,1], y= Flux[,2], method="constant", f=0.5, rule=2)
 
 Out2 <- ode(times = times, func= sediment, y = c(O2=63), parms=parms)
 
@@ -151,6 +161,7 @@ out2 <- SCOC(times,parms=parms,Flux=Flux, fcontrol=fcontrol)
 
 plot(out2$time,out2$Depo,type="l",col="red")
 lines(out2$time,out2$Mineralisation,col="blue")
+
 
 \dontrun{
 ## =============================================================================

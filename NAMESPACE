@@ -11,6 +11,7 @@ export(DLLfunc, DLLres)
 
 S3method("print", "deSolve")
 S3method("plot", "deSolve")
+S3method("image", "deSolve")
 S3method("hist", "deSolve")
 S3method("diagnostics", "deSolve")
 S3method("diagnostics", "default")

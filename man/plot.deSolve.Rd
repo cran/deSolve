@@ -1,6 +1,7 @@
 \name{plot.deSolve}
 \alias{plot.deSolve}
 \alias{hist.deSolve}
+\alias{image.deSolve}
 \title{
  Plot and Histogram Method for deSolve Objects
 }
@@ -10,6 +11,8 @@ Plot the output of numeric integration routines.
 \usage{
 \method{plot}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, ...)
 \method{hist}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, ...)
+\method{image}{deSolve}(x, which = NULL, ask = NULL, 
+  add.contour = FALSE, grid = NULL, ...)  
 }
 
 \arguments{
@@ -25,8 +28,14 @@ Plot the output of numeric integration routines.
     interactive, see \code{\link{par}(ask=.)} and
     \code{\link{dev.interactive}}.}
   
+  \item{add.contour }{if \code{TRUE}, will add contours to the image plot. }
+
+  \item{grid }{only for \code{image} plots: the 1-D grid as a vector (output 
+    generated with \code{ode.1D}, or the x- and y-grid, as a \code{list} for 
+    output generated with \code{ode.2D}. }
+
   \item{\dots}{additional graphics arguments passed to
-    \code{\link{plot.default}} or \code{\link{hist}}}
+    \code{\link{plot.default}}, \code{\link{image}} or \code{\link{hist}}}
 }
 
 \details{
@@ -37,13 +46,22 @@ Plot the output of numeric integration routines.
   Other graphical parameters can be passed as well. Parameters
   \code{xlab} and \code{ylab} are vectorized, so it is possible to
   assign specific axis labels to individual plots.
+  
+  Image plots will only work for 1-D and 2-D variables, as solved with 
+  \code{\link{ode.1D}} and \code{\link{ode.2D}}. In the first case, an
+  image with \code{times} as x- and \code{the grid} as y-axis will be created.
+  in second case, an x-y plot will be created, for all times. Unless 
+  \code{ask=FALSE}, the user will be asked to confirm page changes. 
 }
 
 \seealso{
  \code{\link{print.deSolve}}, \code{\link{ode}},  \code{\link{deSolve}}  
 }
 \examples{
+## =======================================================================
 ## A Predator-Prey model with 4 species in matrix formulation
+## =======================================================================
+
 LVmatrix <- function(t, n, parms) {
   with(parms, {
     dn <- r * n + n * (A \%*\% n)
@@ -71,6 +89,51 @@ plot(out, type = "l", ylab = c("Prey 1", "Prey 2", "Pred 1", "Pred 2"),
   xlab = "Time (d)", main = "Time Series") 
 
 hist(out, col="darkblue", breaks = 50)
+
+## =======================================================================
+## The Aphid model from Soetaert and Herman, 2009.
+## A practical guide to ecological modelling.
+## Using R as a simulation platform. Springer.
+## =======================================================================
+
+## 1-D diffusion model
+
+## ================
+## Model equations
+## ================
+Aphid <- function(t, APHIDS, parameters)
+{
+  deltax  <- c (0.5, rep(1, numboxes-1), 0.5)
+  Flux    <- -D*diff(c(0, APHIDS, 0))/deltax
+  dAPHIDS <- -diff(Flux)/delx + APHIDS*r
+
+  list(dAPHIDS)   # the output
+}
+  
+## ==================
+## Model application
+## ==================
+
+## the model parameters:
+D         <- 0.3    # m2/day  diffusion rate
+r         <- 0.01   # /day    net growth rate
+delx      <- 1      # m       thickness of boxes
+numboxes  <- 60 
+
+## distance of boxes on plant, m, 1 m intervals
+Distance  <- seq(from = 0.5, by = delx, length.out = numboxes)
+
+## Initial conditions, ind/m2
+## aphids present only on two central boxes
+APHIDS        <- rep(0, times = numboxes)
+APHIDS[30:31] <- 1
+state         <- c(APHIDS = APHIDS)      # initialise state variables 
+                  
+## RUNNING the model:
+times <- seq(0, 200, by = 1)   # output wanted at these time intervals
+out   <- ode.1D(state, times, Aphid, parms = 0, nspec = 1)
+
+image(out, grid = Distance, main="Aphid model", ylab="distance, m")
 }
 
 \keyword{ hplot }

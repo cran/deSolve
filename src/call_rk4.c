@@ -130,7 +130,7 @@ SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   yout[0] = tt[0]; /* initial time */
   for (i = 0; i < neq; i++) {
     y0[i]              = xs[i];
-    yout[(i + 1) * nt] = y0[i];      // <--- check this
+    yout[(i + 1) * nt] = y0[i];
   }
   /*------------------------------------------------------------------------*/
   /* Main Loop                                                              */

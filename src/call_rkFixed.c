@@ -6,7 +6,7 @@
 #include "rk_util.h"
 
 SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
-  SEXP Parms, SEXP Nout, SEXP Rho,
+  SEXP Parms, SEXP eventfunc, SEXP elist, SEXP Nout, SEXP Rho,
   SEXP Tcrit, SEXP Verbose, SEXP Hini, SEXP Rpar, SEXP Ipar,
 		  SEXP Method, SEXP Maxsteps, SEXP Flist) {
 
@@ -19,13 +19,13 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   SEXP  R_yout;
   double *y0,  *y1, *dy1, *out, *yout;
 
-  double t, dt, t_ext, tmax;
+  double t, dt, tmax;
 
   int fsal = FALSE;       /* fixed step methods have no FSAL */
   int interpolate = TRUE; /* polynomial interpolation is done by default */
 
   int i = 0, j=0, it=0, it_tot=0, it_ext=0, nt = 0, neq=0;
-  int one=1, isForcing;
+  int isForcing, isEvent;
 
   /**************************************************************************/
   /****** Processing of Arguments                                      ******/
@@ -148,9 +148,15 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
+  /* initglobals(nt); // todo: make this compatible */
+  PROTECT(Time = NEW_NUMERIC(1));                 incr_N_Protect();
+  PROTECT(Y = allocVector(REALSXP,(neq)));        incr_N_Protect(); 
+  
   initParms(Initfunc, Parms);
   isForcing = initForcings(Flist);
-
+  isEvent = initEvents(elist, eventfunc);
+  if (isEvent) interpolate = FALSE;
+  
   /*------------------------------------------------------------------------*/
   /* Initialization of Integration Loop                                     */
   /*------------------------------------------------------------------------*/
@@ -169,7 +175,6 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* Initialization of work arrays (to be on the safe side, remove this later) */
   for (i = 0; i < neq; i++)  {
     y1[i] = 0;
-    //y2[i] = 0;
     Fj[i] = 0;
     for (j= 0; j < stage; j++)  {
       FF[i + j * neq] = 0;
@@ -183,106 +188,45 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   it_ext = 0; /* counter for external time step (dense output) */
   it_tot = 0; /* total number of time steps                    */
 
-  do {
-    /* select time step (possibly irregular) */
-    if (hini > 0.0)
-      dt = hini;
-    else
-      dt = tt[it] - tt[it-1];
-
-    /******  Prepare Coefficients from Butcher table ******/
-    /* NOTE: must be given as subdiagonal here, not matrix !!!  */
-    for (j = 0; j < stage; j++) {
-      if (j == 0) 
-        for(i = 0; i < neq; i++) Fj[i] = 0;
-      else
-        for(i = 0; i < neq; i++)
-          Fj[i] = A[j] * FF[i + neq * (j - 1)] * dt;
-      for (int i = 0; i < neq; i++) {
-        tmp[i] = Fj[i] + y0[i];
-      }
-      /******  Compute Derivatives ******/
-      derivs(Func, t + dt * cc[j], tmp, Parms, Rho, FF, out, j, neq, ipar, isDll, isForcing);
-    }
-
-    /*====================================================================*/
-    /* Estimation of new values                                           */
-    /*====================================================================*/
-
-    /* use BLAS with reduced error checking */
-    blas_matprod1(FF, neq, stage, bb1, stage, one, dy1);
-
-    it_tot++; /* count total number of time steps */
-    for (i = 0; i < neq; i++) {
-      y1[i] = y0[i] +  dt * dy1[i];
-    }
-
-    /*====================================================================*/
-    /*      Interpolation and Data Storage                                */
-    /*====================================================================*/
-    if (interpolate) {
-      /*------------------------------------------------------------------*/
-      /* "Neville-Aitken-Interpolation";                                  */
-      /* the fixed step integrators have no dense output                  */
-      /*------------------------------------------------------------------*/
-      /* (1) collect number "nknots" of knots in advanve */
-	yknots[iknots] = t + dt;   /* time in first column */
-      for (i = 0; i < neq; i++) yknots[iknots + nknots * (1 + i)] = y1[i];
-      if (iknots < (nknots - 1)) {
-        iknots++;
-      } else {
-       /* (2) do polynomial interpolation */
-       t_ext = tt[it_ext];
-       while (t_ext <= t + dt) {
-        neville(yknots, &yknots[nknots], t_ext, tmp, nknots, neq);
-        /* (3) store outputs */
-        if (it_ext < nt) {
-          yout[it_ext] = t_ext;
-          for (i = 0; i < neq; i++)
-            yout[it_ext + nt * (1 + i)] = tmp[i];
-        }
-        if(it_ext < nt) t_ext = tt[++it_ext]; else break;
+  if (interpolate) {
+  /* integrate over the whole time step and interpolate internally */
+    rk_fixed(
+         fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
+         maxsteps, nt,
+  	     &iknots, &it, &it_ext, &it_tot,
+         istate, ipar,
+  	     t, tmax, hini,
+  	     &dt,
+  	     tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
+  	     out, bb1, cc, yknots,  yout,
+  	     Func, Parms, Rho
+    );
+  } else {
+   for (int j = 0; j < nt - 1; j++) {
+       t = tt[j];
+       tmax = fmin(tt[j + 1], tcrit);
+       dt = tmax - t;
+       if (isEvent) {
+         updateevent(&t, y0, istate);
        }
-       shiftBuffer(yknots, nknots, neq + 1);
-      }
-    } else {
-      /*--------------------------------------------------------------------*/
-      /* Alternative: store outputs *without* interpolation                 */
-      /* Note that this works only if time steps match exactly              */
-      /* i.e. not in all cases because of floating point rounding errors    */
-      /* but that's the price for "no interpolation"                        */
-      /*--------------------------------------------------------------------*/
-      t_ext = tt[it_ext];
-      while (t_ext <= t + dt) {
-        if (it_ext < nt) {
-          yout[it_ext] = t_ext;
-          if (it < nt) {
-            /* all time steps */
-            yout[it_ext] = t_ext;
-            /* only matching time steps */
-            if (t_ext == t + dt)
-              for (i = 0; i < neq; i++) yout[it_ext + nt * (1 + i)] = y1[i];
-          }
-        }
-        if(it_ext < nt) t_ext = tt[++it_ext]; else break;
-      }
+      rk_fixed(
+         fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
+         maxsteps, nt,
+  	     &iknots, &it, &it_ext, &it_tot,
+         istate, ipar,
+  	     t, tmax, hini,
+  	     &dt,
+  	     tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
+  	     out, bb1, cc, yknots,  yout,
+  	     Func, Parms, Rho
+      );
+      /* in this mode, internal interpolation is skipped,
+         so we can simply store the results at the end of each call */
+      yout[j + 1] = tmax;
+      for (i = 0; i < neq; i++) yout[j + 1 + nt * (1 + i)] = y1[i];
     }
-    /*--------------------------------------------------------------------*/
-    /* next time step                                                     */
-    /*--------------------------------------------------------------------*/
-    t = t + dt;
-    it++;
-    for (i = 0; i < neq; i++) y0[i] = y1[i];
-    if (it_ext > nt) {
-      Rprintf("error in rk_solvers.c - call_rk4auto: output buffer overflow\n");
-      break;
-    }
-    if (it_tot > maxsteps) {
-      if (verbose) Rprintf("Max. number of steps exceeded\n");
-      break;
-    }
-  } while (t < tmax); /* end of rk main loop */
-
+  }
+  
   /*====================================================================*/
   /* call derivs again to get global outputs                          */
   /*====================================================================*/
