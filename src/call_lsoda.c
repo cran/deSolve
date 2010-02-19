@@ -2,6 +2,33 @@
 #include <string.h>
 #include "deSolve.h"
 
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   Ordinary differential equation solvers lsoda, lsode, lsodes, lsodar, and vode.
+   
+   The C-wrappers that provide the interface between FORTRAN codes and R-code 
+   are: C_deriv_func: interface with R-code "func", passes derivatives  
+        C_deriv_out : interface with R-code "func", passes derivatives + output variables  
+        C_jac_func  : interface with R-code "jacfunc", passes jacobian (except lsodes)
+        C_jac_vec   : interface with R-code "jacvec", passes jacobian (only lsodes)
+  
+   C_deriv_func_forc provides the interface between the function specified in
+   a DLL and the integrator, in case there are forcing functions.
+   
+   Two integrators can locate the root of a function: lsodar and lsode 
+   (the latter by merging part of the FORTRAN codes lsodar and lsode, by KS).
+   C_root_func provides the interface between the R root function and the 
+   FORTRAN code.
+  
+   changes since 1.4
+   karline: version 1.5: added forcing functions in DLL
+   karline: version 1.6: added events
+   karline: version 1.7: 
+                      1. added root finding in lsode -> lsoder (fortran code)
+                      2. added time lags -> delay differential equations
+                      3. output variables now in C-code 
+            improving names
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
 /* definition of the calls to the FORTRAN functions - in file opkdmain.f
 and in file dvode.f**/
 
@@ -20,6 +47,15 @@ void F77_NAME(dlsode)(void (*)(int *, double *, double *, double *, double *, in
 		     void (*)(int *, double *, double *, int *,
 			      int *, double *, int *, double *, int *),
 		     int *, double *, int *);
+
+void F77_NAME(dlsoder)(void (*)(int *, double *, double *, double *, double *, int *),
+		     int *, double *, double *, double *,
+		     int *, double *, double *, int *, int *,
+		     int *, double *,int *,int *, int *,
+		     void (*)(int *, double *, double *, int *,
+			      int *, double *, int *, double *, int *), int *, 
+		     void (*)(int *, double *, double *, int *, double *),  /* rootfunc */
+         int *, int *,         double *, int *);
 
 void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, int *),
 		     int *, double *, double *, double *,
@@ -74,10 +110,31 @@ static void C_deriv_func (int *neq, double *t, double *y,
   PROTECT(R_fcall = lang3(R_deriv_func,Time,Y));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));           incr_N_Protect();
 
-  for (i = 0; i < *neq; i++)   ydot[i] = REAL(VECTOR_ELT(ans,0))[i];
+  for (i = 0; i < *neq; i++)   ydot[i] = REAL(ans)[i];
 
   my_unprotect(2);
 }
+
+/* deriv output function  */
+
+static void C_deriv_out (int *nOut, double *t, double *y, 
+                       double *ydot, double *yout)
+{
+  int i;
+  SEXP R_fcall, ans;
+  
+  REAL(Time)[0] = *t;
+  for (i = 0; i < n_eq; i++)  
+      REAL(Y)[i] = y[i];
+     
+  PROTECT(R_fcall = lang3(R_deriv_func,Time, Y));   incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_envir));            incr_N_Protect();
+
+  for (i = 0; i < n_eq; i++)  ydot[i] = REAL (ans)[i] ;      
+  for (i = 0; i < *nOut; i++) yout[i] = REAL(ans)[i + n_eq];
+
+  my_unprotect(2);                                  
+}      
 
 /* only if lsodar: 
    interface between FORTRAN call to root and corresponding R function */
@@ -151,7 +208,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 		SEXP atol, SEXP rho, SEXP tcrit, SEXP jacfunc, SEXP initfunc, 
     SEXP eventfunc, SEXP verbose, SEXP iTask, SEXP rWork, SEXP iWork, SEXP jT, 
     SEXP nOut, SEXP lRw, SEXP lIw, SEXP Solver, SEXP rootfunc, 
-    SEXP nRoot, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP flist, SEXP elist)
+    SEXP nRoot, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP flist, SEXP elist,
+    SEXP elag)
 
 {
 /******************************************************************************/
@@ -159,7 +217,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 /******************************************************************************/
 
   int  i, j, k, nt, repcount, latol, lrtol, lrw, liw;
-  int  maxit, solver, isForcing, isEvent;
+  int  maxit, solver, isForcing, isEvent, islag;
   double *xytmp, tin, tout, *Atol, *Rtol, *dy=NULL, ss;
   int itol, itask, istate, iopt, jt, mflag,  is;
   int nroot, *jroot=NULL, isroot,  isDll, type;
@@ -184,9 +242,10 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   maxit = 10;                   /* number of iterations */ 
   mflag = INTEGER(verbose)[0];
  
-  nroot  = INTEGER(nRoot)[0];   /* number of roots (lsodar) */
-  solver = INTEGER(Solver)[0];  /* 1=lsoda,2=lsode,3=lsodeS,4=lsodar,5=vode */
+  nroot  = INTEGER(nRoot)[0];   /* number of roots (lsodar, lsode) */
+  solver = INTEGER(Solver)[0];  /* 1=lsoda,2=lsode,3=lsodeS,4=lsodar,5=vode,6=lsoder */
 
+  
   /* is function a dll ?*/
   if (inherits(derivfunc, "NativeSymbol")) {
    isDll = 1;
@@ -194,8 +253,9 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
    isDll = 0;
   }
 
+
   /* initialise output ... */
-  initOut(isDll, n_eq, nOut, Rpar, Ipar);
+  initOutC(isDll, n_eq, nOut, Rpar, Ipar);
 
   /* copies of variables that will be changed in the FORTRAN subroutine */
 
@@ -237,15 +297,18 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
   isEvent = initEvents(elist, eventfunc);
-
+  islag = initLags(elag);
+  
 /* pointers to functions deriv_func, jac_func, jac_vec, root_func, passed to FORTRAN */
+  if (nout > 0 || islag == 1) {
+     dy = (double *) R_alloc(n_eq, sizeof(double));
+     for (j = 0; j < n_eq; j++) dy[j] = 0.; 
+  }
 
   if (isDll) 
     { /* DLL address passed to FORTRAN */
       deriv_func = (C_deriv_func_type *) R_ExternalPtrAddr(derivfunc);  
       /* no need to communicate with R - but output variables set here */
-      if (isOut) {dy = (double *) R_alloc(n_eq, sizeof(double));
-                  for (j = 0; j < n_eq; j++) dy[j] = 0.; }
 	  
 	  /* here overruling deriv_func if forcing */
       if (isForcing) {
@@ -282,7 +345,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 	    }
     }
 
-  if (solver == 4 && nroot > 0)        /* lsodar */
+  if ((solver == 4 || solver == 6) && nroot > 0)        /* lsodar, lsoder */
   { jroot = (int *) R_alloc(nroot, sizeof(int));
      for (j=0; j<nroot; j++) jroot[j] = 0;
   
@@ -306,7 +369,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   itask = INTEGER(iTask)[0];   
   if (isEvent) itask = 4;
-  
+  if (islag) itask = 5;               /* one step and return */
+  if (isEvent && islag) itask = 5;  
   istate = 1;
 
   iopt = 0;
@@ -318,14 +382,21 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
 /*                      #### initial time step ####                           */    
 
-  REAL(YOUT)[0] = REAL(times)[0];
+  tin = REAL(times)[0];
+  REAL(YOUT)[0] = tin;
   for (j = 0; j < n_eq; j++) REAL(YOUT)[j+1] = REAL(y)[j];
-
-  if (isOut == 1) {  /* function in DLL and output */
+  if (islag == 1) {
+    C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
+    updatehist(tin, xytmp, dy);
+  }
+  if (nout>0)   {
     tin = REAL(times)[0];
-    deriv_func (&n_eq, &tin, xytmp, dy, out, ipar) ;
+    if (isDll == 1)   /* function in DLL and output */
+      deriv_func (&n_eq, &tin, xytmp, dy, out, ipar) ;
+    else
+      C_deriv_out(&nout,&tin,xytmp,dy,out);  
     for (j = 0; j < nout; j++) REAL(YOUT)[j + n_eq + 1] = out[j]; 
-                  }
+  }                 
 
 /*                     ####   main time loop   ####                           */    
   for (it = 0; it < nt-1; it++) {
@@ -338,6 +409,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
     repcount = 0;
     do
 	{  /* error control */
+	    if (islag)       rwork[0] = tout;
  	    if (istate == -2) {
 	      for (j = 0; j < lrtol; j++) Rtol[j] *= 10.0;
 	      for (j = 0; j < latol; j++) Atol[j] *= 10.0;
@@ -366,17 +438,23 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
  	      F77_CALL(dvode) (deriv_func, &n_eq, xytmp, &tin, &tout,
 			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
 			   &lrw, iwork, &liw, jac_func, &jt, out, ipar);
+      } else if (solver == 6) {
+ 	      F77_CALL(dlsoder) (deriv_func, &n_eq, xytmp, &tin, &tout,
+			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+			   &lrw, iwork, &liw, jac_func, &jt, root_func, &nroot, jroot, 
+         out, ipar);
       }
     
 	    if (istate == -1)  {
         warning("an excessive amount of work (> maxsteps ) was done, but integration was not successful - increase maxsteps");
-      } else if (istate == 3 && solver == 4){
+      } else if (istate == 3 && (solver == 4 || solver == 6)){
        /* root found - take into account if an EVENT */
         if (isEvent && rootevent) {
           tEvent=tin;
           updateevent(&tin, xytmp, &istate);
           istate = 1;
           repcount = 0;
+          if (mflag ==1) Rprintf("root found at time %g\n",tin);
         } else{
 	       istate = -20;  repcount = 50;
 	      } 
@@ -389,6 +467,11 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       } else if (istate == -6)  {
         warning("Error term became zero for some i: pure relative error control (ATOL(i)=0.0) for a variable which is now vanished");
       }
+    if (islag == 1) {
+      C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
+      updatehist(tin, xytmp, dy);    
+      repcount = 0;
+    }
 	    repcount ++;
 	} while (tin < tout && istate >= 0 && repcount < maxit); 
 	
@@ -399,11 +482,16 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 	  REAL(YOUT)[(it+1)*(ntot+1)] = tin;
 	  for (j = 0; j < n_eq; j++)
 	    REAL(YOUT)[(it+1)*(ntot + 1) + j + 1] = xytmp[j];
-	  if (isOut == 1)  {
-      deriv_func (&n_eq, &tin, xytmp, dy, out, ipar) ;
-	    for (j = 0; j < nout; j++)
-	      REAL(YOUT)[(it+1)*(ntot + 1) + j + n_eq + 1] = out[j];
-    }
+
+
+    if (nout>0)   {
+      if (isDll == 1)   /* function in DLL and output */
+        deriv_func (&n_eq, &tin, xytmp, dy, out, ipar) ;
+      else
+        C_deriv_out(&nout,&tin,xytmp,dy,out);  
+      for (j = 0; j < nout; j++) 
+        REAL(YOUT)[(it+1)*(ntot + 1) + j + n_eq + 1] = out[j];
+     }                
 	}
 	  
 /*                    ####  an error occurred   ####                          */    
@@ -415,6 +503,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
     break;
     }
   }     /* end main time loop */
+
 
 
 

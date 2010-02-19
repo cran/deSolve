@@ -37,7 +37,7 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   maxsteps = 5000, dllname = NULL, initfunc = dllname,
   initpar = parms, rpar = NULL, ipar = NULL, nout = 0,
   outnames = NULL, forcings = NULL, initforc = NULL,
-  fcontrol = NULL, events = NULL, ...)
+  fcontrol = NULL, events = NULL, lags = NULL,...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -200,6 +200,10 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{events }{A list that specifies events, i.e. when the value of a 
    state variable is suddenly changed. See \link{events} for more information.
+  }
+  \item{lags }{A list that specifies timelags, i.e. the number of steps 
+   that has to be kept. To be used for delay differential equations. 
+   See \link{timelags}, \link{dede} for more information.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.
@@ -418,8 +422,8 @@ diagnostics(outJ) # shows what lsoda did internally
   \itemize{
     \item \code{\link{rk}}, \item \code{\link{rk4}} and \code{\link{euler}} for
       Runge-Kutta integrators.
-    \item  \code{\link{lsode}},
-      \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},
+    \item  \code{\link{lsode}}, which can also find a root
+    \item  \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},
       \code{\link{daspk}} for other solvers of the Livermore family,
     \item \code{\link{ode}} for a general interface to most of the ODE solvers,
     \item \code{\link{ode.band}} for solving models with a banded

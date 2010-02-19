@@ -151,7 +151,6 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   }
   /*
     attach essential internal information (codes are compatible to lsoda)
-    ToDo: respect function evaluations due to global outputs
   */
   setIstate(R_yout, R_istate, istate, it, 1, 0, 1);
 

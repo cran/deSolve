@@ -79,7 +79,7 @@ void blas_matprod1(double *x, int nrx, int ncx,
 }
 
 
-/* -- Simple Matrix Multiplikation ------------------------------------------ */
+/* -- Simple Matrix Multiplication ------------------------------------------ */
 void matprod(int m, int n, int o, double* a, double* b, double* c) {
   int i, j, k;
   for (i = 0; i < m; i++) {
@@ -98,19 +98,15 @@ double maxdiff(double *x, double *y, int n) {
   return(d);
 }
 
-double maxerr(double *y1, double *y2, double* Atol, double* Rtol, int n) {
-  double err = 0, serr = 0, scal, delta;
+double maxerr(double *y0, double *y1, double *y2, double *Atol, double *Rtol, int n) {
+  double  serr = 0, scal, delta;
   for (int i = 0; i < n; i++) {
-    scal  = Atol[i] +  fmax(fabs(y1[i]), fabs(y2[i])) * Rtol[i]; /* min?? */
+    /* assume y2 is used to estimate next y-value */
+    scal  = Atol[i] + fmax(fabs(y0[i]), fabs(y2[i])) * Rtol[i];
     delta = fabs(y2[i] - y1[i]);
-    /* there are also other too */
-    if (scal > 0) {
-      err   = fmax(err, delta / scal);
-      serr  = err + pow(delta/scal, 2.0);
-    }
+    if (scal > 0) serr += pow(delta/scal, 2.0);
   }
-  err = sqrt(serr); /* euclidean norm */
-  return(err);
+  return(sqrt(serr/n)); /* Euclidean norm */
 }
 
 /*==========================================================================*/
@@ -182,7 +178,7 @@ void denspar(double *FF, double *y0, double *y1, double dt, double *d,
   int neq, int stage, double *r) {
   double ydiff, bspl;
   int i, j;
-  for (i=0; i< neq; i++) {
+  for (i = 0; i < neq; i++) {
    r[i]           = y0[i];
    ydiff          = y1[i] - y0[i];
    r[i + neq]     = ydiff;
@@ -190,7 +186,7 @@ void denspar(double *FF, double *y0, double *y1, double dt, double *d,
    r[i + 2 * neq] = bspl;
    r[i + 3 * neq] = ydiff - dt * FF[i + (stage - 1) * neq] - bspl;
    r[i + 4 * neq] = 0;
-   for (j=0; j < stage; j++)
+   for (j = 0; j < stage; j++)
      r[i + 4 * neq] = r[i + 4 * neq] + d[j] * FF[i + j * neq];
      r[i + 4 * neq] = r[i + 4 * neq] * dt;
   }

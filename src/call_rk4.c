@@ -185,7 +185,6 @@ SEXP call_rk4(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     }
   }
   /* Attach essential internal information (codes are compatible to lsoda) */
-  /* ToDo: respect function evaluations due to global outputs              */
   setIstate(R_yout, R_istate, istate, it, 4, 0, 4);
 
   /* Release R Resources */

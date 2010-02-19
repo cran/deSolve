@@ -3,10 +3,26 @@
 #include <string.h>
 #include "deSolve.h"   
 #include "zvode.h"   
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   Ordinary differential equation solver for complex state variables, zvode.
+   
+   The C-wrappers that provide the interface between FORTRAN codes and R-code 
+   are: C_zderiv_func: interface with R-code "func", passes derivatives  
+        C_zjac_func  : interface with R-code "jacfunc", passes jacobian (except lsodes)
+  
+   C_zderiv_func_forc provides the interface between the function specified in
+   a DLL and the integrator, in case there are forcing functions.
+   
+   Events and roots are not implemented for zvode
+  
+   changes since 1.4
+   karline: version 1.5: added forcing functions in DLL
+            improving names
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-SEXP cvode_deriv_func;
-SEXP cvode_jac_func;
-SEXP vode_envir;
+SEXP R_zderiv_func;
+SEXP R_zjac_func;
+SEXP R_vode_envir;
                            
 /* definition of the call to the FORTRAN function dvode - in file zvode.f*/
 void F77_NAME(zvode)(void (*)(int *, double *, Rcomplex *, Rcomplex *,
@@ -20,10 +36,10 @@ void F77_NAME(zvode)(void (*)(int *, double *, Rcomplex *, Rcomplex *,
 
 /* interface between FORTRAN function call and R function
    Fortran code calls cvode_derivs(N, t, y, ydot, yout, iout) 
-   R code called as cvode_deriv_func(time, y) and returns ydot 
+   R code called as R_zderiv_func(time, y) and returns ydot 
    Note: passing of parameter values and "..." is done in R-function zvode*/
 
-static void cvode_derivs (int *neq, double *t, Rcomplex *y, 
+static void C_zderiv_func (int *neq, double *t, Rcomplex *y, 
                          Rcomplex *ydot, Rcomplex *yout, int *iout)
 {
   int i;
@@ -32,8 +48,8 @@ static void cvode_derivs (int *neq, double *t, Rcomplex *y,
   REAL(Time)[0]   = *t;
   for (i = 0; i < *neq; i++)  COMPLEX(cY)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(cvode_deriv_func,Time,cY)) ;incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, vode_envir))           ;incr_N_Protect();
+  PROTECT(R_fcall = lang3(R_zderiv_func,Time,cY)) ;incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_vode_envir))           ;incr_N_Protect();
 
   for (i = 0; i < *neq; i++)	ydot[i] = COMPLEX(VECTOR_ELT(ans,0))[i];
 
@@ -42,7 +58,7 @@ static void cvode_derivs (int *neq, double *t, Rcomplex *y,
 
 /* interface between FORTRAN call to jacobian and R function */
 
-static void cvode_jac (int *neq, double *t, Rcomplex *y, int *ml,
+static void C_zjac_func (int *neq, double *t, Rcomplex *y, int *ml,
 		    int *mu, Rcomplex *pd, int *nrowpd, Rcomplex *yout, int *iout)
 {
   int i;
@@ -51,8 +67,8 @@ static void cvode_jac (int *neq, double *t, Rcomplex *y, int *ml,
                               REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  COMPLEX(cY)[i] = y[i];
 
-  PROTECT(R_fcall = lang3(cvode_jac_func,Time,cY));  incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, vode_envir));        incr_N_Protect();
+  PROTECT(R_fcall = lang3(R_zjac_func,Time,cY));  incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_vode_envir));        incr_N_Protect();
 
   for (i = 0; i < *neq * *nrowpd; i++)  pd[i ] = COMPLEX(ans)[i ];
 
@@ -62,21 +78,21 @@ static void cvode_jac (int *neq, double *t, Rcomplex *y, int *ml,
 /* wrapper above the derivate function that first estimates the
 values of the forcing functions */
 
-static void forc_zvode (int *neq, double *t, Rcomplex *y,
+static void C_zderiv_func_forc (int *neq, double *t, Rcomplex *y,
                          Rcomplex *ydot, Rcomplex *yout, int *iout)
 {
   updatedeforc(t);
-  cderfun(neq, t, y, ydot, yout, iout);
+  DLL_cderiv_func(neq, t, y, ydot, yout, iout);
 }
 
 
 /* give name to data types */
-typedef void cjac_func_type(int *, double *, Rcomplex *, int *,
+typedef void C_zjac_func_type(int *, double *, Rcomplex *, int *,
 		                  int *, Rcomplex *, int *, Rcomplex *, int *);
 
 /* MAIN C-FUNCTION, CALLED FROM R-code */
 
-SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
+SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 		SEXP atol, SEXP rho, SEXP tcrit, SEXP jacfunc, SEXP initfunc, 
 		SEXP verbose, SEXP iTask, SEXP rWork, SEXP iWork, SEXP jT, SEXP nOut, 
     SEXP lZw, SEXP lRw, SEXP lIw, SEXP Rpar, SEXP Ipar, SEXP flist)
@@ -87,13 +103,13 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 /******************************************************************************/
 
   int    i, j, k, nt, latol, lrtol, lrw, liw, lzw;
-  double*rwork, tin, tout, *Atol, *Rtol, ss;
-  int    neq, itol, itask, istate, iopt, *iwork, jt, mflag, nout, 
+  double tin, tout, *Atol, *Rtol, ss;
+  int    neq, itol, itask, istate, iopt, jt, mflag, nout, 
          is, isDll, isForcing;
   Rcomplex  *xytmp, *dy = NULL, *zwork;
   
-  cderiv_func_type *derivs;
-  cjac_func_type   *jac = NULL;
+  C_zderiv_func_type *zderiv_func;
+  C_zjac_func_type   *zjac_func = NULL;
 
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
@@ -118,14 +134,14 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
     ipar[2]: length of ipar */
 
 /* is function a dll ?*/
-  if (inherits(func, "NativeSymbol")) {
+  if (inherits(derivfunc, "NativeSymbol")) {
     isDll = 1;
   } else {
     isDll = 0;
   }
 
 /* initialise output for Complex variables ... */
-  initOutC(isDll, neq, nOut, Rpar, Ipar);
+  initOutComplex(isDll, neq, nOut, Rpar, Ipar);
 
 /* copies of all variables that will be changed in the FORTRAN subroutine */
  
@@ -163,34 +179,34 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
 
-/* pointers to functions derivs and jac, passed to the FORTRAN subroutine */
+/* pointers to functions zderiv_func and zjac_func, passed to the FORTRAN subroutine */
 
   if (isDll == 1) { /* DLL address passed to FORTRAN */
-    derivs = (cderiv_func_type *) R_ExternalPtrAddr(func);
+    zderiv_func = (C_zderiv_func_type *) R_ExternalPtrAddr(derivfunc);
     /* no need to communicate with R - but output variables set here */      
     if (isOut) {
       dy = (Rcomplex *) R_alloc(neq, sizeof(Rcomplex));
       /* for (j = 0; j < neq; j++) dy[j] =  i0; */
     }
-	  /* here overruling derivs if forcing */
+	  /* here overruling zderiv_func if forcing */
     if (isForcing) {
-      cderfun = (cderiv_func_type *) R_ExternalPtrAddr(func);
-      derivs = (cderiv_func_type *) forc_zvode;
+      DLL_cderiv_func = (C_zderiv_func_type *) R_ExternalPtrAddr(derivfunc);
+      zderiv_func = (C_zderiv_func_type *) C_zderiv_func_forc;
     }
   } else {  
     /* interface function between FORTRAN and R passed to FORTRAN*/
-    derivs = (cderiv_func_type *) cvode_derivs;  
+    zderiv_func = (C_zderiv_func_type *) C_zderiv_func;  
     /* needed to communicate with R */
-    cvode_deriv_func = func; 
-    vode_envir = rho;       
+    R_zderiv_func = derivfunc; 
+    R_vode_envir = rho;       
   }
   
   if (!isNull(jacfunc)) {
     if (isDll == 1) {
-	    jac = (cjac_func_type *) R_ExternalPtrAddr(jacfunc);
+	    zjac_func = (C_zjac_func_type *) R_ExternalPtrAddr(jacfunc);
     } else {
-	    cvode_jac_func = jacfunc;
-	    jac = cvode_jac;
+	    R_zjac_func = jacfunc;
+	    zjac_func = C_zjac_func;
     }
   }
 
@@ -219,19 +235,18 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 
   if (isOut == 1) {
     tin = REAL(times)[0];
-    derivs (&neq, &tin, xytmp, dy, zout, ipar) ;
+    zderiv_func (&neq, &tin, xytmp, dy, zout, ipar) ;
     for (j = 0; j < nout; j++)
       COMPLEX(YOUT)[j + neq + 1] = zout[j]; 
   }  
-
 /*                     ####   main time loop   ####                           */    
   for (it = 0; it < nt-1; it++) {
     tin = REAL(times)[it];
     tout = REAL(times)[it+1];
       
- 	  F77_CALL(zvode) (derivs, &neq, xytmp, &tin, &tout,
+ 	  F77_CALL(zvode) (zderiv_func, &neq, xytmp, &tin, &tout,
 			   &itol, Rtol, Atol, &itask, &istate, &iopt, zwork, &lzw, rwork,
-			   &lrw, iwork, &liw, jac, &jt, zout, ipar);
+			   &lrw, iwork, &liw, zjac_func, &jt, zout, ipar);
 	  
     if (istate == -1) {
       warning("an excessive amount of work (> mxstep ) was done, but integration was not successful - increase maxsteps ?");
@@ -254,7 +269,7 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP func, SEXP parms, SEXP rtol,
 	    COMPLEX(YOUT)[(it+1)*(ntot + 1) + j + 1] = xytmp[j];
    
 	    if (isOut == 1) {
-        derivs (&neq, &tin, xytmp, dy, zout, ipar) ;
+        zderiv_func (&neq, &tin, xytmp, dy, zout, ipar) ;
 	      for (j = 0; j < nout; j++)
         COMPLEX(YOUT)[(it+1)*(ntot + 1) + j + neq + 1] = zout[j]; 
       }

@@ -1,7 +1,9 @@
 /*==========================================================================*/
-/* Runge-Kutta Solvers, (C) Th. Petzoldt, License: GPL >=2                  */
+/* Runge-Kutta Solvers, (C) Th. Petzoldt, License: GPL >= 2                 */
 /* General RK Solver for methods with adaptive step size                    */
 /* -- main loop == core function --                                         */
+/* Parts inspired by Press et al., 2002, 2007;                              */
+/*   see vignette for full references                                       */
 /*==========================================================================*/
 
 #include "rk_util.h"
@@ -34,6 +36,8 @@ void rk_auto(
   double err, dtnew, t_ext;
   double dt = *_dt, errold = *_errold;
 
+  // make this user adjustable
+  static const double minscale = 0.2, maxscale = 10.0, safe = 0.9;
 
   /*------------------------------------------------------------------------*/
   /* Main Loop                                                              */
@@ -75,15 +79,15 @@ void rk_auto(
 
     it_tot++; /* count total number of time steps */
     for (i = 0; i < neq; i++) {
-      y1[i] = y0[i] +  dt * dy1[i];
-      y2[i] = y0[i] +  dt * dy2[i];
+      y1[i] = y0[i] + dt * dy1[i];
+      y2[i] = y0[i] + dt * dy2[i];
     }
 
     /*====================================================================*/
     /*      stepsize adjustment                                           */
     /*====================================================================*/
     
-    err = maxerr(y1, y2, atol, rtol, neq);
+    err = maxerr(y0, y1, y2, atol, rtol, neq);
     dtnew = dt;
     if (err == 0) {  /* use max scale if all tolerances are zero */
       dtnew  = fmin(dt * 10, hmax);
@@ -92,14 +96,13 @@ void rk_auto(
     } else if (err < 1.0) {
       /* increase step size only if last one was accepted */
       if (accept) 
-        /* dtnew = fmin(hmax, dt * 0.9 * pow(err, -1.0/qerr)); */
-        dtnew = fmin(hmax, dt * 0.9 * pow(err, -alpha) * pow(errold, beta));
+        dtnew = fmin(hmax, dt * 
+          fmin(safe * pow(err, -alpha) * pow(errold, beta), maxscale));
       errold = fmax(err, 1e-4); /* 1e-4 taken from Press et al. */
       accept = TRUE;
     } else if (err > 1.0) {
       accept = FALSE;
-      /* dtnew = dt * fmax(0.9 * pow(err, -1.0/qerr), 0.2); */
-      dtnew = dt * fmax(0.9 * pow(err, -alpha), 0.2);
+      dtnew = dt * fmax(safe * pow(err, -alpha), minscale);
     }
 
     if (dtnew < hmin) {
@@ -117,8 +120,8 @@ void rk_auto(
       /* case A) "Dense Output": built-in polynomial interpolation          */
       /* available for certain rk formulae, e.g. for rk45dp7                */
       /*--------------------------------------------------------------------*/
-	    if (dd) { /* i.e. if dd is not Zero */
-        denspar(FF, y0, y1, dt, dd, neq, stage, rr);
+      if (dd) { /* i.e. if dd is not Zero */
+        denspar(FF, y0, y2, dt, dd, neq, stage, rr);
         t_ext = tt[it_ext];
         while (t_ext <= t + dt) {
           densout(rr, t, t_ext, dt, tmp, neq);
@@ -141,7 +144,7 @@ void rk_auto(
           if (iknots < (nknots - 1)) {
             iknots++;
           } else {
-	         /* (2) do polynomial interpolation */
+	    /* (2) do polynomial interpolation */
             t_ext = tt[it_ext];
             while (t_ext <= t + dt) {
               neville(yknots, &yknots[nknots], t_ext, tmp, nknots, neq);

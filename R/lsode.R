@@ -1,3 +1,4 @@
+# ks 21-12-09: Func <- unlist() ... output variables now set in C-code
 
 ### ============================================================================
 ### lsode -- solves ordinary differential equation systems
@@ -8,15 +9,25 @@
 ### of the Jacobian is saved for reuse in the corrector iteration algorithm; 
 ### In lsode, a copy is not kept; this requires less memory but may be slightly
 ### slower.
+###
+### as from deSolve 1.7, lsode finds the root of at least one of a set 
+### of constraint functions g(i) of the independent and dependent variables.
+### It finds only those roots for which some g(i), as a function
+### of t, changes sign in the interval of integration.
+### It then returns the solution at the root, if that occurs
+### sooner than the specified stop condition, and otherwise returns
+### the solution according the specified stop condition.
+
 ### ============================================================================
 
 lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
-  jacfunc=NULL, jactype = "fullint", mf = NULL, verbose=FALSE, 
+  jacfunc=NULL, jactype = "fullint", mf = NULL, rootfunc=NULL, 
+  verbose=FALSE, nroot = 0, 
   tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE, 
   maxord=NULL, bandup=NULL, banddown=NULL, maxsteps=5000, 
   dllname=NULL,initfunc=dllname, initpar=parms, 
   rpar=NULL, ipar=NULL, nout=0, outnames=NULL,forcings=NULL,
-  initforc = NULL, fcontrol=NULL, events=NULL, ...)
+  initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL, ...)
 {
 
 ### check input
@@ -60,14 +71,28 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 ### model and Jacobian function  
   JacFunc   <- NULL
   Ynames    <- attr(y,"names")
+  RootFunc <- NULL
   flist     <- list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
   Eventfunc <- NULL
-  events <- checkevents(events, times, Ynames, dllname) 
+  events <- checkevents(events, times, Ynames, dllname,TRUE) 
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
+
+    ## Is there a root function?
+    if (!is.null(rootfunc)) {
+      if (!is.character(rootfunc))
+        stop("If 'func' is dynloaded, so must 'rootfunc' be")
+      rootfuncname <- rootfunc
+      if (is.loaded(rootfuncname, PACKAGE = dllname))  {
+        RootFunc <- getNativeSymbolInfo(rootfuncname, PACKAGE = dllname)$address
+      } else
+        stop(paste("root function not loaded in DLL",rootfunc))
+      if (nroot == 0)
+        stop("if 'rootfunc' is specified in a DLL, then 'nroot' should be > 0")
+    }
 
     ModelInit <- DLL$ModelInit
     Func    <- DLL$Func
@@ -94,7 +119,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (ynames)  {
       Func    <- function(time,state) {
         attr(state,"names") <- Ynames
-        func   (time,state,parms,...)[1]
+         unlist(func   (time,state,parms,...))
       }
          
       Func2   <- function(time,state)  {
@@ -106,21 +131,28 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
         attr(state,"names") <- Ynames
         jacfunc(time,state,parms,...)
       }
+      RootFunc <- function(time,state) {
+        attr(state,"names") <- Ynames
+        rootfunc(time,state,parms,...)
+      }
       if (! is.null(events$Type))
-      if (events$Type == 2)
+       if (events$Type == 2)
          Eventfunc <- function(time,state) {
            attr(state,"names") <- Ynames
            events$func(time,state,parms,...) 
          }
     } else {                          # no ynames...
       Func    <- function(time,state)
-        func   (time,state,parms,...)[1]
+         unlist(func   (time,state,parms,...))
         
       Func2   <- function(time,state)
         func   (time,state,parms,...)
          
       JacFunc <- function(time,state)
         jacfunc(time,state,parms,...)
+
+      RootFunc <- function(time,state)
+        rootfunc(time,state,parms,...)
 
       if (! is.null(events$Type))
        if (events$Type == 2)
@@ -134,9 +166,18 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
 
+    ## Check event function
     if (! is.null(events$Type))
       if (events$Type == 2) 
         checkEventFunc(Eventfunc,times,y,rho)
+
+    ## and for rootfunc
+    if (! is.null(rootfunc))  {
+      tmp2 <- eval(rootfunc(times[1],y,parms,...), rho)
+      if (!is.vector(tmp2))
+        stop("root function 'rootfunc' must return a vector\n")
+      nroot <- length(tmp2)
+    } else nroot = 0
 
     if (miter %in% c(1,4)) {
       tmp <- eval(JacFunc(times[1], y), rho)
@@ -152,7 +193,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
 ### work arrays iwork, rwork
   # length of rwork and iwork
-  lrw = 20+n*(maxord+1)+3*n
+  lrw = 20+n*(maxord+1)+3*n  +3*nroot
   if(miter %in% c(1,2) ) lrw = lrw + 2*n*n+2
   if(miter ==3)          lrw = lrw + n+2
   if(miter %in% c(4,5) ) lrw = lrw + (2*banddown+ bandup+1)*n+2
@@ -222,22 +263,27 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-2
-    
+  if (!is.null(rootfunc)) IN <- 6  
+
+  lags <- checklags(lags) 
+
+  ## end time lags...
   out <- .Call("call_lsoda",y,times,Func,initpar,
                rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,  
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(imp),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(IN),
-               NULL, as.integer(0), as.double (rpar), as.integer(ipar),
-               as.integer(0), flist, events, PACKAGE="deSolve")
+               RootFunc, as.integer(nroot), as.double (rpar), as.integer(ipar),
+               as.integer(0), flist, events, lags, PACKAGE="deSolve")
 
 ### saving results
+  if (nroot>0) iroot  <- attr(out, "iroot")
 
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,
                  iin=c(1,12:19), iout=c(1:3,14,5:9))
 
+  if (nroot>0) attr(out, "iroot") <- iroot
   attr(out, "type") <- "lsode"
   if (verbose) diagnostics(out)
-
-  out
+  return(out)
 }

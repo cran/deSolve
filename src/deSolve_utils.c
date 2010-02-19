@@ -100,7 +100,7 @@ void returnearly (int Print) {
   int j, k;
   if (Print) 
     warning("Returning early. Results are accurate, as far as they go\n");
-    PROTECT(YOUT2 = allocMatrix(REALSXP,ntot+1,(it+2))); incr_N_Protect();
+  PROTECT(YOUT2 = allocMatrix(REALSXP,ntot+1,(it+2))); incr_N_Protect();
   for (k = 0; k < it+2; k++)
     for (j = 0; j < ntot+1; j++)
       REAL(YOUT2)[k*(ntot+1) + j] = REAL(YOUT)[k*(ntot+1) + j];
@@ -153,7 +153,9 @@ SEXP getListElement(SEXP list, const char *str) {
  ipar[2]: length of ipar
 ===================================================*/
 
-void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
+/* Initialise output - output variables calculated in R-code ... */
+
+void initOutR(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
 
   int j;
   nout = INTEGER(nOut)[0];       /* number of output variables */
@@ -185,14 +187,16 @@ void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
    }
 }
 
-/* if a DAE: output always done in C-code ... */
-void initOutdae(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
+/* Initialise output - output variables calculated in C-code ... */
+
+void initOutC(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
   int j;
   /* initialise output when a dae ... */   
   /*  output always done here in C-code (<-> lsode, vode)... */
 
   nout  = INTEGER(nOut)[0];
   ntot  = n_eq+nout;
+  
   if (isDll == 1) {                /* function is a dll */
     lrpar = nout + LENGTH(Rpar);   /* length of rpar */
     lipar = 3    + LENGTH(Ipar);   /* length of ipar */

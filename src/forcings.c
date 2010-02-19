@@ -2,14 +2,49 @@
 to the integration routines */
 
 #include "deSolve.h"
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   Forcing functions (compiled code) from deSolve version 1.5
+   Events (R- and compiled code) from deSolve version 1.6
+   
+   **FORCING FUNCTIONS**, or external variables need to be interpolated 
+   at each time step. This is done in this part of C-code.
 
-/* ============================================================================
-  Forcing functions.
-   ==========================================================================*/
+   "initForcings" creates forcing function vectors passed from an R-list 
+   "initforcings" puts a pointer to the vector that contains the 
+     forcing functions in the DLL. This is done by calling "Initdeforc"; 
+   here the C-globals are initialised .  
+
+   Each time-step, before entering the compiled code, the forcing function 
+   variables are interpolated to the current time (function ("updateforc").
+   
+   
+   
+   **EVENTS** occur when the value of state variables change abruptly. 
+   This cannot be easily handled in the integrators, where state 
+   variables change via the derivatives only.
+   
+   Events are either specified in a data.frame, or via an event function, 
+   specified in R-code or in compiled code. 
+   For events, specified in R-code, function "C_event_func" provides 
+   the C-interface.
+   
+   "initEvents" creates initialises the events, based on information passed 
+   from an R-list.
+   
+   Each time-step, it is tested whether an event occurs ("updateevent")  
+
+ 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 int    finit = 0;
 
-/*         -----     Check for presence of forcing functions     -----        */
+/*=========================================================================== 
+         -----     Check for presence of forcing functions     -----       
+   function "initForcings" checks if forcing functions are present and if so,
+   create the vectors that contain the times (Tvec), the forcing values (Fvec) 
+   the start position of each forcing function variable (Ivec), and the 
+   interpolation method (fmethod). 
+  =========================================================================== */
 
 
 int initForcings(SEXP flist) {
@@ -44,11 +79,12 @@ int initForcings(SEXP flist) {
     return(isForcing);
 }
 
-/*         -----     INITIALISATION  called from compiled code   -----
+/*=========================================================================== 
+         -----     INITIALISATION  called from compiled code   -----
    1. Check the length of forcing functions in solver call and code in DLL
    2. Initialise the forcing function vectors
    3. set pointer to DLL; FORTRAN common block or C globals /
-*/
+  =========================================================================== */
 
 void Initdeforc(int *N, double *forc) {
   int i, ii;
@@ -192,7 +228,7 @@ void updateevent(double *t, double *y, int *istate) {
     int svar, method;
     double value;
     if (tEvent == *t) {
-      if (typeevent == 1) {
+      if (typeevent == 1) {      /* specified in a data.frame */
         do {
           svar = svarevent[iEvent];
           method = methodevent[iEvent];
@@ -205,10 +241,11 @@ void updateevent(double *t, double *y, int *istate) {
             y[svar] = y[svar] * value;
           tEvent = timeevent[++iEvent]; 
         } while ((tEvent == *t) && (iEvent <= nEvent));
-      } else {
+      } else {                      /* a function (R or compiled code) */
         event_func(&n_eq,t,y); 
         tEvent = timeevent[++iEvent]; 
       }  
       *istate = 1;
     }
 }
+

@@ -30,12 +30,11 @@ setplotpar <- function(nmdots, dots, nv, ask) {
 ## =============================================================================
 ## find a variable
 ## =============================================================================
-## KS->ThPe: CHANGED to use a loop, such as to keep ordering of inputted vars.
 
 selectvar <- function (which,var) {
 
     if (!is.numeric(which)) {
-        ln <- length(which)    
+        ln <- length(which)
         # keep ordering...
         Select <- NULL
         for ( i in 1:ln) {
@@ -43,7 +42,7 @@ selectvar <- function (which,var) {
           if (length(ss) ==0)
             stop("variable ", which[i], " not in var")
           Select <- c(Select,ss)
-        }        
+        }
     }
     else {
         Select <- which + 1  # "Select now refers to the column number
@@ -103,11 +102,7 @@ hist.deSolve <- function (x, which = 1:(ncol(x)-1), ask = NULL, ...) {
 }
 ### ============================================================================
 
-## KS->ThPe: CHANGED  main: can also be inputted as vector; changed selectvar to keep the 
-## ordering; xlab did not work...
-## ideal would be to also be able to have erything in the ... a vector.
-
-image.deSolve <- function (x, which = NULL, ask = NULL, 
+image.deSolve <- function (x, which = NULL, ask = NULL,
   add.contour = FALSE, grid=NULL, ...) {
 
     dimens <- attributes(x)$dimens
@@ -117,12 +112,12 @@ image.deSolve <- function (x, which = NULL, ask = NULL,
       plot.ode1D(x, which, ask, add.contour, grid, ...)
     else if (length(dimens) ==2)  # 2-D
       plot.ode2D(x, which, ask, add.contour, grid, ...)
-    else 
+    else
       stop("cannot make an image from deSolve output with more than 2 dimensions")
 }
 
 ### ============================================================================
-### Plot utilities for the S3 plot method, 0-D, 1-D, 2-D 
+### Plot utilities for the S3 plot method, 0-D, 1-D, 2-D
 ### ============================================================================
 
 
@@ -132,21 +127,21 @@ plot.deSolve <- function (x, which = 1:(ncol(x)-1), ask = NULL, ...) {
     t <- 1     # column with "times"
     var <- colnames(x)
     which <- selectvar(which,var)
-    
+
     np <- length(which)
 
     dots <- list(...)
     nmdots <- names(dots)
 
-    # number of figures in a row and 
+    # number of figures in a row and
     # interactively wait if there are remaining figures
-   
+
     ask <- setplotpar(nmdots, dots, np, ask)
     if (ask) {
         oask <- devAskNewPage(TRUE)
         on.exit(devAskNewPage(oask))
     }
-    
+
 
     xxlab <- if (is.null(dots$xlab))  colnames(x)[t]  else dots$xlab
     yylab <- if (is.null(dots$ylab))  ""              else dots$ylab
@@ -156,9 +151,9 @@ plot.deSolve <- function (x, which = 1:(ncol(x)-1), ask = NULL, ...) {
     xxlab <- rep(xxlab, length.out = np)
     yylab <- rep(yylab, length.out = np)
     Main <- rep(Main,length.out=np)
-     
+
     for (i in 1:np) {
-        ii <- which[i]        
+        ii <- which[i]
         dots$main <- Main[i]
         dots$xlab <- xxlab[i]
         dots$ylab <- yylab[i]
@@ -171,7 +166,7 @@ plot.deSolve <- function (x, which = 1:(ncol(x)-1), ask = NULL, ...) {
  select1dvar <- function (which,var) {
 
     if (!is.numeric(which)) {
-        ln <- length(which)    
+        ln <- length(which)
         # keep ordering...
         Select <- NULL
         for ( i in 1:ln) {
@@ -179,7 +174,7 @@ plot.deSolve <- function (x, which = 1:(ncol(x)-1), ask = NULL, ...) {
           if (length(ss) ==0)
             stop("variable ", which[i], " not in var")
           Select <- c(Select,ss)
-        }        
+        }
     }
     else {
         Select <- which  # "Select now refers to the column number
@@ -246,11 +241,11 @@ plot.ode1D <- function (x, which, ask, add.contour, grid, ...) {
 
         dots$xlab <- xxlab[i]
         dots$ylab <- yylab[i]
-        
+
         List <- alist(z=out,x=times)
         if (! is.null(grid)) List$y = grid
-        
-        do.call("image", c(List, dots)) 
+
+        do.call("image", c(List, dots))
         if (add.contour) do.call("contour", c(List, add=TRUE))
     }
 }
@@ -291,7 +286,7 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, ...) {
       oask <- devAskNewPage(TRUE)
       on.exit(devAskNewPage(oask))
     }
-    
+
     Main <-  if (is.null(dots$main)) var else rep(dots$main, length.out =np)
 
     labs <- (is.null(dots$xlab) && is.null(dots$ylab))
@@ -318,14 +313,14 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, ...) {
         if (! is.null(grid)) {
           List$x <- grid$x
           List$y <- grid$y
-        }  
+        }
 
-        do.call("image", c(List, dots)) 
+        do.call("image", c(List, dots))
         if (add.contour) do.call("contour", c(List, add=TRUE))
      }
      mtext(outer=TRUE, side=3,paste("time ",x[nt,1]), cex=1.5, line=-1.5)
 
-   } 
+   }
 }
 
 ### ============================================================================

@@ -124,7 +124,7 @@ checkDLL <- function (func,jacfunc,dllname,
 
     if (sum(duplicated (c(func,initfunc,jacfunc))) >0)
       stop("func, initfunc, or jacfunc cannot be the same")
-    if (! is.null(initfunc))  # KS: ADDED THAT to allow absence of initfunc
+    if (! is.null(initfunc))  # to allow absence of initfunc
       if (is.loaded(initfunc, PACKAGE = dllname, type = "") ||
         is.loaded(initfunc, PACKAGE = dllname, type = "Fortran"))  {
         ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
@@ -219,15 +219,6 @@ saveOut <- function (out, y, n, Nglobal, Nmtot, func, Func2,
   nm <- c("time",
           if (!is.null(attr(y, "names"))) names(y) else as.character(1:n))
   if (Nglobal > 0) {
-    if (!is.character(func)) {         # if a DLL: already done...
-      out2 <- matrix( nrow=Nglobal, ncol=ncol(out))
-      for (i in 1:ncol(out2)) {
-        y <- out[-1,i]
-        names(y) <- nm[-1]
-        out2[, i] <- unlist(Func2(out[1, i], y)[-1]) # KS: Func2 rather than func
-      }
-      out <- rbind(out,out2)
-    }                                   # end !is.character func
     nm <- c(nm,
             if (!is.null(Nmtot)) Nmtot else
             as.character((n+1) : (n + Nglobal)))

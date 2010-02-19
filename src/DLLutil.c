@@ -28,7 +28,7 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
   }
 
 /* initialise output, parameters, forcings ... */
-  initOut(isDll, ny, nOut, Rpar, Ipar);
+  initOutR(isDll, ny, nOut, Rpar, Ipar);
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
 

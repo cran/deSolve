@@ -1,5 +1,5 @@
 ### ============================================================================
-### Check forcing function data set 
+### Check forcing function data set, event inputs and time-lag input
 ### ============================================================================
 
 
@@ -132,12 +132,12 @@ checkforcings <- function (forcings,times,dllname,
 ### Check events data set 
 ### ============================================================================
 
-checkevents <- function (events, times, vars, dllname, lsodar=FALSE) {
+checkevents <- function (events, times, vars, dllname, root=FALSE) {
 
   if (is.null(events)) return(list())
   if (is.null(events$data) && is.null(events$func)) return(list())
-  # only effective if lsodar... "root" triggers an event, does not stop 
-  if (lsodar) {  # check if root should trigger an event...
+  # only effective if lsodar, lsode,... "root" triggers an event, does not stop 
+  if (root) {  # check if root should trigger an event...
     Root <- events$root
     if (is.null(Root)) Root <- 0
     Root <- as.integer(Root)
@@ -242,3 +242,21 @@ checkevents <- function (events, times, vars, dllname, lsodar=FALSE) {
     Value = as.double(event[,3]), Method = as.integer(event[,4]), 
     Type = as.integer(1), Root = Root))
 }
+
+### ============================================================================
+### Check timelags data set 
+### ============================================================================
+
+
+checklags <- function (lags) {
+  if (!is.null(lags)) {
+    lags$islag = as.integer(1)
+    if (is.null(lags$mxhist))
+       lags$mxhist <- 1e4
+    if (lags$mxhist <1)
+      lags$mxhist <- 1e4 
+    lags$mxhist<-as.integer(lags$mxhist)   
+  } else 
+    lags$islag=as.integer(0)
+  return(lags)
+}   

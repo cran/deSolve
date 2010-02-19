@@ -86,8 +86,8 @@ void terminate(int, int, int, int, int);
 void initParms(SEXP Initfunc, SEXP Parms);
 void Initdeparms(int*, double*);
 void Initdeforc(int*, double*);
-void initOut(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
-void initOutdae(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
+void initOutR(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
+void initOutC(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
 
 /* sparsity of Jacobian */
 void sparsity1D(SEXP Type, int* iwork, int neq, int liw);
@@ -102,3 +102,45 @@ void updatedeforc(double*);
 int initForcings(SEXP list);
 int initEvents(SEXP list, SEXP);
 void updateevent(double*, double*, int*);
+
+
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                         DECLARATIONS for time lags
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+
+/*==========================================
+  R-functions
+==========================================*/
+
+SEXP getPastValue   (SEXP T, SEXP nr);
+SEXP getPastGradient(SEXP T, SEXP nr);
+
+
+/*==========================================
+  C- utilities, functions
+==========================================*/
+/* Hermitian interpolation */
+double Hermite (double t0, double t1, double y0, double y1, double dy0,
+                double dy1, double t);
+
+double dHermite(double t0, double t1, double y0, double y1, double dy0,
+                double dy1, double t);
+
+int initLags(SEXP elag);
+
+/* history vectors  */
+void inithist(int max, int maxlags);
+
+void updatehist(double t, double *y, double *dy);
+
+int nexthist(int i);
+
+/*==========================================
+  Global variables
+==========================================*/
+
+int indexhist, indexlag, endreached, starthist;
+double *histvar, *histdvar, *histtime;
+int    *lagindex;
+int    histsize;
+int    initialisehist;

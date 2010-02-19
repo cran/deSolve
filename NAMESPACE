@@ -3,7 +3,7 @@ useDynLib(deSolve)
 export(aquaphy, ccl4model, SCOC, daspk, lsoda, lsodar, lsode, lsodes,
        ode, ode.1D, ode.2D, ode.3D, ode.band, vode, zvode)
 
-export(rk, rk4, euler, rkMethod)
+export(rk, rk4, euler, rkMethod, lagvalue, lagderiv, dede)
 
 exportPattern("^diagnostics.*")
 

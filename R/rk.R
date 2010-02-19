@@ -17,7 +17,6 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 
     n <- length(y)
 
-    ## KS -> ThPe: maxsteps/tcrit checks are extra - should they be done in the other?
     if (maxsteps < 0)       stop("maxsteps must be positive")
     if (!is.finite(maxsteps)) maxsteps <- .Machine$integer.max
     if (is.character(method)) method <- rkMethod(method)
@@ -25,14 +24,17 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 
     ## Check interpolation order
     if (is.null(method$nknots)) {
-      method$nknots <- 5L # fifth order polynomials by default
+      ## starting from deSolve >= 1.7
+      ## polynomial interpolation is disabled by default
+      ## methods use either dense output or hit external time steps
+      method$nknots <- 0L
     } else {
       method$nknots <- as.integer(ceiling(method$nknots))
     }
     nknots <- method$nknots
-    if (nknots > 8) {
+    if (nknots > 8L) {
         warning("Large number of nknots does not make sense.")
-    } else if (nknots < 2) {
+    } else if (nknots < 2L) {
       # cat("\nMethod without or with disabled interpolation\n")
       method$nknots <- 0L
     } else {
@@ -55,8 +57,8 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     Ynames <- attr(y, "names")
     Initfunc <- NULL
     Eventfunc <- NULL
-    events <- checkevents(events, times, Ynames, dllname) 
-    
+    events <- checkevents(events, times, Ynames, dllname)
+
     flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
 
@@ -69,7 +71,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       Nglobal  <- DLL$Nglobal
       Nmtot    <- DLL$Nmtot
       Eventfunc <- events$func
-      
+
       if (! is.null(forcings))
         flist <- checkforcings(forcings, times, dllname, initforc, verbose, fcontrol)
 
@@ -91,15 +93,15 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
           if (events$Type == 2)
             Eventfunc <- function(time, state) {
               attr(state, "names") <- Ynames
-              events$func(time, state, parms, ...) 
-            }  
+              events$func(time, state, parms, ...)
+            }
       } else {                            # no ynames...
         Func   <- function(time, state, parms)
           func(time, state, parms, ...)
         if (! is.null(events$Type))
           if (events$Type == 2)
-            Eventfunc <- function(time, state)  
-              events$func(time, state, parms,...) 
+            Eventfunc <- function(time, state)
+              events$func(time, state, parms,...)
       }
 
       ## Call func once to figure out whether and how many "global"
@@ -107,7 +109,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       FF <- checkFuncEuler(Func, times, y, parms, rho, Nstates)
       Nglobal <- FF$Nglobal
       Nmtot   <- FF$Nmtot
-      
+
       if (! is.null(events$Type))
         if (events$Type == 2) checkEventFunc(Eventfunc, times, y, rho)
     }

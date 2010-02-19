@@ -55,13 +55,14 @@ initial value problems, R}
 \Plainauthor{Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer}
 
 \Abstract{
-  \R package \ds \citep{deSolve}, the successor of \proglang{R}
+  \R package \ds \citep{deSolve_jss,deSolve} the successor of \proglang{R}
   package \pkg{odesolve} is a package to solve initial value problems (IVP) of:
 
   \begin{itemize}
     \item ordinary differential equations (ODE),
     \item differential algebraic equations (DAE) and
     \item partial differential equations (PDE).
+    \item delay differential equations (DeDE).
   \end{itemize}
 
   The implementation includes stiff integration routines based on the
@@ -255,7 +256,6 @@ have the advantage, that their columns can be accessed by name, rather
 than by number. For instance, \code{out$X} will take the outputted
 values of state variable \code{X}, and so on.
 
-%ThPe: these are not concentrations; simply call them states
 
 <<>>=
 require(deSolve)
@@ -272,7 +272,6 @@ writing a figure heading (\code{mtext}).  First the X concentration
 versus time is plotted, then the Y concentration versus time, and
 finally Y versus X and Z versus X.
 
-%ThPe: concentrations? states!
 
 <<label=ode,include=FALSE>>=
 par(mfrow=c(2,2), oma=c(0,0,3,0))
@@ -306,7 +305,7 @@ functions.  Moreover, for each integration routine, several options
 are available to optimise performance.
 
 Thus it should be possible to find, for one particular problem, the
-most efficient solver.  See \citep{deSolve} for more information about
+most efficient solver.  See \citep{deSolve_jss} for more information about
 when to use which solver in \pkg{deSolve}. For most cases, the default
 solver, \code{ode} and using the default settings will do.  Table 1
 gives a short overview of the available methods.
@@ -537,7 +536,7 @@ matplot(out[,1], out[,2:3], type = "l", lwd = 2,
 
 Function \code{zvode} solves ODEs that are composed of complex variables.
 
-We use \code{zvode} to solve the following system of 
+We use \code{zvode} to solve the following system of
 2 ODEs:
 
 \begin{align*}
@@ -570,7 +569,7 @@ The analytical solution is:
 \[
 f(t)= \exp (1i*t)
 \]
-and 
+and
 \[
 g(t)=1/(f(t) + 1.1)
 \]
@@ -679,6 +678,188 @@ out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
 @
 \clearpage
 
+\section{Events}
+
+As from version 1.6, \code{events} are supported. Events occur when
+the values of state variables are instantaneously changed.
+
+They can be specified as a data.frame, or in a function.  Events can
+also be triggered by a root function.
+
+\subsection{Event specified in a data.frame}
+
+In this example, two state variables with constant decay are modeled:
+
+<<>>=
+eventmod <- function(t, var, parms) {
+  list(dvar = -0.1*var)
+}
+
+yini <- c(v1 = 1, v2 = 2)
+times <- seq(0, 10, by = 0.1)
+@
+
+At time 1, 9, a value is added to variable v2, at time 1, state variable v2
+is multiplied with 2, while at time 5, the value of v2 is replaced with 3.
+
+These events are specified in a \code{data.frame}, eventdat:
+
+<<>>=
+eventdat <- data.frame(var = c("v1", "v2", "v2", "v1"), time = c(1, 1, 5, 9),
+  value = c(1, 2, 3, 4), method = c("add", "mult", "rep", "add"))
+
+eventdat
+@
+
+The model is solved with \code{vode}:
+
+<<>>=
+out <- ode(func = eventmod, y = yini, times = times, parms = NULL,
+  events = list(data = eventdat))
+@
+
+<<label=event1,include=FALSE>>=
+plot(out, type = "l", lwd = 2)
+@
+\setkeys{Gin}{width=0.4\textwidth}
+\begin{figure}
+\begin{center}
+<<label=figevent1,fig=TRUE,echo=FALSE>>=
+<<event1>>
+@
+\end{center}
+\caption{A simple model that contains events}
+\label{fig:event1}
+\end{figure}
+
+\subsection{Event triggered by a root function}
+
+This model describes the position (y1) and velocity (y2) of a bouncing
+ball:
+
+<<>>=
+ballode<- function(t, y, parms) {
+  dy1 <- y[2]
+  dy2 <- -9.8
+  list(c(dy1, dy2))
+}
+@
+
+An event is triggered when the ball hits the ground (height = 0)
+Then velocity (y2) is reversed and reduced with 10 percent.
+
+The root function, y[1] = 0, triggers the event
+
+<<>>=
+root <- function(t, y, parms) y[1]
+@
+
+The event function imposes the bouncing of the ball
+
+<<>>=
+event <- function(t, y, parms) {
+ y[1]<- 0
+ y[2]<- -0.9 * y[2]
+ return(y)
+}
+@
+
+After specifying the initial values and times, the model is solved.
+Both integrators \code{lsodar} or \code{lsode} can estimate a root.
+
+<<>>=
+yini  <- c(height = 0, v = 20)
+times <- seq(from = 0, to = 20, by = 0.01)
+
+out   <- lsode(times = times, y = yini, func = ballode, parms = NULL,
+  events = list(func = event, root = TRUE), rootfun = root)
+@
+
+<<label=event2,include=FALSE>>=
+plot(out, which = "height", type = "l",lwd = 2,
+  main = "bouncing ball", ylab = "height")
+@
+\setkeys{Gin}{width=0.4\textwidth}
+\begin{figure}
+\begin{center}
+<<label=figevent2,fig=TRUE,echo=FALSE>>=
+<<event2>>
+@
+\end{center}
+\caption{A model, with event triggered by a root function}
+\label{fig:event2}
+\end{figure}
+
+\section{Delay differential equations}
+
+As from deSolve version 1.7, time lags are supported, and a new
+general solver for delay differential equations, \code{dede} has been
+added.
+
+We implement the lemming model, example 6 from Shampine and Thompson,
+2000 solving delay differential equations with dde23.
+
+Function \code{lagvalue} calculates the value of the state variable at
+t-0.74.  As long a these lag values are not known, the value 19 is
+assigned to the state variable. Note that the simulation starts at
+time = - 0.74.
+
+<<>>=
+require(deSolve)
+
+#-----------------------------
+# the derivative function
+#-----------------------------
+derivs <- function(t, y, parms) {
+  if (t < 0)
+    lag <- 19
+  else
+    lag <- lagvalue(t - 0.74)
+
+  dy <- r * y* (1 - lag/m)
+  list(dy, dy = dy)
+}
+
+#-----------------------------
+# parameters
+#-----------------------------
+
+r <- 3.5; m <- 19
+
+#-----------------------------
+# initial values and times
+#-----------------------------
+
+yinit <- c(y = 19.001)
+times <- seq(-0.74, 40, by = 0.01)
+
+#-----------------------------
+# solve the model
+#-----------------------------
+
+yout <- dede(y = yinit, times = times, func = derivs,
+             parms = NULL, atol = 1e-10)
+@
+
+<<label=dde,include=FALSE>>=
+plot(yout, which = 1, type = "l", lwd = 2, main = "Lemming model", mfrow = c(1,2))
+plot(yout[,2], yout[,3], xlab = "y", ylab = "dy", type = "l", lwd = 2)
+@
+\setkeys{Gin}{width=0.4\textwidth}
+\begin{figure}
+\begin{center}
+<<label=figdde,fig=TRUE,echo=FALSE>>=
+<<dde>>
+@
+\end{center}
+\caption{A delay differential equation model}
+\label{fig:dde}
+\end{figure}
+
+
+
+\clearpage
+\clearpage
 \section{Troubleshooting}
 
 \subsection{Avoiding numerical errors}
@@ -739,7 +920,7 @@ very small number or even to zero:
 <<>>=
 out <- as.data.frame(ode(y = xstart,times = times, func = SPCmod,
                          parms = parms, atol = 0))
-matplot(out[,1], out[,2:3], type="l")
+matplot(out[,1], out[,2:3], type = "l")
 @
 
 It is, of course, not possible to set both, \code{atol} and
@@ -782,12 +963,13 @@ come with no warranty and the user is solely responsible for their
 correct application. If you encounter unexpected behavior, first check
 your model and read the documentation. If this doesn't help, feel free
 to ask a question to an appropriate mailing list,
-e.g. \url{r-help@r-project.org}.
+e.g. \url{r-help@r-project.org} or, more specific,
+\url{r-sig-dynamic-models@r-project.org}.
 
 
 \clearpage
 %\section{Function overview}
-
+\footnote{from version 1.7, lsode includes a root finding procedure, similar to lsodar}
 \begin{table*}[b]
 \caption{Summary of the functions that solve differential equations}\label{tb:rs}
 \centering
@@ -799,15 +981,16 @@ e.g. \url{r-help@r-project.org}.
 \code{ode.2D}               & integrates systems of ODEs resulting from 2-dimensional reaction-transport problems                          \\ \hline
 \code{ode.3D}               & integrates systems of ODEs resulting from 3-dimensional reaction-transport problems                          \\ \hline
 \code{ode.band}             & integrates systems of ODEs resulting from unicomponent 1-dimensional reaction-transport problems             \\ \hline
-\code{daspk}                &  solves systems of differential algebraic equations, assumes a full or banded  Jacobian                       \\ \hline
+\code{dede}                 & integrates systems of delay differential equations                                                           \\ \hline
+\code{daspk}                & solves systems of differential algebraic equations, assumes a full or banded  Jacobian                       \\ \hline
 \code{lsoda}                & integrates ODEs, automatically chooses method for stiff or non-stiff problems, assumes a full or banded Jacobian   \\ \hline
-\code{lsodar}               & same as \code{lsoda}, but includes a root-solving procedure                            \\ \hline
-\code{lsode} or \code{vode} & integrates ODEs, user must specify if stiff or non-stiff assumes a full or banded Jacobian   \\ \hline
-\code{lsodes}               & integrates ODEs, using stiff method and assuming an arbitrary sparse Jacobian           \\ \hline
-\code{rk}                   & integrates ODEs, using Runge-Kutta methods (includes Runge-Kutta 4 and Euler as special cases)    \\ \hline
+\code{lsodar}               & same as \code{lsoda}, but includes a root-solving procedure                                                  \\ \hline
+\code{lsode} or \code{vode} & integrates ODEs, user must specify if stiff or non-stiff assumes a full or banded Jacobian                   \\ \hline
+\code{lsodes}               & integrates ODEs, using stiff method and assuming an arbitrary sparse Jacobian                                \\ \hline
+\code{rk}                   & integrates ODEs, using Runge-Kutta methods (includes Runge-Kutta 4 and Euler as special cases)               \\ \hline
 \code{rk4}                  & integrates ODEs, using the classical Runge-Kutta 4th order method (special code with less options than \code{rk}) \\ \hline
-\code{euler}                & integrates ODEs, using Euler's method  (special code with less options than \code{rk}) \\ \hline
-\code{zvode}                & integrates ODEs composed of complex numbers, full, banded, stiff or nonstiff  \\ \hline
+\code{euler}                & integrates ODEs, using Euler's method  (special code with less options than \code{rk})                       \\ \hline
+\code{zvode}                & integrates ODEs composed of complex numbers, full, banded, stiff or nonstiff                                 \\ \hline
 \hline
 \end{tabular}
 \end{table*}

@@ -2,9 +2,9 @@
 #include <Rdefines.h>
 /* global variables */
 
-typedef void cderiv_func_type (int *, double *, Rcomplex *,Rcomplex *, 
+typedef void C_zderiv_func_type (int *, double *, Rcomplex *,Rcomplex *, 
   Rcomplex *, int *);
-cderiv_func_type *cderfun;  
+C_zderiv_func_type *DLL_cderiv_func;  
 
 SEXP cY;
 
@@ -15,7 +15,7 @@ extern SEXP vode_envir;
 
 Rcomplex *zout;
 
-void initOutC(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
+void initOutComplex(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
 
   int j;
   nout   = INTEGER(nOut)[0];    /* number of output variables */

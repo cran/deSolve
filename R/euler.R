@@ -3,27 +3,25 @@
 ### with fixed step size and without interpolation, see helpfile for details.
 ### ============================================================================
 
-euler <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
-  dllname = NULL, initfunc=dllname, initpar = parms,
-  rpar = NULL,  ipar = NULL, nout = 0, outnames=NULL, forcings=NULL,
+euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
+  dllname = NULL, initfunc = dllname, initpar = parms,
+  rpar = NULL,  ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
   initforc = NULL, fcontrol=NULL, ...) {
 
     ## check input
-    checkInputEuler(y,times,func,dllname)
+    checkInputEuler(y, times, func, dllname)
     n <- length(y)
 
 
     ## Model as shared object (DLL)?
-    Ynames   <- attr(y,"names")
+    Ynames   <- attr(y, "names")
     Initfunc <- NULL
-    flist    <-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
+    flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
 
-    # KS: Thomas, check this please - I have assumed: Initfunc = my ModelInit
-    # + moved upward: Nstates    - I Think it is OK...
     if (is.character(func)) {
-      DLL <- checkDLL(func,NULL,dllname,
-                    initfunc,verbose,nout, outnames)
+      DLL <- checkDLL(func, NULL, dllname,
+                    initfunc, verbose, nout, outnames)
 
       Initfunc <- DLL$ModelInit
       Func     <- DLL$Func
@@ -31,7 +29,7 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
       Nmtot    <- DLL$Nmtot
 
       if (! is.null(forcings))
-        flist <- checkforcings(forcings,times,dllname,initforc,verbose,fcontrol)
+        flist <- checkforcings(forcings, times, dllname, initforc, verbose, fcontrol)
 
       rho <- NULL
       if (is.null(ipar)) ipar<-0
@@ -43,18 +41,18 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
       # func and jac are overruled, either including ynames, or not
       # This allows to pass the "..." arguments and the parameters
       if(ynames) {
-        Func   <- function(time,state,parms) {
-          attr(state,"names") <- Ynames
-          func   (time,state,parms,...)
+        Func   <- function(time, state, parms) {
+          attr(state, "names") <- Ynames
+          func   (time, state, parms, ...)
         }
       } else {                            # no ynames...
-        Func   <- function(time,state,parms)
-          func   (time,state,parms,...)
+        Func   <- function(time, state, parms)
+          func   (time, state, parms, ...)
       }
 
       ## Call func once to figure out whether and how many "global"
       ## results it wants to return and some other safety checks
-      FF <- checkFuncEuler(Func,times,y,parms,rho,Nstates)
+      FF <- checkFuncEuler(Func, times, y, parms, rho, Nstates)
       Nglobal<-FF$Nglobal
       Nmtot <- FF$Nmtot
 
@@ -67,13 +65,8 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames=TRUE,
 
     ## saving results
     out <- saveOutrk(out, y, n, Nglobal, Nmtot,
-                     iin = c(1,12,13,15), iout=c(1:3,18))
-
-    ## KS-> ThPe: I toggled off this statement: what is this statement doing??
-    #    if (!is.null(istate) && istate[1] == -1)
-
+                     iin = c(1, 12, 13, 15), iout=c(1:3, 18))
     if (verbose) diagnostics(out)
-
     attr(out, "type")   <- "rk"
     out
 }

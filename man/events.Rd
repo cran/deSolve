@@ -5,10 +5,10 @@
 }
 \description{
   An \code{event} occurs when the value of a state variable is suddenly changed,
-  e.g. because new substrate is added, or part is removed. The integration 
+  e.g. because a value is added, subtracted, or multiplied. The integration 
   routines cannot deal easily with such state variable changes. Typically these
   events occur only at specific times.   
-  In \code{deSolve}, events can be imposed by means of an input file that 
+  In \code{deSolve}, events can be imposed by means of an input data.frame, that 
   specifies at which time a certain state variable is altered, or via
   an event function. 
 }
@@ -55,10 +55,11 @@
 
   In addition, either the \code{time} at which the events take place should be 
   specified as a vector (\code{event$time}). When the model is solved with
-  \link{lsodar}, an event can also be triggered by a root function, as 
-  specified with lsodar argument \code{rootfunc}. In this case, \code{lsodar}
-  is informed that the simulation it to be continued after a root is found
-  by setting \code{events$root} equal to \code{TRUE}. 
+  \link{lsodar}, or with \link{lsode}, an event can also be triggered by a 
+  root function, as  specified with argument \code{rootfunc}. 
+  In this case, the integrator is informed that the simulation it to be 
+  continued after a root is found by setting \code{events$root} equal to 
+  \code{TRUE}. 
   
   See two last examples; also see example of \link{ccl4model}.
   

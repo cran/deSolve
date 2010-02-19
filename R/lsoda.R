@@ -1,3 +1,4 @@
+# ks 21-12-09: Func <- unlist() ... output variables now set in C-code
 
 ### ============================================================================
 ### lsoda -- solves ordinary differential equation systems
@@ -15,7 +16,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   bandup = NULL, banddown = NULL, maxsteps = 5000,
   dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL, 
   ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol = NULL, events = NULL, ...)   {
+  initforc = NULL, fcontrol = NULL, events = NULL, lags=NULL, ...)   {
 
 ### check input
   hmax <- checkInput (y, times, func, rtol, atol,
@@ -86,7 +87,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (ynames) {
        Func    <- function(time,state) {
          attr(state,"names") <- Ynames
-         func   (time,state,parms,...)[1]
+         unlist(func   (time,state,parms,...))
        }
          
        Func2   <- function(time,state) {
@@ -107,7 +108,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
        
     } else {                            # no ynames...
        Func    <- function(time,state)
-         func   (time,state,parms,...)[1]
+         unlist(func   (time,state,parms,...))
         
        Func2   <- function(time,state)
          func   (time,state,parms,...)
@@ -161,7 +162,8 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   iwork[6] <- maxsteps
   if (maxordn != 12) iwork[8] <- maxordn
   if (maxords != 5)  iwork[9] <- maxords
-
+  if (verbose)  iwork[5] = 1    # prints method switches to screen
+  
   if(! is.null(tcrit)) rwork[1] <- tcrit
   rwork[5] <- hini
   rwork[6] <- hmax
@@ -180,13 +182,15 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-1
 
+  lags <- checklags(lags) 
+
   out <- .Call("call_lsoda",y,times,Func,initpar,
                rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(jt), as.integer(Nglobal),
                as.integer(lrw),as.integer(liw), as.integer(IN),
                NULL, as.integer(0), as.double(rpar), as.integer(ipar),
-               as.integer(0), flist, events, PACKAGE="deSolve")
+               as.integer(0), flist, events, lags, PACKAGE="deSolve")
 
 ### saving results    
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,

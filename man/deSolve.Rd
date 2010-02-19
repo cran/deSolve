@@ -4,13 +4,14 @@
 \docType{package}
 \title{
   General Solvers for Initial Value Problems of Ordinary Differential Equations
-  (ODE), Partial Differential Equations (PDE) and for Differential Algebraic
-  Equations (DAE)
+  (ODE), Partial Differential Equations (PDE), Differential Algebraic
+  Equations (DAE) and delay differential equations (DDE).
 }
 \description{
   Functions that solve initial value problems of a system of
   first-order ordinary differential equations (ODE), of partial
-  differential equations (PDE) and of differential algebraic equations (DAE).
+  differential equations (PDE), of differential algebraic equations (DAE)
+  and delay differential equations.
 
   The functions provide an interface to the FORTRAN functions lsoda,
   lsodar, lsode, lsodes of the ODEPACK collection,
@@ -21,18 +22,21 @@
   resulting from 1-D, 2-D and 3-D
   partial differential equations (PDE) that have been converted to ODEs by
   numerical differencing.
+  
+  It includes root-finding (or event location) and provides access to lagged
+  variables and derivatives.
 
 }
 \details{
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.6\cr
-    Date:    \tab 2009-11-23\cr
+    Version: \tab 1.7\cr
+    Date:    \tab 2010-02-16\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
-  The system of ODE's is written as an \R function or be defined in
+  The system of differential equations is written as an \R function or defined in
   compiled code that has been dynamically loaded, see package vignette
   (\code{vignette(compiledCode)}) for details. The solvers may be used
   as part of a modeling package for differential equations, or for
@@ -49,7 +53,11 @@
   R. Woodrow Setzer (Maintainer)
 }
 \references{
-%% to be filled out later
+Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010).
+  Solving Differential Equations in R: Package deSolve
+  Journal of Statistical Software, 33(9), 1--25.
+  \url{http://www.jstatsoft.org/v33/i09/}
+
 Alan C. Hindmarsh, 1983. ODEPACK, A Systematized Collection of ODE Solvers, in
 Scientific Computing, R. S. Stepleman et al. (Eds.), North-Holland, Amsterdam,
 pp. 55-64.
@@ -71,10 +79,14 @@ SIAM J. Sci. Stat. Comput., 10, pp. 1038-1051.
   \code{\link{ode.1D}}, \code{\link{ode.2D}}, \code{\link{ode.3D}},
   for integrating 1-D, 2-D and 3-D models
   
+  \code{\link{dede}} for a general interface to the delay differential 
+  equation solvers
 
   \code{\link{lsoda}}, \code{\link{lsode}},
   \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},
-  \code{\link{daspk}}, for solvers of the Livermore family
+  for ODE solvers of the Livermore family .
+
+  \code{\link{daspk}}, for a DAE solver of the Livermore family.
 
   \code{\link{rk}}, \code{\link{rk4}}, \code{\link{euler}} for Runge-Kutta
   solvers.
@@ -84,6 +96,10 @@ SIAM J. Sci. Stat. Comput., 10, pp. 1038-1051.
 
   \code{\link{forcings}},  \code{\link{events}}, for how to implement forcing 
   functions (external variables) and events (sudden changes in state variables)
+  
+  \code{\link{lagvalue}}, \code{\link{lagderiv}}, for how to get access to 
+  lagged values of state variables and derivatives 
+  
 }
 
 \examples{
@@ -94,9 +110,9 @@ example(lsoda)
 example(ode.band)
 example(ode.1D)
 example(ode.2D)
+example(dede)
 
 ## run demos
-demo("rk_solvers") # comparison of lsoda with Runge-Kutta-Type Solvers
 demo("odedim")     # partial differential equations
 demo("CCL4model")  # a model fitting example (this will take some time)
 

@@ -6,18 +6,18 @@ citEntry(entry="Article",
                       as.person("Thomas Petzoldt"),
                       as.person("R. Woodrow Setzer")),
   journal =	"Journal of Statistical Software",
-  volume =	"xx",
-  number =	"x",
-  pages =	"1--xx",
-  year = 	"submitted",
+  volume =	"33",
+  number =	"9",
+  pages =	"1--25",
+  year = 	"2010",
   CODEN =	"JSSOBK",
   ISSN = 	"1548-7660",
-  URL =  	"http://www.jstatsoft.org/vxx/ixx",
+  URL =  	"http://www.jstatsoft.org/v33/i09",
   keywords =	"ordinary differential equations, partial differential
     equations, differential algebraic equations, initial value problems,
     R, FORTRAN, C",
-  textVersion =  paste("Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (submitted).
+  textVersion =  paste("Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010).
   Solving Differential Equations in R: Package deSolve
-  Journal of Statistical Software, xx(x), 1--xx.
-  URL http://www.jstatsoft.org/vxx/ixx/.")
+  Journal of Statistical Software, 33(9), 1--25.
+  URL http://www.jstatsoft.org/v33/i09/.")
 )

@@ -14,7 +14,7 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
 
     Ynames <- attr(y,"names")
     Initfunc <- NULL
-    # KS: moved this upward
+
     flist    <-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
     Nstates <- length(y) # assume length of states is correct
 
@@ -58,7 +58,6 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     }
     vrb <- FALSE # TRUE forces internal debugging output of the C code
 
-    ## KS -> Thomas: still need to pass flist
     ## the CALL to the integrator
     out <- .Call("call_rk4", as.double(y), as.double(times),
         Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(vrb),
