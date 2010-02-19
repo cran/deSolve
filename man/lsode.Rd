@@ -11,6 +11,11 @@
   The \R function \code{lsode} provides an interface to the FORTRAN ODE
   solver of the same name, written by Alan C. Hindmarsh and Andrew
   H. Sherman.
+  
+  It combines parts of the code \code{lsodar} and can thus find the root
+  of at least one of a set of constraint functions g(i) of the independent
+  and dependent variables. This can be used to stop the simulation or to 
+  trigger \link{events}, i.e. a sudden change in one of the state variables.
     
   The system of ODE's is written as an \R function or be defined in
   compiled code that has been dynamically loaded.
@@ -27,13 +32,13 @@
 }
 \usage{
 lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,  
-  jacfunc = NULL, jactype = "fullint", mf = NULL,
-  verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL, hini = 0,
-  ynames = TRUE, maxord = NULL, bandup = NULL, banddown = NULL,
+  jacfunc = NULL, jactype = "fullint", mf = NULL, rootfunc = NULL,
+  verbose = FALSE, nroot = 0, tcrit = NULL, hmin = 0, hmax = NULL, 
+  hini = 0, ynames = TRUE, maxord = NULL, bandup = NULL, banddown = NULL,
   maxsteps = 5000, dllname = NULL, initfunc = dllname,
   initpar = parms, rpar = NULL, ipar = NULL, nout = 0,
   outnames = NULL, forcings=NULL, initforc = NULL, 
-  fcontrol=NULL, events=NULL, ...)
+  fcontrol=NULL, events=NULL, lags = NULL,...)
 }
 
 \arguments{
@@ -107,8 +112,20 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     \code{jactype} - provides more options than \code{jactype} - see
     details.
   }
+  \item{rootfunc }{if not \code{NULL}, an \R function that computes the
+    function whose root has to be estimated or a string giving the name
+    of a function or subroutine in \file{dllname} that computes the root
+    function.  The \R calling sequence for \code{rootfunc} is identical
+    to that of \code{func}.  \code{rootfunc} should return a vector with
+    the function values whose root is sought.
+  }
   \item{verbose }{if TRUE: full output to the screen, e.g. will
     print the \code{diagnostiscs} of the integration - see details.
+  }
+  \item{nroot }{only used if \file{dllname}  is specified: the number of
+    constraint functions whose roots are desired during the integration;
+    if \code{rootfunc} is an R-function, the solver estimates the number
+    of roots.
   }
   \item{tcrit }{if not \code{NULL}, then \code{lsode} cannot integrate
     past \code{tcrit}. The FORTRAN routine \code{lsode} overshoots its
@@ -200,6 +217,10 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{events }{A list that specifies events, i.e. when the value of a 
    state variable is suddenly changed. See \link{events} for more information.
+  }
+  \item{lags }{A list that specifies timelags, i.e. the number of steps 
+   that has to be kept. To be used for delay differential equations. 
+   See \link{timelags}, \link{dede} for more information.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.

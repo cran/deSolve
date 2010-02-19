@@ -33,7 +33,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   double  tcrit = REAL(Tcrit)[0];
   double  hini  = REAL(Hini)[0];
   int  maxsteps = INTEGER(Maxsteps)[0];
-  int  nout     = INTEGER(Nout)[0]; /* number of global outputs is func is in a DLL */
+  int  nout     = INTEGER(Nout)[0]; /* number of global outputs if func is in a DLL */
   int  verbose  = INTEGER(Verbose)[0];
 
   int stage     = (int)REAL(getListElement(Method, "stage"))[0];
@@ -59,7 +59,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   PROTECT(Xstart = AS_NUMERIC(Xstart)); incr_N_Protect();
   xs  = NUMERIC_POINTER(Xstart);
   neq = length(Xstart);
-
+  
   /**************************************************************************/
   /****** DLL, ipar, rpar (to be compatible with lsoda)                ******/
   /**************************************************************************/
@@ -148,7 +148,6 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
-  /* initglobals(nt); // todo: make this compatible */
   PROTECT(Time = NEW_NUMERIC(1));                 incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,(neq)));        incr_N_Protect(); 
   
@@ -228,19 +227,22 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   }
   
   /*====================================================================*/
-  /* call derivs again to get global outputs                          */
+  /* call derivs again to get global outputs                            */
+  /* j = -1 suppresses unnecessary internal copying                     */
   /*====================================================================*/
-  /* j = -1 suppresses unnecessary internal copying */
-  for (int j = 0; j < nt; j++) {
-    t = yout[j];
-    for (i = 0; i < neq; i++) tmp[i] = yout[j + nt * (1 + i)];
-    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll, isForcing);
-    for (i = 0; i < nout; i++) {
-      yout[j + nt * (1 + neq + i)] = out[i];
+
+  if(nout > 0) {
+    for (int j = 0; j < nt; j++) {
+      t = yout[j];
+      for (i = 0; i < neq; i++) tmp[i] = yout[j + nt * (1 + i)];
+      derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll, isForcing);
+      for (i = 0; i < nout; i++) {
+        yout[j + nt * (1 + neq + i)] = out[i];
+      }
     }
   }
+
   /* attach essential internal information (codes are compatible to lsoda) */
-  /* ToDo: respect function evaluations due to global outputs */
   setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr);
 
   /* release R resources */

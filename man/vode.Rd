@@ -33,7 +33,7 @@
   maxord = NULL, bandup = NULL, banddown = NULL, maxsteps = 5000,
   dllname = NULL, initfunc = dllname, initpar = parms, rpar = NULL,
   ipar = NULL, nout = 0, outnames = NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, events=NULL, ...)
+  initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL,...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -199,6 +199,10 @@
   }
   \item{events }{A list that specifies events, i.e. when the value of a 
    state variable is suddenly changed. See \link{events} for more information.
+  }
+  \item{lags }{A list that specifies timelags, i.e. the number of steps 
+   that has to be kept. To be used for delay differential equations. 
+   See \link{timelags}, \link{dede} for more information.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.

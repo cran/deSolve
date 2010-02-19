@@ -136,14 +136,18 @@ diagnostics.deSolve <- function(obj, Full = FALSE, ...) {
 
   if (name != "rk") printRstate(rstate)
 
-  if (name == "lsodar") {
+  if (name == "lsodar" || (name =="lsode" && !is.null(Attr$iroot))) {
     cat("--------------------\n")
     cat("ROOT\n")
     cat("--------------------\n")
     iroot <- which (Attr$iroot ==1)
-    if (length (iroot) > 0)
-      cat("\n root found for state variable:",
+    if (length (iroot) > 0)  {
+      cat("\n root found for root equation:",
         signif(iroot, digits = 0), "\n")
+      cat("\n at time :",
+        signif(rstate[3], digits = 5), "\n")
+        
+      }  
     else
       cat("\n NO root found \n")
     invisible(list(istate=istate, rstate=rstate, iroot = iroot))

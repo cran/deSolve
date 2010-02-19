@@ -30,7 +30,6 @@ DLLfunc <- function (func, times, y,
             stop(paste("cannot integrate: initfunc not loaded ",initfunc))        
 
     if (is.null(initfunc)) initfunc <- NA
-  ## KS: Forcings
 
     if (! is.null(forcings))
       flist <- checkforcings(forcings,times,dllname,initforc,TRUE,fcontrol)
@@ -94,7 +93,6 @@ DLLres <- function (res, times, y, dy, parms,
             stop(paste("cannot integrate: initfunc not loaded ",initfunc))        
     if (is.null(initfunc)) initfunc <- NA
 
-  ## KS: Forcings
     if (! is.null(forcings))
       flist <- checkforcings(forcings,times,dllname,initforc,TRUE,fcontrol)
 

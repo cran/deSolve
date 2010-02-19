@@ -47,7 +47,7 @@ performance, FORTRAN, C}
 \Plainauthor{Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer}
 
 \Abstract{This document describes how to use the \pkg{deSolve} package
-\citep{deSolve} to solve models that are written in \proglang{FORTRAN} or
+\citep{deSolve_jss}  to solve models that are written in \proglang{FORTRAN} or
 \proglang{C}.}
 
 %% The address of (at least) one author should be given
@@ -91,7 +91,7 @@ options(width=70)
 
 \section{Introduction}
 
-\pkg{deSolve} \citep{deSolve}, the successor of \proglang{R} package
+\pkg{deSolve} \citep{deSolve,deSolve_jss}, the successor of \proglang{R} package
 \pkg{odesolve} \citep{Setzer01} is a package to solve ordinary
 differential equations (ODE), differential algebraic equations (DAE)
 and partial differential equations (PDE).
@@ -688,11 +688,12 @@ For code written in \proglang{FORTRAN}, the \code{jacres} must be as:
         end
 \end{verbatim}
 
-\subsection{The root function from integrator lsodar}
+\subsection{The root function from integrators lsodar and lsode}
 
 \code{lsodar} is an extended version of integrator \code{lsoda} that
 includes a root finding function. This function is spedified via
-argument \code{rootfunc}.
+argument \code{rootfunc}.  From deSolve version 1.7, \code{lsode}
+has been extended with root finding capabilities.
 
 Here is how to program such a function in a lower-level language.  For
 code written in \proglang{C}, the calling sequence for \code{rootfunc}

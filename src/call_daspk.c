@@ -1,7 +1,27 @@
-/* Patterned on code from package odesolve */
 #include <time.h>
 #include <string.h>
 #include "deSolve.h"
+
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   Differential algebraic equation solver daspk.
+   
+   The C-wrappers that provide the interface between FORTRAN codes and R-code 
+   are: C_res_func   : interface with R-code "res", passes function residuals  
+        C_out        : interface with R-code "res", passes output variables  
+        C_daejac_func: interface with R-code "jacres", passes jacobian
+  
+   C_forc_dae provides the interface between the residual function specified in
+   a DLL and daspk, in case there are forcing functions.
+   
+  
+   changes since 1.4
+   karline: version 1.5: added forcing functions in DLL
+   karline: version 1.6: added events
+   karline: version 1.7: added time lags -> delay differential equations
+            improving names
+
+   to do: implement psolfunc
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /* definition of the call to the FORTRAN function ddaspk - in file ddaspk.f*/
 void F77_NAME(ddaspk)(void (*)(double *, double *, double *, double*,
@@ -14,7 +34,7 @@ void F77_NAME(ddaspk)(void (*)(double *, double *, double *, double*,
                   double *, double *, double *, int *, double *, double *, 
                         int *, double *, int *));   
 
-static void forc_dae (double *t, double *y, double *yprime, double *cj,
+static void C_forc_dae (double *t, double *y, double *yprime, double *cj,
                        double *delta, int *ires, double *yout, int *iout)
 {
   updatedeforc(t);
@@ -29,7 +49,7 @@ static void C_psol_func (int *neq, double *t, double *y, double *yprime,
 /* not yet implemented */
 }
 
-/* interface between FORTRAN function call and R function  */
+/* interface between FORTRAN residual function call and R function  */
 
 static void C_res_func (double *t, double *y, double *yprime, double *cj, 
                        double *delta, int *ires, double *yout, int *iout)
@@ -51,7 +71,7 @@ static void C_res_func (double *t, double *y, double *yprime, double *cj,
   my_unprotect(2);
 }
 
-/* deriv output function with rearrangement of state variables and rate of change */
+/* deriv output function  */
 
 static void C_out (int *nout, double *t, double *y, 
                        double *yprime, double *yout)
@@ -114,14 +134,14 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
 		SEXP rtol, SEXP atol, SEXP rho, SEXP tcrit, SEXP jacfunc, SEXP initfunc, 
 		SEXP psolfunc, SEXP verbose, SEXP info, SEXP iWork, SEXP rWork,  
     SEXP nOut, SEXP maxIt, SEXP bu, SEXP bd, SEXP nRowpd, SEXP Rpar,
-    SEXP Ipar, SEXP flist)
+    SEXP Ipar, SEXP flist, SEXP elag)
 {
 /******************************************************************************/
 /******                   DECLARATION SECTION                            ******/
 /******************************************************************************/
 
   int    j, nt, ny, repcount, latol, lrtol, lrw, liw, isDll;
-  int    maxit, isForcing;
+  int    maxit, isForcing, islag;
   double *xytmp,  *xdytmp, tin, tout, *Atol, *Rtol;
   double *delta=NULL, cj;
   int    *Info,  ninfo, idid, mflag, ires;
@@ -150,7 +170,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   mu = INTEGER(bu)[0]; 
   nrowpd = INTEGER(nRowpd)[0];  
   maxit = INTEGER(maxIt)[0];
-
+  
 /* function is a dll ?*/
   if (inherits(resfunc, "NativeSymbol")) {
    isDll = 1;
@@ -158,7 +178,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
    isDll = 0;
   }
 
-  initOutdae(isDll, n_eq, nOut, Rpar, Ipar); 
+  initOutC(isDll, n_eq, nOut, Rpar, Ipar); 
 
   /* copies of all variables that will be changed in the FORTRAN subroutine */
   Info  = (int *) R_alloc(ninfo,sizeof(int));
@@ -192,8 +212,10 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   initdaeglobals(nt);
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
-
- /* pointers to functions res_func, psol_func and daejac_func, passed to the FORTRAN subroutine */
+  islag = initLags(elag);
+ 
+ /* pointers to functions res_func, psol_func and daejac_func, 
+    passed to the FORTRAN subroutine */
 
   if (isDll == 1)  {       /* DLL address passed to FORTRAN */
       res_func = (C_res_func_type *) R_ExternalPtrAddr(resfunc);
@@ -203,7 +225,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
 
       if(isForcing==1) {
         DLL_res_func = (C_res_func_type *) R_ExternalPtrAddr(resfunc);
-        res_func = (C_res_func_type *) forc_dae;
+        res_func = (C_res_func_type *) C_forc_dae;
       }
 
     } else {
@@ -245,9 +267,10 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   idid = 1;
   REAL(YOUT)[0] = REAL(times)[0];
   for (j = 0; j < n_eq; j++)
-    {
       REAL(YOUT)[j+1] = REAL(y)[j];
-    }
+      
+  if (islag == 1) updatehist(REAL(times)[0], xytmp, xdytmp);
+    
   if (nout>0)
     {
      tin = REAL(times)[0];
@@ -266,18 +289,20 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
       tout = REAL(times)[it+1];
 
      repcount = 0;
-     do  /* iterations in case maxsteps>500*/
+     do  /* iterations in case maxsteps>500* or in case islag */
 	   {
      	if (Info[11] ==0) {        /*ordinary jac*/
 	       F77_CALL(ddaspk) (res_func, &ny, &tin, xytmp, xdytmp, &tout,
 			   Info, Rtol, Atol, &idid, 
 			   rwork, &lrw, iwork, &liw, out, ipar, daejac_func, psol_func);
 
-	      } else {                /*krylov*/
+	      } else {                /* krylov - not yet used */
       	 F77_CALL(ddaspk) (res_func, &ny, &tin, xytmp, xdytmp, &tout,
 			   Info, Rtol, Atol, &idid, 
 			   rwork, &lrw, iwork, &liw, out, ipar, kryljac_func, psol_func);
         }
+    if (islag == 1) updatehist(tin, xytmp, xdytmp);    
+        
 	  repcount ++;
 	  if (idid == -1) 
       {Info[0]=1;
@@ -337,7 +362,8 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
                }
                
 /*                    ####  an error occurred   ####                          */                     
-    if (repcount > maxit || tin < tout) {
+    if (repcount > maxit || tin < tout || idid <= 0) {
+     idid = 0;
      returnearly(1);
     	break;
     }
@@ -353,3 +379,4 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   else
     return(YOUT2);
 }
+

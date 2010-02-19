@@ -24,7 +24,7 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   maxsteps = 5000, lrw = NULL, liw = NULL, dllname = NULL,
   initfunc = dllname, initpar = parms, rpar = NULL,
   ipar = NULL, nout = 0, outnames = NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, events=NULL, 
+  initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL, 
   ...)
 }
 \arguments{
@@ -197,6 +197,10 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{events }{A list that specifies events, i.e. when the value of a 
    state variable is suddenly changed. See \link{events} for more information.
+  }
+  \item{lags }{A list that specifies timelags, i.e. the number of steps 
+   that has to be kept. To be used for delay differential equations. 
+   See \link{timelags}, \link{dede} for more information.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.

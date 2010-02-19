@@ -14,8 +14,8 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     jactype = "fullint", estini = NULL, verbose=FALSE, tcrit = NULL,
     hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord =5, bandup=NULL,
     banddown=NULL, maxsteps=5000, dllname=NULL, initfunc=dllname,
-    initpar=parms, rpar=NULL, ipar=NULL,nout=0, outnames=NULL,
-    forcings=NULL, initforc = NULL, fcontrol=NULL, ...) {
+    initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL,
+    forcings=NULL, initforc = NULL, fcontrol=NULL, lags = NULL, ...) {
 
 ### check input 
   if (!is.numeric(y))
@@ -68,6 +68,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   ## max number of iterations ~ maxstep; a multiple of 500
   maxIt <- max(1,(maxsteps+499)%/%500)
 
+                        
 ### Jacobian, method flag
   if (jactype == "fullint" )
     imp <- 22 # full, calculated internally
@@ -110,7 +111,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
 
   if (!is.null(dllname))  {
-   if (! is.null(initfunc))  # KS: ADDED THAT to allow absence of initfunc
+   if (! is.null(initfunc))  # to allow absence of initfunc
     if (is.loaded(initfunc, PACKAGE = dllname, type = "") ||
         is.loaded(initfunc, PACKAGE = dllname, type = "Fortran")) {
       ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
@@ -380,6 +381,12 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
 #       }else print("uses Krylov iterative method")
 #    }
 
+  lags <- checklags(lags) 
+  if (lags$islag == 1) {
+    info[3] = 1        # one step and return
+    maxIt <- maxsteps  # maxsteps per iteration...
+  }
+
 ### calling solver
   storage.mode(y) <- storage.mode(dy) <- storage.mode(times) <- "double"
   storage.mode(rtol) <- storage.mode(atol)  <- "double"
@@ -389,8 +396,8 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
       JacRes, ModelInit, PsolFunc, as.integer(verbose),as.integer(info),
       as.integer(iwork),as.double(rwork), as.integer(Nglobal),as.integer(maxIt),
       as.integer(bandup),as.integer(banddown),as.integer(nrowpd),
-      as.double (rpar), as.integer(ipar), flist,
-      PACKAGE = "deSolve")
+      as.double (rpar), as.integer(ipar), flist, lags, PACKAGE = "deSolve")
+
 
 ### saving results    
 

@@ -1,3 +1,5 @@
+# ks 21-12-09: Func <- ... unlist() ... output variables now set in C-code
+#              lags added
 
 ### ============================================================================
 ### lsodes -- solves ordinary differential equation systems with general
@@ -14,7 +16,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   maxord=NULL, maxsteps=5000, lrw=NULL, liw=NULL, 
   dllname=NULL, initfunc=dllname,
   initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, events=NULL, ...)  {
+  initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL, ...)  {
 
 ### check input
   hmax <- checkInput (y, times, func, rtol, atol,
@@ -138,7 +140,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (ynames) {
       Func    <- function(time,state) {
         attr(state,"names") <- Ynames
-        func   (time,state,parms,...)[1]
+        unlist(func   (time,state,parms,...))
       }
 
       Func2   <- function(time,state) {
@@ -158,7 +160,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
          }
     } else {                            # no ynames...
       Func    <- function(time,state)
-        func   (time,state,parms,...)[1]
+        unlist(func   (time,state,parms,...))
         
       Func2   <- function(time,state)
         func   (time,state,parms,...)
@@ -259,7 +261,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
 ### print to screen...
   if (verbose)   {
-    printtask(itask,func,jacvec)       #KS:check
+    printtask(itask,func,jacvec)      
     printM("\n--------------------")
     printM("Integration method")
     printM("--------------------\n")
@@ -294,13 +296,15 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-3
 
+  lags <- checklags(lags) 
+
   out <- .Call("call_lsoda",y,times,Func,initpar,
                rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(imp),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(IN),
                NULL, as.integer(0), as.double (rpar), as.integer(ipar),
-               as.integer(Type),flist, events, PACKAGE="deSolve")
+               as.integer(Type),flist, events, lags, PACKAGE="deSolve")
 
 ### saving results    
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,

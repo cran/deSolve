@@ -38,7 +38,7 @@ void matprod(int m, int n, int o, double* a, double* b, double* c);
 
 double maxdiff(double *x, double *y, int n);
 
-double maxerr(double *y1, double *y2, double* Atol, double* Rtol, int n);
+double maxerr(double *y0, double *y1, double *y2, double* Atol, double* Rtol, int n);
 
 void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
 	    double *ydot, double *yout, int j, int neq, int *ipar, 

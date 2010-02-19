@@ -75,11 +75,7 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     step, see details.
   }
   \item{tcrit }{if not \code{NULL}, then \code{rk} cannot integrate past
-    \code{tcrit}. The solver routines may overshoot their targets (times
-    points in the vector \code{times}), and interpolates values for the
-    desired time points.  If there is a time beyond which integration
-    should not proceed (perhaps because of a singularity), that should
-    be provided in \code{tcrit}.
+    \code{tcrit}. This parameter is for compatibility with other solvers.
   }
   \item{verbose }{a logical value that, when TRUE, triggers more
     verbose output from the ODE solver.

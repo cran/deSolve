@@ -1,3 +1,4 @@
+# ks 21-12-09: Func <- unlist() ... output variables now set in C-code
 
 ### ============================================================================
 ### vode -- solves ordinary differential equation systems
@@ -23,7 +24,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   bandup=NULL, banddown=NULL, maxsteps=5000, dllname=NULL, 
   initfunc=dllname, initpar=parms, rpar=NULL, ipar=NULL,
   nout=0, outnames=NULL, forcings=NULL, initforc = NULL,
-  fcontrol=NULL, events=NULL, ...)  {
+  fcontrol=NULL, events=NULL, lags = NULL, ...)  {
 
 ### check input
   hmax <- checkInput (y, times, func, rtol, atol,
@@ -120,7 +121,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
     if(ynames)  {
        Func    <- function(time,state) {
          attr(state,"names") <- Ynames
-         func   (time,state,parms,...)[1]
+         unlist(func   (time,state,parms,...))
        }
          
        Func2   <- function(time,state){
@@ -140,7 +141,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
          }
     } else {                            # no ynames...
       Func    <- function(time,state)
-        func   (time,state,parms,...)[1]
+        unlist(func   (time,state,parms,...))
         
       Func2   <- function(time,state)
         func   (time,state,parms,...)
@@ -255,6 +256,8 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <- 5   # vode is livermore solver type 5
+
+  lags <- checklags(lags) 
   
   out <- .Call("call_lsoda", y, times, Func, initpar, rtol, atol,
        rho, tcrit, JacFunc, ModelInit, Eventfunc, 
@@ -262,7 +265,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
        as.double(rwork),as.integer(iwork), as.integer(imp),as.integer(Nglobal),
        as.integer(lrw),as.integer(liw),as.integer(IN),NULL,
        as.integer(0), as.double (rpar), as.integer(ipar),
-       as.integer(0), flist, events, PACKAGE = "deSolve")
+       as.integer(0), flist, events, lags, PACKAGE = "deSolve")
 
 ### saving results    
 

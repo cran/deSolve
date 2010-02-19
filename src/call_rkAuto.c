@@ -177,7 +177,6 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
-  /* initglobals(nt); //todo: make this compatible */
   PROTECT(Time = NEW_NUMERIC(1));                 incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,(neq)));        incr_N_Protect(); 
   
@@ -229,7 +228,7 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
       t, tmax, hmin, hmax, alpha, beta,
       &dt, &errold,
       tt, y0, y1, y2, dy1, dy2, f, y, Fj, tmp, FF, rr, A,
-      out, bb1, bb2, cc, dd, atol, rtol, yknots,  yout,
+      out, bb1, bb2, cc, dd, atol, rtol, yknots, yout,
       Func, Parms, Rho
     );
   } else {  
@@ -265,17 +264,17 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* call derivs again to get global outputs                            */
   /* j = -1 suppresses unnecessary internal copying                     */
   /*====================================================================*/
-
-  for (int j = 0; j < nt; j++) {
-    t = yout[j];
-    for (i = 0; i < neq; i++) tmp[i] = yout[j + nt * (1 + i)];
-    derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll, isForcing);
-    for (i = 0; i < nout; i++) {
-      yout[j + nt * (1 + neq + i)] = out[i];
+  if (nout > 0) {
+    for (int j = 0; j < nt; j++) {
+      t = yout[j];
+      for (i = 0; i < neq; i++) tmp[i] = yout[j + nt * (1 + i)];
+      derivs(Func, t, tmp, Parms, Rho, FF, out, -1, neq, ipar, isDll, isForcing);
+      for (i = 0; i < nout; i++) {
+        yout[j + nt * (1 + neq + i)] = out[i];
+      }
     }
   }
   /* attach essential internal information (codes are compatible to lsoda) */
-  /* ToDo: respect function evaluations due to global outputs              */
   setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr);
 
   /* release R resources */
