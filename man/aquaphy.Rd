@@ -89,10 +89,10 @@ parameters <- c(maxPhotoSynt   = 0.125,      # mol C/mol C/hr
 ## The initial conditions
 ## -----------------------------
 
-state     <- c(DIN     = 6.,    # mmol N/m3
-              PROTEIN = 20.0,   # mmol C/m3
-              RESERVE = 5.0,    # mmol C/m3
-              LMW     = 1.0)    # mmol C/m3
+state <- c(DIN    = 6.,     # mmol N/m3
+          PROTEIN = 20.0,   # mmol C/m3
+          RESERVE = 5.0,    # mmol C/m3
+          LMW     = 1.0)    # mmol C/m3
 
 ## -----------------------------
 ## Running the model
@@ -110,7 +110,7 @@ par(mfrow = c(2, 2), oma = c(0, 0, 3, 0))
 col <- grey(0.9)
 ii <- 1:length(out$PAR)              
 
-plot (times[ii], out$Chlorophyll[ii], type = "l",
+plot(times[ii], out$Chlorophyll[ii], type = "l",
       main = "Chlorophyll", xlab = "time, hours",ylab = "ug/l")
 polygon(times[ii], out$PAR[ii]-10, col = col, border = NA); box()
 lines(times[ii], out$Chlorophyll[ii], lwd = 2 )
@@ -129,7 +129,7 @@ lines(times[ii], out$NCratio[ii], lwd = 2 )
 
 
 plot (times[ii], out$PhotoSynthesis[ii],type = "l",
-       main = "PhotoSynthesis",xlab = "time, hours",
+       main = "PhotoSynthesis", xlab = "time, hours",
        ylab = "mmolC/m3/hr")
 polygon(times[ii], out$PAR[ii]-10, col = col, border = NA); box()
 lines(times[ii], out$PhotoSynthesis[ii], lwd = 2 )
@@ -159,10 +159,10 @@ parval <- pmax(0,250 + 350*sin(ftime*2*pi/24)+
 Par    <- matrix(nc=2,c(ftime,parval))
 
 
-state     <- c(DIN     = 6.,    # mmol N/m3
-              PROTEIN = 20.0,   # mmol C/m3
-              RESERVE = 5.0,    # mmol C/m3
-              LMW     = 1.0)    # mmol C/m3
+state <- c(DIN     = 6.,     # mmol N/m3
+           PROTEIN = 20.0,   # mmol C/m3
+           RESERVE = 5.0,    # mmol C/m3
+           LMW     = 1.0)    # mmol C/m3
               
 out <- aquaphy(times, state, parameters, Par)
 
@@ -174,7 +174,6 @@ plot (times, out2$PAR, type = "l",
 plot (times, out2$Chlorophyll, type = "l",
       main = "Chlorophyll", xlab = "time, hours",ylab = "ug/l")
 
-
 plot (times, out2$DIN, type = "l", main = "DIN",
       xlab = "time, hours",ylab = "mmolN/m3")
 
@@ -184,9 +183,9 @@ plot (times, out2$NCratio, type = "l", main = "NCratio",
 mtext(outer = TRUE, side = 3, "AQUAPHY, PAR=forcing", cex = 1.5)
 
 # Now all variables plotted in one figure...
-plot(out,which= 1:9, type="l")
+plot(out, which = 1:9, type = "l")
 
-par(mfrow=c(1,1))
+par(mfrow = c(1, 1))
 
 }
 \references{
@@ -199,9 +198,9 @@ par(mfrow=c(1,1))
 }
 \details{
   The model is implemented primarily to demonstrate the linking of
-  FORTRAN with R-code.
+  FORTRAN with \R-code.
 
-  The source can be found in the \file{dynload} subdirectory of the package.
+  The source can be found in the \file{doc/examples/dynload} subdirectory of the package.
 }
 \seealso{
   \code{\link{ccl4model}}, the CCl4 inhalation model.

@@ -14,6 +14,7 @@
 # the model transport function and function TA_estimate, to estimate alkalinity
 # Do make sure that this file is in the working directory (or use setwd(""))
 
+
 source('Schelde_pars.R')
 
 
@@ -21,7 +22,7 @@ source('Schelde_pars.R')
 #                   DIFFERENTIAL ALGEBRAIC EQUATIONS                           #
 ################################################################################
 
-FNAResidual <- function (tt, state, dy, parms, scenario="B1") {
+FNAResidual <- function (tt, state, dy, parms, scenario = "B1") {
   with (as.list(c(state, dy, parms)), {
     pH      <- -log10(H*1e-6)
     TA      <- HCO3 + 2*CO3 + NH3 - H
@@ -91,7 +92,7 @@ FNAResidual <- function (tt, state, dy, parms, scenario="B1") {
     # Output variables: The pH, alkalinity and other summed quantities
     #--------------------------
     return(list(c(ROM, RO2, RNO3, RSumCO2, RSumNH4, RTA, EquiCO2, EquiHCO3, EquiNH4),
-    c(pH=pH, TA=TA, SumCO2=SumCO2, SumNH4=SumNH4)))
+    c(pH = pH, TA = TA, SumCO2 = SumCO2, SumNH4 = SumNH4)))
   })
 }
 
@@ -122,9 +123,9 @@ HCO3_ini <- H*K1CO2/(H*K1CO2 + H*H + K1CO2*K2CO2)*SumCO2_ini
   TA_ini <- HCO3_ini + 2*CO3_ini + NH3_ini - H_ini
 
 # Initial conditions for the state variables AND their rates of change
-y <- c(OM=OM_ini, O2=O2_ini, NO3=NO3_ini, H=H_ini,
-       NH4=NH4_ini, NH3=NH3_ini, CO2=CO2_ini, HCO3=HCO3_ini, CO3=CO3_ini)
-dy <- c(dOM=0, dO2=0, dNO3=0, dH=0, dNH4=0, dNH3=0, dCO2=0, dHCO3=0, dCO3=0)
+y <- c(OM = OM_ini, O2 = O2_ini, NO3 = NO3_ini, H = H_ini,
+       NH4 = NH4_ini, NH3 = NH3_ini, CO2 = CO2_ini, HCO3 = HCO3_ini, CO3 = CO3_ini)
+dy <- c(dOM = 0, dO2 = 0, dNO3 = 0, dH = 0, dNH4 = 0, dNH3 = 0, dCO2 = 0, dHCO3 = 0, dCO3 = 0)
 
 #---------------------
 # run the model
@@ -132,37 +133,31 @@ dy <- c(dOM=0, dO2=0, dNO3=0, dH=0, dNH4=0, dNH3=0, dCO2=0, dHCO3=0, dCO3=0)
 
 times <- c(0, 350:405)
 
-outA <- as.data.frame(daspk(y=y, times, res=FNAResidual, dy=dy, nalg=3, parms=phPars, scenario="A" ,  hmax=1))[-1,]
-outB <- as.data.frame(daspk(y=y, times, res=FNAResidual, dy=dy, nalg=3, parms=phPars, scenario="B1",  hmax=1))[-1,]
-outC <- as.data.frame(daspk(y=y, times, res=FNAResidual, dy=dy, nalg=3, parms=phPars, scenario="C" ,  hmax=1))[-1,]
+outA <- daspk(y = y, times, res = FNAResidual, dy = dy, nalg = 3, 
+  parms = phPars, scenario = "A", hmax = 1)
+outB <- daspk(y = y, times, res = FNAResidual, dy = dy, nalg = 3, 
+  parms = phPars, scenario = "B1", hmax = 1)
+outC <- daspk(y = y, times, res = FNAResidual, dy = dy, nalg = 3, 
+  parms = phPars, scenario = "C",  hmax = 1)
 
 #---------------------
 # plot model output
 #---------------------
+par(mfrow = c(3, 4), mar = c(1, 2, 2, 1),  oma = c(3, 3, 3, 0))
+Selection <- c("pH","TA","SumCO2","O2")
+plot(outA, mfrow = NULL, xlim = c(350,405), type = "l",
+  xaxt = "n", which = Selection)
+plot(outB, mfrow = NULL, xlim = c(350,405), type = "l",
+  xaxt = "n", which = Selection)
+plot(outC, mfrow = NULL, xlim = c(350,405), type = "l",
+  xaxt = "n", which = Selection)
 
-par(mfrow=c(3, 4), mar=c(1, 2, 0, 1),  oma=c(3, 3, 3, 0))
+mtext(side = 1, outer = TRUE, "time, d", line = 2, cex = 1.2)
+mtext(side = 2, at = 0.2, outer = TRUE, "Scenario C", line = 1.5, cex = 1.2)
+mtext(side = 2, at = 0.5, outer = TRUE, "Scenario B", line = 1.5, cex = 1.2)
+mtext(side = 2, at = 0.8, outer = TRUE, "Scenario A", line = 1.5, cex = 1.2)
 
-plot(outA$time, outA$pH, type="l", xlab="", ylab="", xaxt="n")
-plot(outA$time, outA$TA, type="l", xlab="", ylab="", xaxt="n")
-plot(outA$time, outA$SumCO2, type="l", xlab="", ylab="", xaxt="n")
-plot(outA$time, outA$O2, type="l", xlab="", ylab="", xaxt="n")
-
-plot(outB$time, outB$pH, type="l", xlab="", ylab="", xaxt="n")
-plot(outB$time, outB$TA, type="l", xlab="", ylab="", xaxt="n")
-plot(outB$time, outB$SumCO2, type="l", xlab="", ylab="", xaxt="n")
-plot(outB$time, outB$O2, type="l", xlab="", ylab="", xaxt="n")
-
-plot(outC$time, outC$pH, type="l", xlab="", ylab="")
-plot(outC$time, outC$TA, type="l", xlab="", ylab="")
-plot(outC$time, outC$SumCO2, type="l", xlab="", ylab="")
-plot(outC$time, outC$O2, type="l", xlab="", ylab="")
-
-mtext(side=1, outer=TRUE, "time, d", line=2, cex=1.2)
-mtext(side=2, at=0.2, outer=TRUE, "Scenario C", line=1.5, cex=1.2)
-mtext(side=2, at=0.5, outer=TRUE, "Scenario B", line=1.5, cex=1.2)
-mtext(side=2, at=0.8, outer=TRUE, "Scenario A", line=1.5, cex=1.2)
-
-mtext(side=3, at=0.125, outer=TRUE, "pH, -", line=1, cex=1.2)
-mtext(side=3, at=0.375, outer=TRUE, "TA, µmol/kg", line=1, cex=1.2)
-mtext(side=3, at=1-0.375, outer=TRUE, "CO2, µmol/kg", line=1, cex=1.2)
-mtext(side=3, at=1-0.125, outer=TRUE, "O2, µmol/kg", line=1, cex=1.2)
+mtext(side = 3, at = 0.125, outer = TRUE, "pH, -", line = 1, cex = 1.2)
+mtext(side = 3, at = 0.375, outer = TRUE, "TA, µmol/kg", line = 1, cex = 1.2)
+mtext(side = 3, at = 1-0.375, outer = TRUE, "CO2, µmol/kg", line = 1, cex = 1.2)
+mtext(side = 3, at = 1-0.125, outer = TRUE, "O2, µmol/kg", line = 1, cex = 1.2)

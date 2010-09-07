@@ -1609,13 +1609,13 @@ C     If we are here, the last step was interrupted by an error
 C     condition from DDSTP, and appropriate action was not taken.
 C     This is a fatal error.
 C
-      call rwarn(
+      call rprint(
      1  'daspk--  warning.. the last step terminated with a negative')
-      call rwarn(
+      call rprint(
      2  'value = I1, of idid and no appropriate action was taken ')
-      call rwarn('- run terminated')
+      call rprint('- run terminated')
       write (msg,'(6X,I10)') idid
-      call rwarn (msg)
+      call rprint (msg)
 
       RETURN
 110   CONTINUE
@@ -1974,30 +1974,30 @@ C
       NWARN = NWARN + 1
       IF (NWARN .GT. 10) GO TO 510
       IF (LAVL) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  warning.. Poor iterative algorithm performance  ')
-      call rwarn(
+      call rprint(
      2  '      at T = R1. Average no. of linear iterations = R2  ')
        write (MSG, '(6X,2D21.13)') TN, AVLIN
-       call rwarn(msg)
+       call rprint(msg)
         ENDIF
       IF (LCFN) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  warning.. Poor iterative algorithm performance  ')
-      call rwarn(
+      call rprint(
      2  '      at T = R1.  Nonlinear convergence failure rate = R2')
       write (MSG, '(6X,2D21.13)') TN, RCFN
-      call rwarn(msg)
+      call rprint(msg)
 
         ENDIF
 
       IF (LCFL) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  warning.. Poor iterative algorithm performance  ')
-      call rwarn(
+      call rprint(
      2  '      at T = R1. Linear convergence failure rate = R2')
       write (MSG, '(6X,2D21.13)') TN, RCFL
-       call rwarn(msg)
+       call rprint(msg)
 
         ENDIF
 C
@@ -2154,142 +2154,142 @@ C
 C     The maximum number of steps was taken before
 C     reaching tout.
 C
-610   call rwarn(
+610   call rprint(
      1  'daspk--  warning.. At current T (=R1) max number steps  ')
-      call rwarn(
+      call rprint(
      2  '      on this call before reaching tout ')
       write (MSG, '(6X,D21.13)') TN 
-      call rwarn(msg)
+      call rprint(msg)
      
       GO TO 700
 C
 C     Too much accuracy for machine precision.
 C
-620   call rwarn(
+620   call rprint(
      1  'daspk--  warning.. At T(=R1) too much accuracy requrested')
-      call rwarn(
+      call rprint(
      2  '      for precision of machine. rtol and atol were  ')
-      call rwarn(
+      call rprint(
      3  '      increased to appropriate values ')
        write (MSG, '(6X,D21.13)') TN 
-       call rwarn(msg)
+       call rprint(msg)
 
       GO TO 700
 C
 C     WT(I) .LE. 0.0D0 for some I (not at start of problem).
 C
-630   call rwarn(
+630   call rprint(
      1  'daspk--  warning.. At T(=R1) some element of WT')
-      call rwarn(
+      call rprint(
      2  '      has become less or equal than 0 ')
        write (MSG, '(6X,D21.13)') TN 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     Error test failed repeatedly or with H=HMIN.
 C
-640   call rwarn(
+640   call rprint(
      1  'daspk--  warning.. At T(=R1) and stepsize H (=R2)')
-      call rwarn(
+      call rprint(
      2  '      error test failed repeatedly or with abs(H)=Hmin')
       write (MSG, '(6X,2D21.13)') TN,H 
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
 C
 C     Nonlinear solver failed to converge repeatedly or with H=HMIN.
 C
-650   call rwarn(
+650   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) the')
-      call rwarn(
+      call rprint(
      2  '      nonlinear solver failed to converge')
-      call rwarn(
+      call rprint(
      3  '      repeatedly of with abs (H) = HMIN')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     The preconditioner had repeated failures.
 C
-655   call rwarn(
+655   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) the')
-       call rwarn(
+       call rprint(
      2  '      preconditioner had repeated failures')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     The iteration matrix is singular.
 C
-660   call rwarn(
+660   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) the')
-      call rwarn(
+      call rprint(
      2  '      iteration matrix is singular')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     Nonlinear system failure preceded by error test failures.
 C
-670   call rwarn(
+670   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) the')
-      call rwarn(
+      call rprint(
      2  '      nonlinear solver could not converge')
-      call rwarn(
+      call rprint(
      3  '      Also the error test failed repeatedly')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     Nonlinear system failure because IRES = -1.
 C
-675   call rwarn(
+675   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) the')
-      call rwarn(
+      call rprint(
      2  '      nonlinear system solver could not converge')
-      call rwarn(
+      call rprint(
      3  '      because ires was equal to -1')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     Failure because IRES = -2.
 C
-680   call rwarn(
+680   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) ')
-      call rwarn(
+      call rprint(
      2  '      ires was equal to -2')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     Failed to compute initial YPRIME.
 C
-685   call rwarn(
+685   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) the')
-      call rwarn(
+      call rprint(
      2  '      initial yprime could not be computed')
        write (MSG, '(6X,2D21.13)') TN,H0 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     Failure because IER was negative from PSOL.
 C
-690   call rwarn(
+690   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) ')
-      call rwarn(
+      call rprint(
      2  '      IER was negative from psol')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C     Failure because the linear system solver could not converge.
 C
-695   call rwarn(
+695   call rprint(
      1 'daspk--  warning.. At T(=R1) and stepsize H (=R2) the')
-      call rwarn(
+      call rprint(
      2  '      linear system solver could not converge')
        write (MSG, '(6X,2D21.13)') TN,H 
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 700
 C
 C
@@ -2307,127 +2307,127 @@ C     First the error message routine is called.  If this happens
 C     twice in succession, execution is terminated.
 C-----------------------------------------------------------------------
 C
-701   call rwarn(
+701   call rprint(
      1 'daspk-- element (=I1) of info vector is not valid')
        write (MSG, '(6X,I10)') ITEMP
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 750
-702   call rwarn(
+702   call rprint(
      1 'daspk-- neq (=I1) < 0 ')
        write (MSG, '(6X,I10)') NEQ
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 750
-703   call rwarn(
+703   call rprint(
      1 'daspk-- maxord (=I1) not in range')
        write (MSG, '(6X,I10)') MXORD
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 750
-704   call rwarn(
+704   call rprint(
      1 'daspk-- rwork length needed, LENRW(=I1) exceeds LRW(=I2')
        write (MSG, '(6X,2I10)') LENRW,LRW
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 750
-705   call rwarn(
+705   call rprint(
      1 'daspk-- iwork length needed, LENIW(=I1) exceeds LIW(=I2)')
        write (MSG, '(6X,2I10)') LENIW,LIW
-       call rwarn(msg)
+       call rprint(msg)
       GO TO 750
-706   call rwarn(
+706   call rprint(
      1 'daspk-- some element of rtol is < 0')
       GO TO 750
-707   call rwarn(
+707   call rprint(
      1 'daspk-- some element of atol is < 0')
       GO TO 750
-708   call rwarn(
+708   call rprint(
      1 'daspk-- all elements of rtol and atol are 0')
       GO TO 750
-709   call rwarn(
+709   call rprint(
      1 'daspk-- INFO(4)=1 and TSTOP (=R1) behind TOUT (=R2)')
       write (MSG, '(6X,2D21.13)') TSTOP,TOUT
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-710   call rwarn(
+710   call rprint(
      1 'daspk-- HMAX (=R1) < 0')
       write (MSG, '(6X,D21.13)') HMAX
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-711   call rwarn(
+711   call rprint(
      1 'daspk-- TOUT (=R1) behind T (=R2)')
       write (MSG, '(6X,2D21.13)') TOUT,T
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-712   call rwarn(
+712   call rprint(
      1 'daspk-- INFO(8)=1 and H0=0')
       GO TO 750
-713   call rwarn(
+713   call rprint(
      1 'daspk-- some element of WT <= 0')
       GO TO 750
-714   call rwarn(
+714   call rprint(
      1 'daspk-- TOUT (=R1) too close to T (=R2) to start integration')
       write (MSG, '(6X,2D21.13)') TOUT,T
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-715   call rwarn(
+715   call rprint(
      1 'daspk-- INFO(4)=1 and TSTOP (=R1) behind T (=R2)')
       write (MSG, '(6X,2D21.13)') TSTOP,T
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-717   call rwarn(
+717   call rprint(
      1 'daspk-- ML (=I1) illegal - either < 0 or > neq')
       write (MSG, '(6X,I10)') IWORK(LML)
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-718   call rwarn(
+718   call rprint(
      1 'daspk-- MU (=I1) illegal - either < 0 or > neq')
       write (MSG, '(6X,I10)') IWORK(LMU)
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-719   call rwarn(
+719   call rprint(
      1 'daspk-- TOUT (=R1) is equal to T (=R2)')
       write (MSG, '(6X,2D21.13)') TOUT,T
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-720   call rwarn(
+720   call rprint(
      1 'daspk-- MAXL (=I1) illegal - either < 1 or > neq')
       write (MSG, '(6X,I10)') IWORK(LMAXL)
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-721   call rwarn(
+721   call rprint(
      1 'daspk-- KMP (=I1) illegal - either < 1 or > MAXL')
       write (MSG, '(6X,I10)') IWORK(LKMP)
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-722   call rwarn(
+722   call rprint(
      1 'daspk-- NRMAX (=I1) illegal -  < 0 ')
       write (MSG, '(6X,I10)') IWORK(LNRMAX)
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-723   call rwarn(
+723   call rprint(
      1 'daspk-- EPLI (=R1) illegal - either <= 0 or >= 1')
       write (MSG, '(6X,D21.13)') RWORK(LEPLI)
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
-724   call rwarn(
+724   call rprint(
      1 'daspk-- illegal IWORK value for INFO(11) not equal to 0')
       GO TO 750
-725   call rwarn(
+725   call rprint(
      1 'daspk-- one of the inputs for INFO(17) = 1 is illegal')
       GO TO 750
-726   call rwarn(
+726   call rprint(
      1 'daspk-- illegal IWORK value for INFO(10) not equal to 0')
       GO TO 750
-727   call rwarn(
+727   call rprint(
      1 'daspk-- Y(I) and IWORK(40+I) (I=I1) inconsistent')
       write (MSG, '(6X,I10)') IRET
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 750
 750   IF(INFO(1).EQ.-1) GO TO 760
       INFO(1)=-1
       IDID=-33
       RETURN
-760   call rwarn(
+760   call rprint(
      1 'daspk-- repeated occurrences of illegal input')
-770   call rwarn(
+770   call rprint(
      1 'daspk-- run terminated; apparent infinite loop')
       RETURN
 C
@@ -3905,10 +3905,10 @@ C
       F1NRM = (FNRM*FNRM)/TWO
       RATIO = ONE
       IF (KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  in routine dlinsd--PNRM (=R1)')
       write (msg,'(6X,D21.13)') PNRM
-      call rwarn (msg)
+      call rprint (msg)
      
         ENDIF
       TAU = PNRM
@@ -3931,10 +3931,10 @@ C-----------------------------------------------------------------------
  20           P(I) = P(I)*RATIO1
             PNRM = TAU
             IF (KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  constraint violation-PNRM (=R1), index =(I1)')
       write (msg,'(6X,I10,D21.13)') IVAR,PNRM
-      call rwarn (msg)
+      call rprint (msg)
               ENDIF
             IF (PNRM .LE. STPTOL) THEN
               IRET = 1
@@ -3947,10 +3947,10 @@ C
       SLPI = (-TWO*F1NRM)*RATIO
       RLMIN = STPTOL/PNRM
       IF (LSOFF .EQ. 0 .AND. KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  min lambda (=R1)')
       write (msg,'(6X,D21.13)') RLMIN
-      call rwarn (msg)
+      call rprint (msg)
 
         ENDIF
 C-----------------------------------------------------------------------
@@ -3970,14 +3970,14 @@ C-----------------------------------------------------------------------
 C
       F1NRMP = FNRMP*FNRMP/TWO
       IF (KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  LAMBDA (=R1)')
       write (msg,'(6X,D21.13)') RL
-      call rwarn (msg)
-      call rwarn(
+      call rprint (msg)
+      call rprint(
      1  'daspk--  NORM(F1) = (R1), NORM(F1NEW) (=R2)')
       write (msg,'(6X,2D21.13)') F1NRM, F1NRMP
-      call rwarn (msg)
+      call rprint (msg)
       
         ENDIF
       IF (F1NRMP .GT. F1NRM + ALPHA*SLPI*RL) GO TO 200
@@ -3990,10 +3990,10 @@ C-----------------------------------------------------------------------
       CALL DCOPY (NEQ, YPNEW, 1, YPRIME, 1)
       FNRM = FNRMP
       IF (KPRIN .GE. 1) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  leaving routine dlinsd--FNRM (=R1)')
       write (msg,'(6X,D21.13)') FNRM
-      call rwarn (msg)
+      call rprint (msg)
       
         ENDIF
       RETURN
@@ -5207,10 +5207,10 @@ C
       RATIO = ONE
 C
       IF (KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  in routine dlinsd--PNRM (=R1)')
       write (msg,'(6X,D21.13)') PNRM
-      call rwarn (msg)
+      call rprint (msg)
       
         ENDIF
       TAU = PNRM
@@ -5233,10 +5233,10 @@ C-----------------------------------------------------------------------
  20           P(I) = P(I)*RATIO1
             PNRM = TAU
             IF (KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  constraint violation, PNRM (=R1), INDEX = (I1)')
       write (msg,'(6X,I10,D21.13)') IVAR, PNRM
-      call rwarn (msg)
+      call rprint (msg)
             
               ENDIF
             IF (PNRM .LE. STPTOL) THEN
@@ -5250,10 +5250,10 @@ C
       SLPI = (-TWO*F1NRM + RHOK*RHOK)*RATIO
       RLMIN = STPTOL/PNRM
       IF (LSOFF .EQ. 0 .AND. KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  Min. LAMBDA (=R1)')
       write (msg,'(6X,D21.13)') RLMIN
-      call rwarn (msg)
+      call rprint (msg)
         ENDIF
 C-----------------------------------------------------------------------
 C Begin iteration to find RL value satisfying alpha-condition.
@@ -5274,14 +5274,14 @@ C-----------------------------------------------------------------------
 C
       F1NRMP = FNRMP*FNRMP/TWO
       IF (KPRIN .GE. 2) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  LAMBDA (=R1)')
       write (msg,'(6X,D21.13)') RL
-      call rwarn (msg)
-      call rwarn(
+      call rprint (msg)
+      call rprint(
      1  '     --  NORM(F1) (=R1), NORM(F1NEW) (=R2)')
       write (msg,'(6X,2D21.13)') F1NRM,F1NRMP
-      call rwarn (msg)
+      call rprint (msg)
       
         ENDIF
       IF (F1NRMP .GT. F1NRM + ALPHA*SLPI*RL) GO TO 200
@@ -5294,10 +5294,10 @@ C-----------------------------------------------------------------------
       CALL DCOPY(NEQ, YPNEW, 1, YPRIME, 1)
       FNRM = FNRMP
       IF (KPRIN .GE. 1) THEN
-      call rwarn(
+      call rprint(
      1  'daspk--  leaving routine dlinsk--FNRM (=R1)')
       write (msg,'(6X,D21.13)') FNRM
-      call rwarn (msg)
+      call rprint (msg)
       
         ENDIF
       RETURN

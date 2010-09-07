@@ -4,15 +4,15 @@
 ### ============================================================================
 
 rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
-  verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL, hini = hmax, ynames=TRUE,
-  method = rkMethod("rk45dp7", ... ), maxsteps = 5000,
-  dllname = NULL, initfunc=dllname, initpar = parms,
-  rpar = NULL,  ipar = NULL, nout = 0, outnames=NULL, forcings=NULL,
+  verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL, hini = hmax,
+  ynames=TRUE, method = rkMethod("rk45dp7", ... ), maxsteps = 5000,
+  dllname = NULL, initfunc = dllname, initpar = parms,
+  rpar = NULL,  ipar = NULL, nout = 0, outnames=NULL, forcings = NULL,
   initforc = NULL, fcontrol=NULL, events = NULL, ...) {
 
     ## Check inputs
     hmax <- checkInput(y, times, func, rtol, atol,
-        jacfunc=NULL, tcrit, hmin, hmax, hini, dllname)
+      jacfunc = NULL, tcrit, hmin, hmax, hini, dllname)
     if (hmax == 0) hmax <- .Machine$double.xmax # i.e. practically unlimited
 
     n <- length(y)
@@ -21,6 +21,17 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     if (!is.finite(maxsteps)) maxsteps <- .Machine$integer.max
     if (is.character(method)) method <- rkMethod(method)
     if (is.null(tcrit)) tcrit <- max(times)
+
+    ## ToDo: check for nonsense-combinations of densetype and d
+
+    if (!is.null(method$densetype)) {
+      ## make this an integer to avoid errors on the C level
+      method$densetype <- as.integer(method$densetype)
+      if (!(method$densetype %in% c(1L, 2L))) {
+        warning("Unknown value of densetype; set to NULL")
+        method$densetype <- NULL
+      }
+    }
 
     ## Check interpolation order
     if (is.null(method$nknots)) {
@@ -42,8 +53,8 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       ## ensure that we have at least nknots + 2 data points; + 0.5 for safety)
       ## to allow 3rd order polynomial interpolation
       ## for methods without built-in dense output
-
       if ((is.null(method$d) &                             # has no "dense output"?
+           is.null(method$densetype) &                     # densetype: dense output type
         (hmax > 1.0/(nknots + 2.5) * trange))) {           # time steps too large?
         hini <- hmax <- 1.0/(nknots + 2.5) * trange
         if (hmin < hini) hmin <- hini
@@ -127,8 +138,19 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     nsteps  <- min(.Machine$integer.max, maxsteps * length(times))
     varstep <- method$varstep
     vrb <- FALSE # TRUE would force internal debugging output of the C code
+    ## Implicit methods
+    implicit <- method$implicit
+    if (is.null(implicit)) implicit <- 0
+    if (implicit) {
+      if (is.null(hini)) hini <- 0
+      out <- .Call("call_rkImplicit", as.double(y), as.double(times),
+        Func, Initfunc, parms, Eventfunc, events,
+        as.integer(Nglobal), rho,
+        as.double(tcrit), as.integer(vrb),
+        as.double(hini), as.double(rpar), as.integer(ipar), method,
+        as.integer(nsteps), flist)
 
-    if (varstep) {  # methods with variable step size
+    } else if (varstep) { # Methods with variable step size
       if (is.null(hini)) hini <- hmax
       out <- .Call("call_rkAuto", as.double(y), as.double(times),
         Func, Initfunc, parms, Eventfunc, events,
@@ -137,7 +159,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
         as.double(hmin), as.double(hmax), as.double(hini),
         as.double(rpar), as.integer(ipar), method,
         as.integer(nsteps), flist)
-    } else {        # fixed step methods
+    } else { # Fixed step methods
       ## hini=0 for fixed step methods means
       ## that steps in "times" are used as they are
       if (is.null(hini)) hini <- 0
@@ -151,7 +173,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 
     ## saving results
     out <- saveOutrk(out, y, n, Nglobal, Nmtot,
-                     iin = c(1,12,13,15), iout = c(1:3, 18))
+                     iin = c(1, 12:15), iout = c(1:3, 13, 18))
 
     attr(out, "type") <- "rk"
     if (verbose) diagnostics(out)

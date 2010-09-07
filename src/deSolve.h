@@ -2,22 +2,21 @@
 #include <Rdefines.h>
 
 /*============================================================================
-  global R variables 
+  global R variables      it,
 ============================================================================*/
+double *timesteps;
+
 SEXP YOUT, YOUT2, ISTATE, RWORK, IROOT;    /* returned to R */
 SEXP Time, Y, YPRIME , Rin;
 
-int    it, n_eq; 
-int    *iwork;   
-double *rwork;
+int     n_eq; 
+
 
 /* use in daspk */
-long int mu;
-long int ml;
 long int nrowpd;
 
 /* output in DLL globals */
-int nout, ntot, isOut, lrpar, lipar, *ipar;
+int  isOut, *ipar;
 double *out;
 
 /* forcings  */
@@ -35,10 +34,14 @@ double *forcings;
 
 /* events */
 double tEvent;
-int iEvent, nEvent, typeevent, rootevent;
+int iEvent, nEvent, typeevent, rootevent, Rootsave;
+double *troot;
 
 double *timeevent, *valueevent;
 int *svarevent, *methodevent;
+
+/* time delays */
+int interpolMethod;  /* for time-delays : 1 = hermite; 2=dense */
 
 /*============================================================================
  type definitions for C functions
@@ -68,34 +71,43 @@ extern SEXP R_envir;
 extern SEXP R_res_func;
 extern SEXP R_daejac_func;
 extern SEXP R_psol_func;
+extern SEXP R_mas_func;
 
 extern SEXP de_gparms;
 SEXP getListElement(SEXP list, const char* str);
+
+SEXP getTimestep();
 
 /*============================================================================ 
   C- utilities, functions 
 ============================================================================*/
 void init_N_Protect(void);
 void incr_N_Protect(void);
+long int save_N_Protected(void);
+void restore_N_Protected(long int);
 void unprotect_all(void);
 void my_unprotect(int);
-void returnearly (int);
-void terminate(int, int, int, int, int);
+
+void lock_solver(void);
+void unlock_solver(void);
+
+void returnearly (int, int, int);
+void terminate(int, int*, int, int, double *, int, int);
 
 /* declarations for initialisations */
 void initParms(SEXP Initfunc, SEXP Parms);
 void Initdeparms(int*, double*);
 void Initdeforc(int*, double*);
-void initOutR(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
-void initOutC(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
+void initOutR(int isDll, int *nout, int *ntot, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
+void initOutC(int isDll, int *nout, int *ntot, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
 
 /* sparsity of Jacobian */
 void sparsity1D(SEXP Type, int* iwork, int neq, int liw);
 void sparsity2D(SEXP Type, int* iwork, int neq, int liw);
 void sparsity3D(SEXP Type, int* iwork, int neq, int liw);
 
-void initglobals(int);
-void initdaeglobals(int);
+void initglobals(int, int);
+void initdaeglobals(int, int);
 
 /* the forcings and event functions */
 void updatedeforc(double*);
@@ -115,7 +127,6 @@ void updateevent(double*, double*, int*);
 SEXP getPastValue   (SEXP T, SEXP nr);
 SEXP getPastGradient(SEXP T, SEXP nr);
 
-
 /*==========================================
   C- utilities, functions
 ==========================================*/
@@ -126,21 +137,25 @@ double Hermite (double t0, double t1, double y0, double y1, double dy0,
 double dHermite(double t0, double t1, double y0, double y1, double dy0,
                 double dy1, double t);
 
-int initLags(SEXP elag);
+int initLags(SEXP elag, int solver, int nroot);
 
 /* history vectors  */
-void inithist(int max, int maxlags);
+void inithist(int max, int maxlags, int solver, int nroot);
 
-void updatehist(double t, double *y, double *dy);
+void updatehistini(double t, double *y, double *dY, double *rwork, int *iwork);
+void updatehist(double t, double *y, double *dy, double *rwork, int *iwork);
 
 int nexthist(int i);
+double interpolate(int i, int k, double t0, double t1, double t, 
+  double *Yh, int nq); 
+
 
 /*==========================================
-  Global variables
+  Global variables for history arrays
 ==========================================*/
 
 int indexhist, indexlag, endreached, starthist;
-double *histvar, *histdvar, *histtime;
-int    *lagindex;
-int    histsize;
-int    initialisehist;
+double *histvar, *histdvar, *histtime, *histhh;
+int    *histord;
+int    histsize, offset;
+int    initialisehist, lyh, lhh, lo;

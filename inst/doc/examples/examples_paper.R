@@ -33,36 +33,31 @@ nrun <- 1 # set 10 for benchmark
 
 print(system.time(
   for (i in 1:nrun)
-    out     <- as.data.frame(lsoda(func= LVmod0D, y=yini,
-                           parms=pars, times=times))
+    out     <- lsoda(func = LVmod0D, y = yini, parms = pars, times = times)
 )/nrun)
 
 print(system.time(
   for (i in 1:nrun)
-    out     <- as.data.frame(lsode(func= LVmod0D, y=yini,
-                           parms=pars, times=times))
+    out     <- lsode(func = LVmod0D, y = yini, parms = pars, times = times) 
 )/nrun)
 
 print(system.time(
   for (i in 1:nrun)
-    out     <- as.data.frame(vode(func= LVmod0D, y=yini,
-                           parms=pars, times=times))
+    out     <- vode(func = LVmod0D, y = yini, parms = pars, times = times)
 )/nrun)
 
 print(system.time(
   for (i in 1:nrun)
-    out     <- as.data.frame(daspk(func= LVmod0D, y=yini,
-                           parms=pars, times=times))
+    out     <- daspk(func = LVmod0D, y = yini, parms = pars, times = times)
 )/nrun)
 
 print(system.time(
   for (i in 1:nrun)
-    out     <- as.data.frame(lsodes(func = LVmod0D, y = yini,
-                           parms=pars, times = times))
+    out     <- lsodes(func = LVmod0D, y = yini, parms = pars, times = times)
 )/nrun)
 
 
-matplot(out$time, out[,2:3], type = "l", xlab = "time", ylab = "Conc",
+matplot(out[,"time"], out[,2:3], type = "l", xlab = "time", ylab = "Conc",
         main = "Lotka-Volterra", lwd = 2)
 legend("topright", c("prey", "predator"), col =1:2, lty = 1:2)
 
@@ -77,11 +72,11 @@ rootfun <- function(Time, State, Pars) {
 
 print(system.time(
   for (i in 1:nrun)
-    out <- as.data.frame(lsodar(func = LVmod0D, y = yini, parms = pars,
-                               times = times, rootfun = rootfun))
+    out <- lsodar(func = LVmod0D, y = yini, parms = pars,
+                         times = times, rootfun = rootfun)
 )/nrun)
-matplot(out$time,out[,2:3],type="l",xlab="time",ylab="Conc",
-        main="Lotka-Volterra with root",lwd=2)
+matplot(out[,"time"],out[,2:3], type = "l", xlab = "time", ylab = "Conc",
+        main = "Lotka-Volterra with root", lwd = 2)
 
 #===============================================================================
 # section 3.3 - predator-prey model in 1-D.
@@ -120,33 +115,37 @@ times  <-seq(0, 200, by = 1)   # output wanted at these time intervals
 # based on lsode
 print(system.time(
  for (i in 1:nrun)
-  out    <- ode.1D(y=yini,times=times,func=LVmod1D,parms=pars,nspec=2,
-                    N=N,dx=dx,Da=Da)
+  out    <- ode.1D(y = yini, times = times, func = LVmod1D, parms = pars,
+                   nspec = 2, N = N, dx = dx, Da = Da)
 )/nrun)
 
 print(system.time(
   for (i in 1:nrun)
-    out    <- ode.1D(y=yini,times=times,func=LVmod1D,parms=pars,nspec=2,
-                     N=N,dx=dx,Da=Da,method="vode")
+    out    <- ode.1D(y = yini, times = times, func = LVmod1D, parms = pars,
+                   nspec = 2, N = N, dx = dx, Da = Da, method = "vode")
 )/nrun)
 
 print(system.time(
   for (i in 1:nrun)
-    out    <- ode.1D(y=yini,times=times,func=LVmod1D,parms=pars,nspec=2,
-                     N=N,dx=dx,Da=Da,method="lsoda")
+    out    <- ode.1D(y = yini, times = times, func = LVmod1D, parms = pars,
+                   nspec = 2, N = N, dx = dx, Da = Da, method = "lsoda")
 )/nrun)
 
 print(system.time(
   for (i in 1:nrun)
-    out    <- ode.1D(y=yini,times=times,func=LVmod1D,parms=pars,nspec=2,
-                     N=N,dx=dx,Da=Da,method="lsodes")
+    out    <- ode.1D(y = yini, times = times, func = LVmod1D, parms = pars,
+                   nspec = 2, N = N, dx = dx, Da = Da, method = "lsodes")
 )/nrun)
 
-P   <- out[,2:(N + 1)]
-filled.contour(x = times, z = P, y = seq(0, R, length=N),
-               color = topo.colors,
-               xlab = "Time, days", ylab= "Distance, m",
-               main = "Prey density")
+image(out, which = 1, grid = seq(0, R, length=N),  
+  xlab = "Time, days", ylab = "Distance, m", main = "Prey density")
+
+# more elaborate way:
+#P   <- out[,2:(N + 1)]
+#filled.contour(x = times, z = P, y = seq(0, R, length=N),
+#               color = topo.colors,
+#               xlab = "Time, days", ylab= "Distance, m",
+#               main = "Prey density")
 
 
 #===============================================================================
@@ -195,8 +194,9 @@ times  <- seq(0, 200, by = 1) # output wanted at these time intervals
 
 print(system.time(
   for (i in 1:nrun)
-    out <- ode.2D(y=yini,times=times,func=LVmod2D,parms=pars,dimens=c(N,N),
-                  N=N,dx=dx,dy=dy,Da=Da,ynames=FALSE,lrw=440000)
+    out <- ode.2D(y = yini, times = times, func = LVmod2D,
+                  parms = pars, ynames = FALSE, dimens = c(N, N),
+                  N = N, dx = dx, dy = dy, Da = Da, lrw = 440000)
 )/nrun)
 
 
@@ -210,11 +210,16 @@ par(mfrow=c(2,2))
 par(oma=c(0,0,2,0))
 xx <- seq(0, R, dx)
 yy <- seq(0, R, dy)
-image(x=xx, y=yy, z=matrix(nr=N,nc=N,out[1,-1]),  zlim=c(0,10), col=Col(100),main="initial",xlab="x",ylab="y")
-image(x=xx, y=yy, z=matrix(nr=N,nc=N,out[21,-1]), zlim=c(0,10), col=Col(100),main="20 days",xlab="x",ylab="y")
-image(x=xx, y=yy, z=matrix(nr=N,nc=N,out[31,-1]), zlim=c(0,10), col=Col(100),main="30 days",xlab="x",ylab="y")
-image(x=xx, y=yy, z=matrix(nr=N,nc=N,out[41,-1]), zlim=c(0,10), col=Col(100),main="40 days",xlab="x",ylab="y")
-mtext(side=3,outer=TRUE,cex=1.25,"Lotka-Volterra Prey concentration on 2-D grid")
+image(x = xx, y = yy, z = matrix(nr = N, nc = N, out[1,-1]), zlim = c(0,10), 
+  col = Col(100), main = "initial", xlab = "x", ylab = "y")
+image(x = xx, y = yy, z = matrix(nr = N, nc = N, out[21,-1]), zlim = c(0,10), 
+  col = Col(100), main = "20 days", xlab = "x", ylab = "y")
+image(x = xx, y = yy, z = matrix(nr = N, nc = N, out[31,-1]), zlim = c(0,10), 
+  col = Col(100), main = "30 days", xlab = "x", ylab = "y")
+image(x = xx, y = yy, z = matrix(nr = N, nc = N, out[41,-1]), zlim = c(0,10), 
+  col = Col(100), main = "40 days", xlab = "x", ylab = "y")
+mtext(side = 3, outer = TRUE, cex = 1.25,
+  "Lotka-Volterra Prey concentration on 2-D grid")
 #filled.contour(matrix(nr=N,nc=N,out[20,-1]), color.palette=topo.colors,main="2-D grid")
 
 #dev.off()
@@ -258,20 +263,11 @@ yini  <- c(A = 2, B = 3, D = 2*3/K)
 dyini <- c(dA = 0, dB = 0, dD = 0)
 
 ## DAE model solved with daspk
-DAE <- as.data.frame(daspk(y = yini, dy = dyini, times = times, res = Res_DAE,
-                       parms = pars, atol = 1e-10, rtol = 1e-10, K = 1))
+DAE <- daspk(y = yini, dy = dyini, times = times, res = Res_DAE,
+             parms = pars, atol = 1e-10, rtol = 1e-10, K = 1)
 
-#------------------------------------------------------
-# plotting output
-#------------------------------------------------------
-opa <- par(mfrow=c(2,2))
-for (i in 2:5) {
-  nm <- paste("[",names(DAE[i]),"]")
-  if (i==5) nm <- "total conc"
-  plot(DAE$time,DAE[,i],xlab="time", lwd=2,
-       ylab="conc",main=nm,type="l")
-  #  writelabel(nr=i-1)
-}
+plot(DAE, main = c(paste("[",colnames(DAE)[2:4],"]"),"total conc"),
+     xlab = "time", lwd = 2, ylab = "conc", type = "l")
 
 mtext(outer=TRUE, side=3, "DAE chemical model",cex=1.25)
 

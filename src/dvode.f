@@ -517,21 +517,21 @@ C-----------------------------------------------------------------------
  280  IF ((TN + H) .NE. TN) GO TO 290
       NHNIL = NHNIL + 1
       IF (NHNIL .GT. MXHNIL) GO TO 290
-      call rwarn(
+      call rprint(
      1 'dvode -- warning.. internal T(=R1) and H (=R2) are ')
-       call rwarn(
+       call rprint(
      2  '      such that in the machine, T + H = T on the next step')
-       call rwarn(
+       call rprint(
      3  '      (H = step size). solver will continue anyway')
       write (MSG, '(6X,2D21.13)') TN,H 
-      call rwarn(msg)
+      call rprint(msg)
       IF (NHNIL .LT. MXHNIL) GO TO 290
-      call rwarn(
+      call rprint(
      1 'dvode -- Above warning has been issued I1 times.')
-       call rwarn(
+       call rprint(
      2  '      it will not be issued again for this problem')
       write (MSG, '(6X,I10)') MXHNIL 
-      call rwarn(msg)
+      call rprint(msg)
  290  CONTINUE
 C-----------------------------------------------------------------------
 C CALL DVSTEP (Y, YH, NYH, YH, EWT, SAVF, VSAV, ACOR,
@@ -631,50 +631,50 @@ C Then Y is loaded from YH, T is set to TN, and the illegal input
 C The optional output is loaded into the work arrays before returning.
 C-----------------------------------------------------------------------
 C The maximum number of steps was taken before reaching TOUT. ----------
- 500  call rwarn(
+ 500  call rprint(
      1 'dvode -- At current T (=R1), MXSTEP (=I1) steps  ')
-       call rwarn(
+       call rprint(
      2  '      taken on this call before reaching TOUT   ')
       write (MSG, '(6X,I10,D21.13)') MXSTEP,TN 
-      call rwarn(msg)
+      call rprint(msg)
       ISTATE = -1
       GO TO 580
 C EWT(i) .le. 0.0 for some i (not at start of problem). ----------------
  510  EWTI = RWORK(LEWT+I-1)
-      call rwarn(
+      call rprint(
      1 'dvode -- At T (=R1), EWT(I1) has become R2 < 0  ')
       write (MSG, '(6X,I10,2D21.13)') I, TN, EWTI
-      call rwarn(msg)
+      call rprint(msg)
       ISTATE = -6
       GO TO 580
 C Too much accuracy requested for machine precision. -------------------
- 520  call rwarn(
+ 520  call rprint(
      1 'dvode -- At T (=R1), too much accuracy requested ')
-       call rwarn(
+       call rprint(
      2  '      for precision of machine.. see TOLSF (=R2)')
       write (MSG, '(6X,2D21.13)') TN , TOLSF
-      call rwarn(msg)
+      call rprint(msg)
       RWORK(14) = TOLSF
       ISTATE = -2
       GO TO 580
 C KFLAG = -1.  Error test failed repeatedly or with ABS(H) = HMIN. -----
- 530  call rwarn(
+ 530  call rprint(
      1 'dvode -- At T (=R1), and step size H (=R2) the error  ')
-       call rwarn(
+       call rprint(
      2  '      test failed repeatedly or with abs(H) = HMIN ')
       write (MSG, '(6X,2D21.13)') TN,H 
-      call rwarn(msg)
+      call rprint(msg)
       ISTATE = -4
       GO TO 560
 C KFLAG = -2.  Convergence failed repeatedly or with abs(H) = HMIN. ----
- 540  call rwarn(
+ 540  call rprint(
      1 'dvode -- At T (=R1), and step size H (=R2) the   ')
-       call rwarn(
+       call rprint(
      2  '      corrector converged failed repeatedly ')
-       call rwarn(
+       call rprint(
      3  '      or with abs(H) = HMIN ')
       write (MSG, '(6X,2D21.13)') TN,H 
-      call rwarn(msg)
+      call rprint(msg)
       ISTATE = -5
 C Compute IMXER if relevant. -------------------------------------------
  560  BIG = ZERO
@@ -710,157 +710,157 @@ C (ISTATE = -3), as detected before calling the core integrator.
 C First the error message routine is called.   If the illegal input
 C is a negative ISTATE, the run is aborted (apparent infinite loop).
 C-----------------------------------------------------------------------
- 601  call rwarn(
+ 601  call rprint(
      1 'dvode -- ISTATE (=I1) illegal   ')
       write (MSG, '(6X,I10)') ISTATE
-      call rwarn(msg)
+      call rprint(msg)
       IF (ISTATE .LT. 0) GO TO 800
       GO TO 700
- 602  call rwarn(
+ 602  call rprint(
      1 'dvode -- ITASK (=I1) illegal   ')
       write (MSG, '(6X,I10)') ITASK
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 603  call rwarn(
+ 603  call rprint(
      1 'dvode -- ISTATE (=I1) >1 but dvode not initialised ')
       write (MSG, '(6X,I10)') ISTATE
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 604  call rwarn(
+ 604  call rprint(
      1 'dvode -- NEQ (=I1) <1   ')
       write (MSG, '(6X,I10)') NEQ
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 605  call rwarn(
+ 605  call rprint(
      1 'dvode -- ISTATE =3 and NEQ increased (I1 to I2) ')
       write (MSG, '(6X,2I10)') N,NEQ
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 606  call rwarn(
+ 606  call rprint(
      1 'dvode -- ITOL (=I1) illegal   ')
       write (MSG, '(6X,I10)') ITOL
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 607  call rwarn(
+ 607  call rprint(
      1 'dvode -- IOPT (=I1) illegal   ')
       write (MSG, '(6X,I10)') IOPT
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 608  call rwarn(
+ 608  call rprint(
      1 'dvode -- MF (=I1) illegal   ')
       write (MSG, '(6X,I10)') MF
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 609  call rwarn(
+ 609  call rprint(
      1 'dvode -- ML (=I1) illegal: <0 or >=neq (+I2)   ')
       write (MSG, '(6X,2I10)') ML,NEQ
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 610  call rwarn(
+ 610  call rprint(
      1 'dvode -- MU (=I1) illegal: <= 0 or > neq (=I2)')
       write (MSG, '(6X,2I10)') MU,NEQ
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 611  call rwarn(
+ 611  call rprint(
      1 'dvode -- MAXORD (=I1) < 0   ')
       write (MSG, '(6X,I10)') MAXORD
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 612  call rwarn(
+ 612  call rprint(
      1 'dvode -- MXSTEP (=I1) < 0   ')
       write (MSG, '(6X,I10)') MXSTEP
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 613  call rwarn(
+ 613  call rprint(
      1 'dvode -- MXHNIL (=I1) < 0  ')
       write (MSG, '(6X,I10)') MXHNIL
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 614  call rwarn(
+ 614  call rprint(
      1 'dvode -- TOUT (=R1) behind T (=R2)  ')
       write (MSG, '(6X,2D21.13)') TOUT, T 
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 615  call rwarn(
+ 615  call rprint(
      1 'dvode -- HMAX (=R1) <= 0  ')
       write (MSG, '(6X,D21.13)') HMAX
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 616  call rwarn(
+ 616  call rprint(
      1 'dvode -- HMIN (=R1) <=0  ')
       write (MSG, '(6X,D21.13)') HMIN
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
  617  CONTINUE
-      call rwarn(
+      call rprint(
      1 'dvode -- RWORK length needed, LENRW (=I1) exceeds LRW (=I2) ')
       write (MSG, '(6X,2I10)') LENRW,LRW
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
  618  CONTINUE
-      call rwarn(
+      call rprint(
      1 'dvode -- IWORK length needed, LENIW (=I1) exceeds LIW (=I2) ')
       write (MSG, '(6X,2I10)') LENIW,LIW
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 619  call rwarn(
+ 619  call rprint(
      1 'dvode -- RTOL(I1) is R1 < 0 ')
       write (MSG, '(6X,I10,D21.13)') I, RTOLI
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 620  call rwarn(
+ 620  call rprint(
      1 'dvode -- ATOL (I1) is R1 < 0 ')
       write (MSG, '(6X,I10,D21.13)') I, ATOLI 
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
  621  EWTI = RWORK(LEWT+I-1)
-      call rwarn(
+      call rprint(
      1 'dvode -- EWT (I1) is R1 <= 0 ')
       write (MSG, '(6X,I10,D21.13)') I, EWTI 
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
  622  CONTINUE
-      call rwarn(
+      call rprint(
      1 'dvode -- TOUT (=R1) too close to T (=R2) to start integration ')
       write (MSG, '(6X,2D21.13)') TOUT, T 
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
  623  CONTINUE
-      call rwarn(
+      call rprint(
      1 'dvode -- ITASK = I1 and TOUT (=R1) behind TCUR-HU (=R2)')
       write (MSG, '(6X,I10,2D21.13)') ITASK, TOUT,TP
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
  624  CONTINUE
-       call rwarn(
+       call rprint(
      1 'dvode -- ITASK = 4 or 5 and TCRIT (=R1) behind TCUR (=R2)')
       write (MSG, '(6X,2D21.13)')  TCRIT,TN
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
  625  CONTINUE
-       call rwarn(
+       call rprint(
      1 'dvode -- ITASK = 4 or 5 and TCRIT (=R1) behind TOUT (=R2)')
       write (MSG, '(6X,2D21.13)')  TCRIT,TOUT
-      call rwarn(msg)
+      call rprint(msg)
       GO TO 700
- 626  call rwarn(
+ 626  call rprint(
      1 'dvode -- at start of problem, too much accuracy ')
-       call rwarn(
+       call rprint(
      2 '        requested for precision of machine.. see TOLSF (=R1)')
       write (MSG, '(6X,D21.13)')  TOLSF
-      call rwarn(msg)
+      call rprint(msg)
       RWORK(14) = TOLSF
       GO TO 700
- 627   call rwarn(
+ 627   call rprint(
      1 'dvode -- trouble from DVINDY. ITASK = I1, TOUT = R1')
       write (MSG, '(6X,I10,D21.13)')  ITASK,TOUT
-      call rwarn(msg)
+      call rprint(msg)
 C
  700  CONTINUE
       ISTATE = -3
       RETURN
 C
- 800    call rwarn(
+ 800    call rprint(
      1 'dvode -- run aborted.. apparent infinite loop')
       RETURN
 C----------------------- End of Subroutine DVODE -----------------------
@@ -1123,20 +1123,20 @@ C
       CALL DSCAL (N, R, DKY, 1)
       RETURN
 C
- 80     call rwarn(
+ 80     call rprint(
      1 'dvode -- DVINDY -- K (=I1) illegal')
       write (MSG, '(6X,I10)') K
-      call rwarn(msg)
+      call rprint(msg)
       IFLAG = -1
       RETURN
- 90      call rwarn(
+ 90      call rprint(
      1 'dvode -- DVINDY -- T (=R1) illegal')
       write (MSG, '(6X,D21.13)') T
-      call rwarn(msg)
-          call rwarn(
+      call rprint(msg)
+          call rprint(
      1 'dvode -- T not in interval TCUR-HU (=R1) to TCUR (=R2)')
       write (MSG, '(6X,2D21.13)') TP,TN
-      call rwarn(msg)
+      call rprint(msg)
       IFLAG = -2
       RETURN
 C----------------------- End of Subroutine DVINDY ----------------------

@@ -15,25 +15,24 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     Ynames <- attr(y,"names")
     Initfunc <- NULL
 
-    flist    <-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
+    flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
 
     ## Model as shared object (DLL)?
     if (is.character(func)) {
-      DLL <- checkDLL(func,NULL,dllname,
-                    initfunc,verbose,nout, outnames)
-
+      DLL <- checkDLL(func, NULL, dllname,
+               initfunc, verbose, nout, outnames)
       Initfunc <- DLL$ModelInit
       Func     <- DLL$Func
       Nglobal  <- DLL$Nglobal
       Nmtot    <- DLL$Nmtot
 
       if (! is.null(forcings))
-        flist <- checkforcings(forcings,times,dllname,initforc,verbose,fcontrol)
+        flist <- checkforcings(forcings, times, dllname, initforc, verbose, fcontrol)
 
       rho <- NULL
-      if (is.null(ipar)) ipar<-0
-      if (is.null(rpar)) rpar<-0
+      if (is.null(ipar)) ipar <- 0
+      if (is.null(rpar)) rpar <- 0
 
     } else {
       initpar <- NULL # parameter initialisation not needed if function is not a DLL
@@ -53,12 +52,13 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
       ## Call func once to figure out whether and how many "global"
       ## results it wants to return and some other safety checks
       FF <- checkFuncEuler(Func,times,y,parms,rho,Nstates)
-      Nglobal<-FF$Nglobal
-      Nmtot <- FF$Nmtot
+      Nglobal <- FF$Nglobal
+      Nmtot   <- FF$Nmtot
     }
     vrb <- FALSE # TRUE forces internal debugging output of the C code
 
     ## the CALL to the integrator
+    ## rk can be nested, so no "unlock_solver" needed
     out <- .Call("call_rk4", as.double(y), as.double(times),
         Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(vrb),
         as.double(rpar), as.integer(ipar), flist)

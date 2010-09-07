@@ -2,6 +2,7 @@
 /* Runge-Kutta Solvers, (C) Th. Petzoldt, License: GPL >=2                  */
 /* Definitions and Utilities needed by Runge-Kutta Solvers                  */
 /*==========================================================================*/
+/* karline: added number of rejected steps in setIstate */
 
 /* Load headers needed by the R interface */
 #include <R.h>
@@ -101,7 +102,7 @@ double maxdiff(double *x, double *y, int n) {
 double maxerr(double *y0, double *y1, double *y2, double *Atol, double *Rtol, int n) {
   double  serr = 0, scal, delta;
   for (int i = 0; i < n; i++) {
-    /* assume y2 is used to estimate next y-value */
+    /* y2 is used to estimate next y-value */
     scal  = Atol[i] + fmax(fabs(y0[i]), fabs(y2[i])) * Rtol[i];
     delta = fabs(y2[i] - y1[i]);
     if (scal > 0) serr += pow(delta/scal, 2.0);
@@ -201,6 +202,33 @@ void densout(double *r, double t0, double t, double dt, double* res, int neq) {
 }
 
 /*----------------------------------------------------------------------------*/
+/* "dense output for the Cash-Karp method  - does not work (yet)              */
+/*----------------------------------------------------------------------------*/
+
+void densoutck(double t0, double t, double dt, double* y0,  
+ double* FF, double* dy, double* res, int neq) {
+
+  double s, s2, s3, s4, b1, b3, b4, b5, b6, b7;
+  s  = (t - t0) / dt;
+  s2 = s  * s;
+  s3 = s2 * s;
+  s4 = s3 * s;
+  
+  b3 = 500./161.    * s2 - 20000./4347.* s3 + 2750./1449.* s4;
+  b4 = 125./132.    * s2 - 625./594.   * s3 + 125./396.  * s4;
+  b5 = 15./28.      * s2 - 15./14.     * s3 + 15./28.    * s4;
+  b6 = -6144./1771. * s2 + 2048./253.  * s3 - 7680./1771.* s4;
+  b7 = 3./2.        * s2 - 4.          * s3 + 5./2.      * s4;   
+  
+  b1 = s-b3-b4-b5-b6-b7;
+
+  for (int i = 0; i < neq; i++)
+    res[i] = y0[i] + b1 * dt * FF[i + 0 * neq] + b3 * dt * FF[i + 2 * neq] 
+                   + b4 * dt * FF[i + 3 * neq] + b5 * dt * FF[i + 4 * neq]
+                   + b6 * dt * FF[i + 5 * neq] + b7 * dt * dy[i];
+}
+
+/*----------------------------------------------------------------------------*/
 /* Polynomial interpolation                                                   */
 /*    ksig: number of signals                                                 */
 /*    n:    number of knots per signal                                        */
@@ -238,11 +266,15 @@ void shiftBuffer (double *x, int n, int k) {
       x[i + j * n] = x[i + 1 + j * n];
 }
 
+/* karline: nsteps+1 for "initial condition evaluation" */
 void setIstate(SEXP R_yout, SEXP R_istate, int *istate,
-  int it_tot, int stage, int fsal, int qerr) {
+  int it_tot, int stage, int fsal, int qerr, int nrej) {
   /* note that indices are 1 smaller in C than in R  */
-  istate[11] = it_tot;                  /* number of steps */
-  istate[12] = it_tot * (stage - fsal); /* number of function evaluations */
-  istate[14] = qerr;                    /* order of the method */
+  istate[11] = it_tot;                      /* number of steps */
+  istate[12] = it_tot * (stage - fsal) + 1; /* number of function evaluations */
+  if (fsal) 
+    istate[12] = istate[12] + nrej + 1;     /* one more ftion eval if rejected*/
+  istate[13] = nrej;                        /* number of rejected steps */  
+  istate[14] = qerr;                        /* order of the method */
   setAttrib(R_yout, install("istate"), R_istate);
 }

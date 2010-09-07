@@ -174,17 +174,30 @@ static void C_event_func (int *n, double *t, double *y) {
 
     
 int initEvents(SEXP elist, SEXP eventfunc) {
-    SEXP Time, SVar, Value, Method, Type, Root;
+    SEXP Time, SVar, Value, Method, Type, Root, maxRoot;
     int i, j, isEvent = 0;
 
     Time = getListElement(elist, "Time");
     Root = getListElement(elist, "Root");
-    if (!isNull(Root)) 
+
+    if (!isNull(Root)) {   /* event combined with root - allocate memory to save time of root*/
       rootevent = INTEGER(Root)[0];
+
+      maxRoot = getListElement(elist, "Rootsave");
+      if (!isNull(maxRoot)) 
+        Rootsave = INTEGER(maxRoot)[0];
+      else
+        Rootsave = 0;
+      if (Rootsave > 0)  {
+         troot = (double *)R_alloc( (int)Rootsave, sizeof(double) );
+         for (i = 0; i < Rootsave; i++) troot[i] = 0.;
+       }     
+    } 
     else
       rootevent = 0;
-    
+
     if (!isNull(Time)) {
+
      isEvent = 1;
      Type = getListElement(elist,"Type");
      typeevent = INTEGER(Type)[0];
@@ -243,7 +256,8 @@ void updateevent(double *t, double *y, int *istate) {
         } while ((tEvent == *t) && (iEvent <= nEvent));
       } else {                      /* a function (R or compiled code) */
         event_func(&n_eq,t,y); 
-        tEvent = timeevent[++iEvent]; 
+        if (!rootevent)
+          tEvent = timeevent[++iEvent];  /* karline: this was toggled off - why?*/
       }  
       *istate = 1;
     }

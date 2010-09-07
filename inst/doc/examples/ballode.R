@@ -38,6 +38,9 @@ out   <- lsodar(times = times, y = yini, func = ballode, parms = NULL,
 
 out2   <- lsode(times = times, y = yini, func = ballode, parms = NULL,
   events = list(func = event, root = TRUE), rootfun = root, verbose=TRUE)
+
+attributes(out)$troot
+attributes(out2)$troot
 #-----------------------------
 # display, plot results
 #-----------------------------

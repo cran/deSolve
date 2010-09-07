@@ -11,7 +11,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 		  SEXP Method, SEXP Maxsteps, SEXP Flist) {
 
   /**  Initialization **/
-  init_N_Protect();
+  long int old_N_Protect = save_N_Protected();
 
   double *tt = NULL, *xs = NULL;
 
@@ -59,6 +59,12 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   PROTECT(Xstart = AS_NUMERIC(Xstart)); incr_N_Protect();
   xs  = NUMERIC_POINTER(Xstart);
   neq = length(Xstart);
+
+  /*------------------------------------------------------------------------*/
+  /* timesteps (for compatibility with lsoda)                               */
+  /*------------------------------------------------------------------------*/
+  timesteps = (double *)R_alloc(2, sizeof(double)); 
+  for (i = 0; i < 2; i++) timesteps[i] = 1;
   
   /**************************************************************************/
   /****** DLL, ipar, rpar (to be compatible with lsoda)                ******/
@@ -243,13 +249,18 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   }
 
   /* attach essential internal information (codes are compatible to lsoda) */
-  setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr);
+  setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr, 0);
+
+  // experimental
+  // set default value for timesteps
+  for (i = 0; i < 2; i++) timesteps[i] = 1;
 
   /* release R resources */
   if (verbose) {
     Rprintf("Number of time steps it = %d, it_ext = %d, it_tot = %d\n", it, it_ext, it_tot);
     Rprintf("Maxsteps %d\n", maxsteps);
   }
-  unprotect_all();
+  /* release R resources */
+  restore_N_Protected(old_N_Protect);
   return(R_yout);
 }

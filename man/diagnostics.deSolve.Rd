@@ -25,6 +25,10 @@
   also the root information.
   
   See tables 2 and 3 in vignette("deSolve") for what these vectors contain.
+  
+  Note: the number of function evaluations are *without* the extra calls 
+  performed to generate the ordinary output variables (if present). 
+  
 }
 \details{
   When the integration output is saved as a \code{data.frame}, then the required
@@ -35,11 +39,11 @@
 ## Lorenz 1963. J. Atmos. Sci. 20, 130-141.
 
 chaos <- function(t, state, parameters) {
-  with(as.list(c(state)),{
+  with(as.list(c(state)), {
 
-    dx     <- -8/3*x+y*z
-    dy     <- -10*(y-z)
-    dz     <- -x*y+28*y-z
+    dx     <- -8/3 * x + y * z
+    dy     <- -10 * (y - z)
+    dz     <- -x * y + 28 * y - z
 
     list(c(dx, dy, dz))
   })
@@ -48,7 +52,7 @@ chaos <- function(t, state, parameters) {
 state <- c(x = 1, y = 1, z = 1)
 times <- seq(0, 50, 0.01)
 out   <- vode(state, times, chaos, 0)
-pairs(out, pch=".")
+pairs(out, pch = ".")
 diagnostics(out)
 }
 \keyword{ utilities }

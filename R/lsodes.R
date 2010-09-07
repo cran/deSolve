@@ -1,6 +1,3 @@
-# ks 21-12-09: Func <- ... unlist() ... output variables now set in C-code
-#              lags added
-
 ### ============================================================================
 ### lsodes -- solves ordinary differential equation systems with general
 ### sparse Jacobian matrix.
@@ -10,10 +7,10 @@
 ### These are the sparsity associated with 1- 2- and 3-Dimensional PDE models
 ### ============================================================================
 
-lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6, 
+lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   jacvec=NULL, sparsetype="sparseint", nnz = NULL, inz = NULL,
   verbose=FALSE, tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE,
-  maxord=NULL, maxsteps=5000, lrw=NULL, liw=NULL, 
+  maxord=NULL, maxsteps=5000, lrw=NULL, liw=NULL,
   dllname=NULL, initfunc=dllname,
   initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
   initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL, ...)  {
@@ -60,38 +57,42 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 ## This information is passed by ode.1D, ode.2D and ode.3D in parameter
 ## nnz (a vector).
 ## nnz is altered to include the number of nonzero elements (element 1).
-## 'Type' contains the type of sparsity + nspec + num boxes + cyclicBnd
+## 'Type' contains the type of sparsity + nspec + num boxes + cyclicBnd + bandwidth
 
   if (sparsetype=="1D") {
     nspec  <- nnz[1]
+    bandwidth <- 1 # nnz[3]
     Type   <- c(2,nnz)    #type=2
-    nnz    <- n*(2+nspec)-2*nspec
+    nnz    <- n*(2+nspec*bandwidth)-2*nspec
   } else if (sparsetype=="2D")  {
     nspec  <- nnz[1]
     dimens <- nnz[2:3]
+    bandwidth <-  1# nnz[6]
+    maxdim <- max(dimens)
     Type   <- c(3,nnz)   #type=3
-    nnz    <- n*(4+nspec)-2*nspec*(sum(dimens))
+    nnz    <- n*(4+nspec*bandwidth)-2*nspec*(sum(dimens))
 
     if (Type[5]==1) { # cyclic boundary in x-direction
-      nnz <- nnz + 2*dimens[1]*nspec
+      nnz <- nnz + 2*maxdim*nspec*bandwidth
     }
     if (Type[6] ==1) {# cyclic boundary in y-direction
-      nnz <- nnz + 2*dimens[2]*nspec
+      nnz <- nnz + 2*maxdim*nspec*bandwidth
     }
   } else if (sparsetype=="3D")  {
     nspec  <- nnz[1]
     dimens <- nnz[2:4]    #type=4
+    bandwidth <- 1# nnz[8]
     Type   <- c(4,nnz)
-    nnz    <- n*(6+nspec)-2*nspec*(sum(dimens))
+    nnz    <- n*(6+nspec*bandwidth)-2*nspec*(sum(dimens))
 
     if (Type[6]==1) { # cyclic boundary in x-direction
-      nnz <- nnz + 2*dimens[1]*nspec
+      nnz <- nnz + 2*dimens[2]*dimens[3]*nspec
     }
     if (Type[7] ==1) {# cyclic boundary in y-direction
-      nnz <- nnz + 2*dimens[2]*nspec
+      nnz <- nnz + 2*dimens[1]*dimens[3]*nspec
     }
     if (Type[8] ==1) {# cyclic boundary in y-direction
-      nnz <- nnz + 2*dimens[3]*nspec
+      nnz <- nnz + 2*dimens[1]*dimens[2]*nspec
     }
   } else if (sparsetype == "sparseusr") {
     Type <- 0
@@ -103,14 +104,14 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   if (nnz<1)
     stop ("Jacobian should at least contain one non-zero value")
 
-### model and Jacobian function 
+### model and Jacobian function
   JacFunc   <- NULL
   Ynames    <- attr(y,"names")
   flist     <- list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
   Eventfunc <- NULL
-  
-  events <- checkevents(events, times, Ynames, dllname) 
+
+  events <- checkevents(events, times, Ynames, dllname)
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacvec,dllname,
@@ -147,7 +148,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
         attr(state,"names") <- Ynames
         func   (time,state,parms,...)
       }
-         
+
       JacFunc <- function(time,state,J){
         attr(state,"names") <- Ynames
         jacvec(time,state,J,parms,...)
@@ -156,33 +157,33 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
        if (events$Type == 2)
          Eventfunc <- function(time,state) {
            attr(state,"names") <- Ynames
-           events$func(time,state,parms,...) 
+           events$func(time,state,parms,...)
          }
     } else {                            # no ynames...
       Func    <- function(time,state)
         unlist(func   (time,state,parms,...))
-        
+
       Func2   <- function(time,state)
         func   (time,state,parms,...)
-         
+
       JacFunc <- function(time,state,J)
         jacvec(time,state,J,parms,...)
-     
+
       if (! is.null(events$Type))
       if (events$Type == 2)
-         Eventfunc <- function(time,state)  
-           events$func(time,state,parms,...) 
+         Eventfunc <- function(time,state)
+           events$func(time,state,parms,...)
     }
-        
+
     ## Check function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
 
     if (! is.null(events$Type))
-      if (events$Type == 2) 
+      if (events$Type == 2)
         checkEventFunc(Eventfunc,times,y,rho)
-    
+
   }
 
 ### work arrays iwork, rwork
@@ -198,10 +199,10 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if(miter == 1) lrw = lrw + 2*nnz + 2*n + (nnz+9*n)/lenr
     if(miter == 2) lrw = lrw + 2*nnz + 2*n + (nnz+10*n)/lenr
     if(miter == 3) lrw = lrw + n + 2
-  
-    if (sparsetype == "1D") lrw <- lrw*1.1 # increase to be sure it is enough...
+
+    if (sparsetype == "1D") lrw <- lrw*1.2 # increase to be sure it is enough...
   }
-  
+
   if (is.null(liw)) {         # make a guess of itneger work space needed
     if (moss == 0 && miter %in% c(1,2)) liw <- 31+n+nnz +30 else  # extra 30
                                         liw <- 30
@@ -247,7 +248,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   # other elements of iwork, rwork
   iwork[5] <- maxord
   iwork[6] <- maxsteps
-  
+
   if(! is.null(tcrit)) rwork[1] <- tcrit
   rwork[5] <- hini
   rwork[6] <- hmax
@@ -261,7 +262,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
 ### print to screen...
   if (verbose)   {
-    printtask(itask,func,jacvec)      
+    printtask(itask,func,jacvec)
     printM("\n--------------------")
     printM("Integration method")
     printM("--------------------\n")
@@ -288,16 +289,16 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (imp == 222)
       txt <-"  The Jacobian will be generated internally,
       its structure (indices to nonzero elements) will be obtained from NEQ+1 calls to func"
-   
+
     printM(txt)
-  } 
+  }
 
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-3
 
-  lags <- checklags(lags) 
-
+  lags <- checklags(lags, dllname)
+  on.exit(.C("unlock_solver"))
   out <- .Call("call_lsoda",y,times,Func,initpar,
                rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
@@ -306,7 +307,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
                NULL, as.integer(0), as.double (rpar), as.integer(ipar),
                as.integer(Type),flist, events, lags, PACKAGE="deSolve")
 
-### saving results    
+### saving results
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,
                  iin=c(1,12:20), iout=c(1:3,14,5:9,17))
 

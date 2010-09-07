@@ -1,5 +1,3 @@
-# ks 21-12-09: Func <- unlist() ... output variables now set in C-code
-
 ### ============================================================================
 ### vode -- solves ordinary differential equation systems
 ### The user has to specify whether or not
@@ -21,7 +19,7 @@
 vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   jacfunc=NULL, jactype = "fullint", mf = NULL, verbose=FALSE,
   tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord=NULL,
-  bandup=NULL, banddown=NULL, maxsteps=5000, dllname=NULL, 
+  bandup=NULL, banddown=NULL, maxsteps=5000, dllname=NULL,
   initfunc=dllname, initpar=parms, rpar=NULL, ipar=NULL,
   nout=0, outnames=NULL, forcings=NULL, initforc = NULL,
   fcontrol=NULL, events=NULL, lags = NULL, ...)  {
@@ -72,10 +70,10 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   if (is.null(banddown)) banddown <-1
   if (is.null(bandup  )) bandup   <-1
 
-### model and Jacobian function  
+### model and Jacobian function
   Func <- NULL
   JacFunc <- NULL
-    
+
   ## if (miter == 4) Jacobian should have banddown empty rows-vode only!
   if (miter == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
@@ -84,7 +82,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
   Eventfunc <- NULL
-  events <- checkevents(events, times, Ynames, dllname) 
+  events <- checkevents(events, times, Ynames, dllname)
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
@@ -113,22 +111,22 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
      }
   } else {
     if(is.null(initfunc))
-       initpar <- NULL # parameter initialisation not needed if function is not a DLL    
+       initpar <- NULL # parameter initialisation not needed if function is not a DLL
     rho <- environment(func)
       # func and jac are overruled, either including ynames, or not
       # This allows to pass the "..." arguments and the parameters
-        
+
     if(ynames)  {
        Func    <- function(time,state) {
          attr(state,"names") <- Ynames
          unlist(func   (time,state,parms,...))
        }
-         
+
        Func2   <- function(time,state){
          attr(state,"names") <- Ynames
          func   (time,state,parms,...)
        }
-         
+
        JacFunc <- function(time,state){
          attr(state,"names") <- Ynames
          rbind(jacfunc(time,state,parms,...),erow)
@@ -137,31 +135,31 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
          if (events$Type == 2)
           Eventfunc <- function(time,state) {
            attr(state,"names") <- Ynames
-           events$func(time,state,parms,...) 
+           events$func(time,state,parms,...)
          }
     } else {                            # no ynames...
       Func    <- function(time,state)
         unlist(func   (time,state,parms,...))
-        
+
       Func2   <- function(time,state)
         func   (time,state,parms,...)
-         
+
       JacFunc <- function(time,state)
         rbind(jacfunc(time,state,parms,...),erow)
 
       if (! is.null(events$Type))
        if (events$Type == 2)
-         Eventfunc <- function(time,state)  
-           events$func(time,state,parms,...) 
+         Eventfunc <- function(time,state)
+           events$func(time,state,parms,...)
     }
-        
+
     ## Check function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
 
     if (! is.null(events$Type))
-      if (events$Type == 2) 
+      if (events$Type == 2)
         checkEventFunc(Eventfunc,times,y,rho)
 
     if (miter %in% c(1,4)) {
@@ -174,19 +172,19 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
            stop("Jacobian dimension not ok")
     }
   }
-    
+
 ### work arrays iwork, rwork
   # length of rwork and iwork
   lrw <- 20+n*(maxord+1)+3*n
-  if(miter %in% c(1,2) && imp>0) 
+  if(miter %in% c(1,2) && imp>0)
      lrw <- lrw + 2*n*n+2
-  if(miter %in% c(1,2) && imp<0) 
+  if(miter %in% c(1,2) && imp<0)
      lrw <- lrw + n*n+2
-  if(miter ==3)                  
+  if(miter ==3)
      lrw <- lrw + n+2
-  if(miter %in% c(4,5) && imp>0) 
+  if(miter %in% c(4,5) && imp>0)
      lrw <- lrw + (3*banddown+2*bandup+2)*n+2
-  if(miter %in% c(4,5) && imp<0) 
+  if(miter %in% c(4,5) && imp<0)
      lrw <- lrw + (2*banddown+bandup+1)*n+2
 
   liw   <- ifelse(miter %in% c(0,3),30,30+n)
@@ -196,7 +194,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   rwork <- vector("double",20)
   rwork[] <- 0.
   iwork[] <- 0
-  
+
   iwork[1] <- banddown
   iwork[2] <- bandup
   iwork[5] <- maxord
@@ -206,7 +204,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   rwork[5] <- hini
   rwork[6] <- hmax
   rwork[7] <- hmin
-  
+
 ### the task to be performed.
   if (! is.null(times))
       itask <- ifelse (is.null (tcrit), 1,4) else      # times specified
@@ -220,7 +218,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
     printM("Integration method")
     printM("--------------------")
     df   <- c("method flag,    =",
-              "jsv             =", 
+              "jsv             =",
               "meth            =",
               "miter           =")
     vals <- c(imp, jsv, meth, miter)
@@ -251,23 +249,24 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
      "; chord iteration with an internally generated banded Jacobian
      (using ML+MU+1 extra calls to F per df/dy evaluation)")
     printmessage(df, vals, txt)
-  } 
-  
+  }
+
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <- 5   # vode is livermore solver type 5
 
-  lags <- checklags(lags) 
-  
+  lags <- checklags(lags,dllname)
+
+  on.exit(.C("unlock_solver"))
   out <- .Call("call_lsoda", y, times, Func, initpar, rtol, atol,
-       rho, tcrit, JacFunc, ModelInit, Eventfunc, 
+       rho, tcrit, JacFunc, ModelInit, Eventfunc,
        as.integer(verbose),as.integer(itask),
        as.double(rwork),as.integer(iwork), as.integer(imp),as.integer(Nglobal),
        as.integer(lrw),as.integer(liw),as.integer(IN),NULL,
        as.integer(0), as.double (rpar), as.integer(ipar),
        as.integer(0), flist, events, lags, PACKAGE = "deSolve")
 
-### saving results    
+### saving results
 
   out [1,1] <- times[1]                         # t=0 may be altered by dvode!
 

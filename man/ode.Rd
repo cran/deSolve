@@ -9,7 +9,8 @@ around the implemented ODE solvers}
 
 \usage{ode(y, times, func, parms, 
 method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
-           "euler", "rk4", "ode23", "ode45"), ...)
+           "euler", "rk4", "ode23", "ode45", "radau", 
+           "bdf", "bdf_d", "adams", "impAdams", "impAdams_d"), ...)
 
 \method{print}{deSolve}(x, \dots)
 }
@@ -37,7 +38,7 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     The return value of \code{func} should be a list, whose first
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
-    that are required at each point in \code{times}.The derivatives
+    that are required at each point in \code{times}. The derivatives
     should be specified in the same order as the state variables \code{y}.
 
     If \code{func} is a string, then \code{dllname} must give the name
@@ -46,12 +47,16 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     \code{"compiledCode"} for more details.
   }
   \item{parms }{parameters passed to \code{func}.}
-  \item{method }{the integrator to use, either a string (\code{"lsoda"},
-    \code{"lsode"}, \code{"lsodes"}, \code{"lsodar"}, \code{"vode"},
-    \code{"daspk"}, \code{"euler"}, \code{"rk4"}, \code{"ode23"} or
-    \code{"ode45"}) or a function that performs integration, or a list
-    of class \code{rkMethod}.
-    The default integrator used is \link{lsoda}
+  \item{method }{the integrator to use, either a \bold{function} that performs 
+    integration, or a \bold{list} of class \code{rkMethod}, or a \bold{string} 
+    (\code{"lsoda"},
+    \code{"lsode"}, \code{"lsodes"},\code{"lsodar"},\code{"vode"},
+    \code{"daspk"}, \code{"euler"}, \code{"rk4"},   \code{"ode23"},
+    \code{"ode45"}, \code{"radau"}, \code{"bdf"},   \code{"bdf_d"}, \code{"adams"}, 
+    or \code{"impAdams"}).
+    The latter three are the backward differentiation formula, the (explicit)
+    Adams and the implicit Adams method respectively (see details).
+    The default integrator used is \link{lsoda}.
   }
    \item{x }{an object of class \code{deSolve}, as returned by the
     integrators, and to be printed.}
@@ -80,7 +85,34 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
   
   See the selected integrator for the additional options.
   
-  The default integrator used is \link{lsoda}
+  The default integrator used is \link{lsoda}.
+  
+  The option \code{method = "bdf"} provdes a handle to the backward 
+  differentiation formula (it is equal to using \code{method = "lsode"}). 
+  It is best suited to solve stiff (systems of) equations.
+  
+  The option \code{method = "bdf_d"} selects the backward 
+  differentiation formula that uses Jacobi-Newton iteration (neglecting the 
+  off-diagonal elements of the Jacobian (it is equal to using 
+  \code{method = "lsode", mf = 23}). 
+  It is best suited to solve stiff (systems of) equations.
+
+  \code{method = "adams"} triggers the Adams method that uses functional
+  iteration (no Jacobian used); 
+  (equal to \code{method = "lsode", mf = 10}. It is often the best 
+  choice for solving non-stiff (systems of) equations. Note: when functional
+  iteration is used, the method is often said to be explicit, although it is  
+  in fact implicit.
+  
+  \code{method = "impAdams"} selects the implicit Adams method that uses Newton-
+  Raphson iteration (equal to \code{method = "lsode", mf = 12}.
+
+  \code{method = "impAdams_d"} selects the implicit Adams method that uses Jacobi-
+  Newton iteration, i.e. neglecting all off-diagonal elements (equal to 
+  \code{method = "lsode", mf = 13}.
+
+  For very stiff systems, \code{method = "daspk"} may outperform 
+  \code{method = "bdf"}.
 }
 
 \seealso{
@@ -95,8 +127,8 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
       \code{ode} is used,
     \item \code{\link{lsoda}}, \code{\link{lsode}},
       \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},
-      \code{\link{daspk}},
-    \item  \code{\link{rk}}, \code{\link{rkMethod}}
+      \code{\link{daspk}}, \code{\link{radau}},
+    \item  \code{\link{rk}}, \code{\link{rkMethod}},
   }
   \code{\link{diagnostics}} to print diagnostic messages.
 }
@@ -114,7 +146,7 @@ LVmod <- function(Time, State, Pars) {
     MortPredator <- rMort * Predator
 
     dPrey        <- GrowthPrey - Ingestion
-    dPredator    <- Ingestion*assEff -MortPredator
+    dPredator    <- Ingestion*assEff - MortPredator
 
     return(list(c(dPrey, dPredator)))
   })
@@ -131,8 +163,8 @@ times   <- seq(0, 200, by = 1)
 out     <- as.data.frame(ode(func = LVmod, y = yini,
                          parms = pars, times = times))
 
-matplot(out$time,out[,2:3],type = "l",xlab = "time",ylab = "Conc",
-        main = "Lotka-Volterra",lwd = 2)
+matplot(out$time, out[,2:3], type = "l", xlab = "time", ylab = "Conc",
+        main = "Lotka-Volterra", lwd = 2)
 legend("topright", c("prey", "predator"), col = 1:2, lty = 1:2)
 
 ## =======================================================================
@@ -155,10 +187,10 @@ SPCmod <- function(t, x, parms, input)  {
 }
 
 ## The parameters 
-parms  <- c(b = 0.001, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
+parms <- c(b = 0.001, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
 
 ## vector of timesteps
-times  <- seq(0, 200, length = 101)
+times <- seq(0, 200, length = 101)
 
 ## external signal with rectangle impulse
 signal <- as.data.frame(list(times = times,
@@ -177,7 +209,7 @@ out <- ode(y = xstart,times = times,
            func = SPCmod, parms, input = sigimp)
 
 ## Default plot method
-plot(out, type="l")
+plot(out, type = "l")
 
 ## User specified plotting
 mf <- par(mfrow = c(1, 2))
@@ -185,7 +217,7 @@ matplot(out[,1], out[,2:4], type = "l", xlab = "time", ylab = "state")
 legend("topright", col = 1:3, lty = 1:3, legend = c("S", "P", "C"))
 plot(out[,"P"], out[,"C"], type = "l", lwd = 2, xlab = "producer",
   ylab = "consumer")
-par(mfrow=mf)
+par(mfrow = mf)
 
 }
 

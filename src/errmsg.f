@@ -1,3 +1,10 @@
+      subroutine rprint(msg)
+      character (len=*) msg
+            call dblepr(msg, 80, 0, 0)
+      end subroutine 
+
+
+
 *DECK XERRWD
       SUBROUTINE XERRWD (MSG, NMES, NERR, LEVEL, NI, I1, I2, NR, R1, R2)
 C***BEGIN PROLOGUE  XERRWD
@@ -43,7 +50,7 @@ C   921118  Replaced MFLGSV/LUNSAV by IXSAV. (ACH)
 C   930329  Modified prologue to SLATEC format. (FNF)
 C   930407  Changed MSG from CHARACTER*1 array to variable. (FNF)
 C   930922  Minor cosmetic change. (FNF)
-C KARLINE; made rwarn 
+C   KARLINE; changed to use rprint
 C***END PROLOGUE  XERRWD
 C
 C*Internal Notes:
@@ -82,31 +89,31 @@ C  Write the message.
        MSG(I:I) = " "
       ENDDO
 
-      call rwarn(MSG)
+      call rprint(MSG)
 
 
       IF (NI .EQ. 1) THEN
        WRITE (rmess, 20) I1
  20    FORMAT(6X,'In above message,  I1 =',I10)
-       call rwarn(rmess)
+       call rprint(rmess)
       ENDIF
 
 
       IF (NI .EQ. 2) THEN 
        WRITE (rmess, 30) I1,I2
  30    FORMAT(6X,'In above message,  I1 =',I10,3X,'I2 =',I10)
-       call rwarn(rmess)
+       call rprint(rmess)
       ENDIF
 
       IF (NR .EQ. 1) THEN
         WRITE (rmess, 40) R1
  40     FORMAT(6X,'In above message,  R1 =',D21.13)
-       call rwarn(rmess)
+       call rprint(rmess)
       ENDIF
       IF (NR .EQ. 2) THEN
        WRITE (rmess, 50) R1,R2
  50    FORMAT(6X,'In above,  R1 =',D21.13,3X,'R2 =',D21.13)
-        call rwarn(rmess)
+        call rprint(rmess)
       ENDIF
 
 C

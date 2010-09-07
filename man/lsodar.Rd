@@ -84,7 +84,8 @@
     long as \code{y}. See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function, that computes the
-    Jacobian of the system of differential equations dydot(i)/dy(j), or
+    Jacobian of the system of differential equations
+    \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}, or
     a string giving the name of a function or subroutine in
     \file{dllname} that computes the Jacobian (see vignette
     \code{"compiledCode"} for more about this option).
@@ -95,7 +96,7 @@
     that of \code{func}.
 
     If the Jacobian is a full matrix, \code{jacfunc} should return a
-    matrix dydot/dy, where the ith row contains the derivative of
+    matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
     matrix elements by columns (the way \R and FORTRAN store matrices).
     
@@ -187,7 +188,7 @@
     defined in compiled code: the number of output variables calculated
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
-    indeed the number of output variables calculed in the dll - you have
+    indeed the number of output variables calculated in the dll - you have
     to perform this check in the code - See package vignette
     \code{"compiledCode"}.
   }
@@ -244,17 +245,15 @@
 ##   from lsodar source code
 ## =======================================================================
 
-Fun <- function (t, y, parms)
-{
+Fun <- function (t, y, parms) {
   ydot <- vector(len = 3)
   ydot[1] <- -.04*y[1] + 1.e4*y[2]*y[3]
   ydot[3] <- 3.e7*y[2]*y[2]
-  ydot[2] <- -ydot[1]-ydot[3]
-  return(list(ydot,ytot = sum(y)))
+  ydot[2] <- -ydot[1] - ydot[3]
+  return(list(ydot, ytot = sum(y)))
 }
 
-rootFun <- function (t, y, parms)
-{
+rootFun <- function (t, y, parms) {
   yroot <- vector(len = 2)
   yroot[1] <- y[1] - 1.e-4
   yroot[2] <- y[3] - 1.e-2
@@ -279,12 +278,11 @@ diagnostics(out)
 ## =======================================================================
 
 ## Bacteria (Bac) are growing on a substrate (Sub)
-model <- function(t, state, pars)
-{
+model <- function(t, state, pars) {
   with (as.list(c(state, pars)), {
-    ##       substrate uptake             death  respiration
-    dBact =  gmax*eff*Sub/(Sub+ks)*Bact - dB*Bact - rB*Bact
-    dSub  = -gmax    *Sub/(Sub+ks)*Bact + dB*Bact            + input
+    ##        substrate uptake             death     respiration
+    dBact <-  gmax*eff*Sub/(Sub+ks)*Bact - dB*Bact - rB*Bact
+    dSub  <- -gmax    *Sub/(Sub+ks)*Bact + dB*Bact            + input
 
     return(list(c(dBact,dSub)))
   })
@@ -293,8 +291,7 @@ model <- function(t, state, pars)
 ## root is the condition where sum of |rates of change|
 ## is very small
 
-rootfun <- function (t, state, pars)
-{
+rootfun <- function (t, state, pars) {
   dstate <- unlist(model(t, state, pars)) # rate of change vector
   return(sum(abs(dstate)) - 1e-10)
 }
@@ -317,13 +314,13 @@ print(out)
 ## when it reaches the value 0.1, a random amount is added.
 
 derivfun <- function (t,y,parms)
-  list (-0.05*y)
+  list (-0.05 * y)
 
 rootfun <- function (t,y,parms)
-  return(y-0.1) 
+  return(y - 0.1) 
 
 eventfun <- function(t,y,parms)
-  return(y+runif(1))  
+  return(y + runif(1))  
 
 yini <- 0.8
 times <- 0:200
@@ -331,7 +328,7 @@ times <- 0:200
 out <- lsodar(func=derivfun, y = yini, times=times, 
   rootfunc = rootfun, events = list(func=eventfun, root = TRUE))
 
-plot(out, type="l", lwd=2, main = "lsodar with event")
+plot(out, type = "l", lwd = 2, main = "lsodar with event")
   
 }
 \references{
@@ -344,8 +341,8 @@ plot(out, type="l", lwd=2, main = "lsodar with event")
   Nonstiff Systems of Ordinary Differential Equations, Siam
   J. Sci. Stat. Comput. 4 (1983), pp. 136-148.
 
- Kathie L. Hiebert and Lawrence F. Shampine, Implicitly Defined Output
- Points for Solutions of ODEs, Sandia Report SAND80-0180, February 1980.
+  Kathie L. Hiebert and Lawrence F. Shampine, Implicitly Defined Output
+  Points for Solutions of ODEs, Sandia Report SAND80-0180, February 1980.
     
  Netlib: \url{http://www.netlib.org}
  
@@ -418,7 +415,7 @@ plot(out, type="l", lwd=2, main = "lsodar with event")
 }
 \seealso{
   \itemize{
-    \item \code{\link{rk}}, \item \code{\link{rk4}} and \code{\link{euler}} for
+    \item \code{\link{rk}}, \code{\link{rkMethod}}, \code{\link{rk4}} and \code{\link{euler}} for
       Runge-Kutta integrators.
     \item \code{\link{lsoda}}, \code{\link{lsode}},
       \code{\link{lsodes}}, \code{\link{vode}},

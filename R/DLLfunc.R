@@ -54,8 +54,8 @@ DLLfunc <- function (func, times, y,
     out <- list(dy = out[1:n], var = vout)
     if (!is.null(Ynames)) names(out$dy) <-Ynames
     if (! is.null(outnames)) names(out$var) <- outnames
-return(out) # a list with the rate of change (dy) and output variables (var)
-            }
+    return(out) # a list with the rate of change (dy) and output variables (var)
+}
             
             
 DLLres <- function (res, times, y, dy, parms,
@@ -117,6 +117,6 @@ DLLres <- function (res, times, y, dy, parms,
     if (!is.null(Ynames)) names(out$delta) <-Ynames
     if (! is.null(outnames)) names(out$var) <- outnames
 
-return(out) # a list with the residual and output variables (var)
-            }
+    return(out) # a list with the residual and output variables (var)
+}
                  

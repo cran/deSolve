@@ -1,16 +1,14 @@
-# ks 21-12-09: Func <- unlist() ... output variables now set in C-code
-
 ### ============================================================================
 ### lsode -- solves ordinary differential equation systems
 ### The user has to specify whether or not
 ### the problem is stiff and choose the appropriate method.
 ### It is very similar to vode, except for some implementation details.
 ### More specifically, in vode it is possible to choose whether or not a copy
-### of the Jacobian is saved for reuse in the corrector iteration algorithm; 
+### of the Jacobian is saved for reuse in the corrector iteration algorithm;
 ### In lsode, a copy is not kept; this requires less memory but may be slightly
 ### slower.
 ###
-### as from deSolve 1.7, lsode finds the root of at least one of a set 
+### as from deSolve 1.7, lsode finds the root of at least one of a set
 ### of constraint functions g(i) of the independent and dependent variables.
 ### It finds only those roots for which some g(i), as a function
 ### of t, changes sign in the interval of integration.
@@ -21,11 +19,11 @@
 ### ============================================================================
 
 lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
-  jacfunc=NULL, jactype = "fullint", mf = NULL, rootfunc=NULL, 
-  verbose=FALSE, nroot = 0, 
-  tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE, 
-  maxord=NULL, bandup=NULL, banddown=NULL, maxsteps=5000, 
-  dllname=NULL,initfunc=dllname, initpar=parms, 
+  jacfunc=NULL, jactype = "fullint", mf = NULL, rootfunc=NULL,
+  verbose=FALSE, nroot = 0,
+  tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE,
+  maxord=NULL, bandup=NULL, banddown=NULL, maxsteps=5000,
+  dllname=NULL,initfunc=dllname, initpar=parms,
   rpar=NULL, ipar=NULL, nout=0, outnames=NULL,forcings=NULL,
   initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL, ...)
 {
@@ -40,7 +38,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if(maxord < 1) stop("`maxord' must be >1")
 
 ### Jacobian, method flag
-  if (is.null(mf)){ 
+  if (is.null(mf)){
     if (jactype == "fullint" ) imp <- 22 # full, calculated internally
     else if (jactype == "fullusr" ) imp <- 21 # full, specified by user function
     else if (jactype == "bandusr" ) imp <- 24 # banded, specified by user function
@@ -49,33 +47,33 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
      stop("'jactype' must be one of 'fullint', 'fullusr', 'bandusr' or 'bandint' if 'mf' not specified")
   } else imp <- mf
 
-  if (! imp %in% c(10:15, 20:25)) 
+  if (! imp %in% c(10:15, 20:25))
     stop ("method flag 'mf' not allowed")
-  
+
   # check other specifications depending on Jacobian
-  miter <- imp%%10 
-  if (miter %in% c(1,4) & is.null(jacfunc)) 
+  miter <- imp%%10
+  if (miter %in% c(1,4) & is.null(jacfunc))
     stop ("'jacfunc' NOT specified; either specify 'jacfunc' or change 'jactype' or 'mf'")
   meth <- abs(imp)%/%10                # basic linear multistep method
 
   if (is.null (maxord)) maxord <- if (meth==1) 12 else 5
   if (meth==1 && maxord > 12) stop ("'maxord' too large: should be <= 12")
   if (meth==2 && maxord > 5 ) stop ("'maxord' too large: should be <= 5")
-  if (miter %in% c(4,5) && is.null(bandup))   
+  if (miter %in% c(4,5) && is.null(bandup))
     stop("'bandup' must be specified if banded Jacobian")
-  if (miter %in% c(4,5) && is.null(banddown)) 
+  if (miter %in% c(4,5) && is.null(banddown))
     stop("'banddown' must be specified if banded Jacobian")
   if (is.null(banddown)) banddown <-1
-  if (is.null(bandup  )) bandup   <-1  
+  if (is.null(bandup  )) bandup   <-1
 
-### model and Jacobian function  
+### model and Jacobian function
   JacFunc   <- NULL
   Ynames    <- attr(y,"names")
   RootFunc <- NULL
   flist     <- list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
   Eventfunc <- NULL
-  events <- checkevents(events, times, Ynames, dllname,TRUE) 
+  events <- checkevents(events, times, Ynames, dllname,TRUE)
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
@@ -121,12 +119,12 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
         attr(state,"names") <- Ynames
          unlist(func   (time,state,parms,...))
       }
-         
+
       Func2   <- function(time,state)  {
         attr(state,"names") <- Ynames
         func   (time,state,parms,...)
       }
-         
+
       JacFunc <- function(time,state) {
         attr(state,"names") <- Ynames
         jacfunc(time,state,parms,...)
@@ -139,15 +137,15 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
        if (events$Type == 2)
          Eventfunc <- function(time,state) {
            attr(state,"names") <- Ynames
-           events$func(time,state,parms,...) 
+           events$func(time,state,parms,...)
          }
     } else {                          # no ynames...
       Func    <- function(time,state)
          unlist(func   (time,state,parms,...))
-        
+
       Func2   <- function(time,state)
         func   (time,state,parms,...)
-         
+
       JacFunc <- function(time,state)
         jacfunc(time,state,parms,...)
 
@@ -156,11 +154,11 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
       if (! is.null(events$Type))
        if (events$Type == 2)
-         Eventfunc <- function(time,state)  
-           events$func(time,state,parms,...) 
+         Eventfunc <- function(time,state)
+           events$func(time,state,parms,...)
 
     }
-        
+
     ## Check function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
@@ -168,7 +166,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
     ## Check event function
     if (! is.null(events$Type))
-      if (events$Type == 2) 
+      if (events$Type == 2)
         checkEventFunc(Eventfunc,times,y,rho)
 
     ## and for rootfunc
@@ -187,8 +185,8 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       if ((miter ==4 && dd != c(bandup+banddown+1,n)) ||
           (miter ==1 && dd != c(n,n)))
          stop("Jacobian dimension not ok")
-     } 
-  }                                                                                
+     }
+  }
 
 
 ### work arrays iwork, rwork
@@ -235,7 +233,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
               "miter           =")
     vals <- c(imp,  meth, miter)
     txt  <- "; (note: mf = (10 * meth + miter))"
-   
+
     if (meth==1)  txt <- c(txt,
      "; the basic linear multistep method: the implicit Adams method")  else
     if (meth==2)  txt <- c(txt,
@@ -263,13 +261,14 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-2
-  if (!is.null(rootfunc)) IN <- 6  
+  if (!is.null(rootfunc)) IN <- 6
 
-  lags <- checklags(lags) 
+  lags <- checklags(lags, dllname)
 
   ## end time lags...
+  on.exit(.C("unlock_solver"))
   out <- .Call("call_lsoda",y,times,Func,initpar,
-               rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,  
+               rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(imp),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(IN),

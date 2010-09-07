@@ -109,36 +109,33 @@ Pollution <- function (t, y, pars) {
 #=============================
 # parameters, state variables
 #=============================
-# The species names:
-spnames <- c("NO2", "NO", "O3P", "O3", "HO2", "OH", "HCHO", "CO", "ALD", "MEO2",
-       "C2O3", "CO2", "PAN", "CH3O", "HNO3", "O1D", "SO2", "SO4", "NO3", "N2O5")
 
 # Parameters: rate coefficients
-k1 <- .35
-k2 <- .266e2
-k3 <- .123e5
-k4 <- .86e-3
-k5 <- .82e-3
-k6 <- .15e5
-k7 <- .13e-3
-k8 <- .24e5
-k9 <- .165e5
-k10 <- .9e4
-k11 <- .22e-1
-k12 <- .12e5
-k13 <- .188e1
-k14 <- .163e5
-k15 <- .48e7
-k16 <- .35e-3
-k17 <- .175e-1
-k18 <- .1e9
-k19 <- .444e12
-k20 <- .124e4
-k21 <- .21e1
-k22 <- .578e1
-k23 <- .474e-1
-k24 <- .178e4
-k25 <- .312e1
+k1  <- 0.35
+k2  <- 0.266e2
+k3  <- 0.123e5
+k4  <- 0.86e-3
+k5  <- 0.82e-3
+k6  <- 0.15e5
+k7  <- 0.13e-3
+k8  <- 0.24e5
+k9  <- 0.165e5
+k10 <- 0.9e4
+k11 <- 0.22e-1
+k12 <- 0.12e5
+k13 <- 0.188e1
+k14 <- 0.163e5
+k15 <- 0.48e7
+k16 <- 0.35e-3
+k17 <- 0.175e-1
+k18 <- 0.1e9
+k19 <- 0.444e12
+k20 <- 0.124e4
+k21 <- 0.21e1
+k22 <- 0.578e1
+k23 <- 0.474e-1
+k24 <- 0.178e4
+k25 <- 0.312e1
 
 # State variable initial condition
 y <- rep(0, 20)
@@ -148,6 +145,10 @@ y[7]  <- 0.1
 y[8]  <- 0.3
 y[9]  <- 0.01
 y[17] <- 0.007
+# The species names:
+spnames <- c("NO2", "NO", "O3P", "O3", "HO2", "OH", "HCHO", "CO", "ALD", "MEO2",
+       "C2O3", "CO2", "PAN", "CH3O", "HNO3", "O1D", "SO2", "SO4", "NO3", "N2O5")
+names (y) <- spnames
 
 #=============================
 # application 1.   
@@ -161,7 +162,6 @@ out   <- vode(y, times, Pollution, parms = NULL)
 # increasing tolerance
 out2  <- vode(y, times, Pollution, parms = NULL,
               atol = 1e-10, rtol = 1e-10)
-colnames(out)[1:(1+length(spnames))] <- c("time", spnames)
 
 # run for longer period
 Times <- seq (0, 2000, 10)
@@ -170,11 +170,15 @@ out3 <- vode(y, Times, Pollution, parms = NULL,
 
 # plotting output; omit the first row to avoud zero in logarithmic plots
 mf    <-par(mfrow = c(2, 2))
-plot (times[-1], out[-1, 6], type = "l", log = "y", ylab = "log", main = colnames(out)[6])
+plot (times[-1], out[-1, 6], type = "l", log = "y", ylab = "log", 
+  main = colnames(out)[6])
 lines(times[-1], out2[-1, 6], lty = 2, col = "red")
-legend("topright", c("tol = 1e-8", "tol = 1e-10"), col = c("black", "red"), lty = 1)
+legend("topright", c("tol = 1e-8", "tol = 1e-10"), col = c("black", "red"), 
+  lty = 1)
+
 plot(times[-1], out2[-1, 8], type = "l", main = colnames(out)[8])
-plot(Times[-1], out3[-1, 6], type = "l", log = "y", ylab = "log", main = colnames(out)[6])
+plot(Times[-1], out3[-1, 6], type = "l", log = "y", ylab = "log", 
+  main = colnames(out)[6])
 plot(Times[-1], out3[-1, 8], type = "l", main = colnames(out)[8])
 
 mtext(side = 3, outer = TRUE, line = -1.5, cex = 1.5, "Pollution problem")
@@ -200,23 +204,28 @@ ytrue <- c(0.5646255480022769e-1,  0.1342484130422339,    0.4139734331099427e-8,
 
 TT    <- c(0, 60)
 s1<-system.time(
-  Test1 <- vode(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, verbose = TRUE)
+  Test1 <- vode(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, 
+    verbose = TRUE)
 )["elapsed"]
 
 s2<-system.time(
-  Test2 <- lsode(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, verbose = TRUE)
+  Test2 <- lsode(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, 
+    verbose = TRUE)
 )["elapsed"]
 
 s3<-system.time(
-  Test3 <- lsoda(y, TT, Pollution, parms = NULL, atol = 1e-14, rtol = 1e-17, verbose = TRUE)
+  Test3 <- lsoda(y, TT, Pollution, parms = NULL, atol = 1e-14, rtol = 1e-17, 
+    verbose = TRUE)
 )["elapsed"]
 
 s4<-system.time(
-  Test4 <- lsodes(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, verbose = TRUE)
+  Test4 <- lsodes(y, TT, Pollution, parms = NULL, atol = 1e-17, rtol = 1e-16, 
+    verbose = TRUE)
 )["elapsed"]
 
 s5<-system.time(
-  Test5 <- daspk(y, TT, Pollution, parms = NULL, atol = 1e-10, rtol = 1e-17, verbose = TRUE)
+  Test5 <- daspk(y, TT, Pollution, parms = NULL, atol = 1e-10, rtol = 1e-17, 
+    verbose = TRUE)
 )["elapsed"]
 
 print(  cbind(vode = (Test1[2, 2:21] - ytrue),

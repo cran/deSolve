@@ -142,7 +142,12 @@ checkevents <- function (events, times, vars, dllname, root=FALSE) {
     if (is.null(Root)) Root <- 0
     Root <- as.integer(Root)
   } else Root <- as.integer(0)
-  
+
+  Rootsave <- events$maxroot
+  if (is.null(Rootsave)) Rootsave <- 100  # number of roots to save.
+  if (Rootsave < 0)
+    stop("events$Rootsave should be > 0 in events")
+
   funevent <- events$func
   if (!is.null(funevent)) {
     if (is.character(funevent)){ 
@@ -161,12 +166,12 @@ checkevents <- function (events, times, vars, dllname, root=FALSE) {
     }
     if (Root == 0) {
       if (is.null(events$time)) 
-        stop("'events$time' should be given and contain the times of the events, if 'events$func' is specified")
+        stop("'events$time' should be given and contain the times of the events, if 'events$func' is specified and no root function")
       Time <- as.double(events$time) 
     } else Time <- min(times) - 1  # never reached....
       return (list (Time = Time, SVar = NULL, Value = NULL, 
         Method = NULL, Type = as.integer(Type), func = funevent,
-        Root = Root))
+        Rootsave = as.integer(Rootsave), Root = Root))
 
   }  ## Check the event data series
   event <- events$data
@@ -240,15 +245,15 @@ checkevents <- function (events, times, vars, dllname, root=FALSE) {
 
   return (list (Time = as.double(event[,2]), SVar = as.integer(event[,1]), 
     Value = as.double(event[,3]), Method = as.integer(event[,4]), 
+    Rootsave = as.integer(Rootsave), 
     Type = as.integer(1), Root = Root))
 }
 
 ### ============================================================================
-### Check timelags data set 
+### Check timelags data set - also passes "dllname" now  (not yet used)
 ### ============================================================================
 
-
-checklags <- function (lags) {
+checklags <- function (lags, dllname) {
   if (!is.null(lags)) {
     lags$islag = as.integer(1)
     if (is.null(lags$mxhist))
@@ -256,6 +261,10 @@ checklags <- function (lags) {
     if (lags$mxhist <1)
       lags$mxhist <- 1e4 
     lags$mxhist<-as.integer(lags$mxhist)   
+    if (is.null(lags$interpol))   # 1= hermitian, 2 = higher order interpolation
+       lags$interpol <- 1
+    lags$interpol<-as.integer(lags$interpol)  
+    lags$isfun <- as.integer(0) 
   } else 
     lags$islag=as.integer(0)
   return(lags)

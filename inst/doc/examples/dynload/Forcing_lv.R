@@ -71,12 +71,13 @@ plot(out[,"P"], out[,"C"], type = "l", xlab = "producer", ylab = "consumer")
 #points(Out$P,Out$C)
 tail(out)
 
-
 ## =============================================================================
 ## now including an event - as a data.frame
 ## =============================================================================
-eventdata <- data.frame(var=rep("C",10),time=seq(10,100,10),value=rep(0.5,10),
-  method=rep("multiply",10))
+eventdata <- data.frame(var = rep("C", 10),
+                        time = seq(10, 100, 10),
+                        value = rep(0.5, 10),
+                        method = rep("multiply", 10))
 eventdata
 
 ## solve C version of the model
@@ -89,9 +90,9 @@ print(system.time(
 
 
 ## Plotting
-plot(out2, which = c("S","P","C"), type = "l")
-plot(out2[,"P"], out[,"C"], type = "l", xlab = "producer", ylab = "consumer")
-#points(Out$P,Out$C)
+plot(out2, which = c("S", "P", "C"), type = "l")
+plot(out2[,"P"], out2[,"C"], type = "l", xlab = "producer", ylab = "consumer")
+
 
 ## =============================================================================
 ## an event as a function
@@ -102,7 +103,10 @@ print(system.time(
             parms = parms, dllname = "Forcing_lv", initforc="forcc",
             forcings = forcings, initfunc = "parmsc", nout = 2,
             outnames = c("Sum", "signal"), 
-            events = list(func="event",time=seq(10,90,10)))
+            events = list(func = "event", time = seq(10, 90, 10)))
 ))
 
 dyn.unload(paste("Forcing_lv", .Platform$dynlib.ext, sep = ""))
+plot(out3, which = c("S", "P", "C"), type = "l")
+plot(out3[,"P"], out3[,"C"], type = "l", xlab = "producer", ylab = "consumer")
+points(out2[,"P"],out2[,"C"])

@@ -104,10 +104,11 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   int    i, j, k, nt, latol, lrtol, lrw, liw, lzw;
   double tin, tout, *Atol, *Rtol, ss;
-  int    neq, itol, itask, istate, iopt, jt, mflag, nout, 
+  int    neq, itol, itask, istate, iopt, jt, mflag, 
          is, isDll, isForcing;
   Rcomplex  *xytmp, *dy = NULL, *zwork;
-  
+  int    *iwork, it, ntot, nout;   
+  double *rwork;  
   C_zderiv_func_type *zderiv_func;
   C_zjac_func_type   *zjac_func = NULL;
 
@@ -115,9 +116,12 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 /******                         STATEMENTS                               ******/
 /******************************************************************************/
 
+  lock_solver(); /* prevent nested call of solvers that have global variables */
+
 /*                      #### initialisation ####                              */    
 
-  init_N_Protect();
+  //init_N_Protect();
+  long int old_N_Protect = save_N_Protected();  
 
   jt = INTEGER(jT)[0];        
   neq = LENGTH(y);
@@ -141,7 +145,7 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   }
 
 /* initialise output for Complex variables ... */
-  initOutComplex(isDll, neq, nOut, Rpar, Ipar);
+  initOutComplex(isDll, &nout, &ntot, neq, nOut, Rpar, Ipar);
 
 /* copies of all variables that will be changed in the FORTRAN subroutine */
  
@@ -163,6 +167,10 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   lrw = INTEGER(lRw)[0];
   rwork = (double *) R_alloc(lrw, sizeof(double));
   for (j = 0; j < 20; j++) rwork[j] = REAL(rWork)[j];
+
+  /* global variable */
+  timesteps = (double *) R_alloc(2, sizeof(double));
+     for (j=0; j<2; j++) timesteps[j] = 0.;
 
   lzw = INTEGER(lZw)[0];
   zwork = (Rcomplex *) R_alloc(lzw, sizeof(Rcomplex));
@@ -248,6 +256,10 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 			   &itol, Rtol, Atol, &itask, &istate, &iopt, zwork, &lzw, rwork,
 			   &lrw, iwork, &liw, zjac_func, &jt, zout, ipar);
 	  
+    /* in case size of timesteps is called for */
+    timesteps [0] = rwork[10];
+    timesteps [1] = rwork[11];
+    
     if (istate == -1) {
       warning("an excessive amount of work (> mxstep ) was done, but integration was not successful - increase maxsteps ?");
     } else if (istate == -2)  {
@@ -290,8 +302,12 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   }  /* end main time loop */
 
 /*                   ####   returning output   ####                           */    
-  terminate(istate, 23, 0, 4, 10);      
-  unprotect_all();
+  terminate(istate, iwork, 23, 0, rwork, 4, 10);      
+  
+  unlock_solver();
+  //unprotect_all();
+  restore_N_Protected(old_N_Protect);
+  
   if (istate > 0)
     return(YOUT);
   else

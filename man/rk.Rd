@@ -114,11 +114,12 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     As a suggestion, one may use \code{"rk23"} (alias \code{"ode23"}) for
     simple problems and \code{"rk45dp7"} (alias \code{"ode45"}) for
     rough problems.
-  }  
+  }
   \item{maxsteps }{average maximal number of steps per output interval
-    taken by the solver. This argument is defined such to ensure
-    compatibility with the Livermore-solvers, but the maximum number of
-    steps in total is calculated as \code{length(times) * maxsteps}.
+    taken by the solver. This argument is defined such as to ensure
+    compatibility with the Livermore-solvers. \code{rk} only accepts the maximal
+    number of steps for the entire integration, and this is calculated 
+    as \code{length(times) * maxsteps}.
   }
   \item{dllname }{a string giving the name of the shared library
     (without extension) that contains all the compiled function or
@@ -146,7 +147,7 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     defined in compiled code: the number of output variables calculated
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
-    indeed the number of output variables calculed in the dll - you have
+    indeed the number of output variables calculated in the dll - you have
     to perform this check in the code. See package vignette
     \code{"compiledCode"}.
   }
@@ -226,6 +227,12 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 \note{  
   Arguments \code{rpar} and \code{ipar} are provided for compatibility
   with \code{lsoda}.
+
+  Starting with version 1.8 implicit Runge-Kutta methods are also
+  supported by this general \code{rk} interface, however their
+  implementation is still experimental.  Instead of this you may
+  consider \code{\link{radau}} for a specific full implementation of an
+  implicit Runge-Kutta method.
 }
 \references{
   Butcher, J. C. (1987) The numerical analysis of ordinary differential

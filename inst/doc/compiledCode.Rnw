@@ -91,11 +91,10 @@ options(width=70)
 
 \section{Introduction}
 
-\pkg{deSolve} \citep{deSolve,deSolve_jss}, the successor of \proglang{R} package
+\pkg{deSolve} \citep{deSolve_jss,deSolve}, the successor of \proglang{R} package
 \pkg{odesolve} \citep{Setzer01} is a package to solve ordinary
 differential equations (ODE), differential algebraic equations (DAE)
 and partial differential equations (PDE).
-
 One of the prominent features of \pkg{deSolve} is that it allows
 specifying the differential equations either as:
 
@@ -109,27 +108,26 @@ specifying the differential equations either as:
 
 In what follows, these implementations will be referred to as \Rmodels
 and \DLLmodels respectively.
-
 Whereas \Rmodels are easy to implement, they allow simple interactive
-development, produce highly readible code and access to \proglang{R} s
+development, produce highly readible code and access to \proglang{R}s
 high-level procedures, \DLLmodels have the benefit of increased
 simulation speed. Depending on the problem, there may be a gain of up
 to several orders of magnitude computing time when using compiled
 code.
 
 Here are some rules of thumb when it is worthwhile or not to switch to
-\DLLmodels.
+\DLLmodels:
 
 \begin{itemize}
-\item As long as one makes use only of \proglang{R} s high-level
+\item As long as one makes use only of \proglang{R}s high-level
   commands, the time gain will be modest. This was demonstrated in
-  \citet{Soetaert08b}, where a formulation of two interacting
+  \citet{deSolve_jss}, where a formulation of two interacting
   populations dispersing on a 1-dimensional or a 2-dimensional grid
   led to a time gain of a factor two only when using \DLLmodels.
 
 \item Generally, the more statements in the model, the higher will be
-  the gain of using compiled code. Thus, in the same paper (Soetaert
-  et al. subm.), a very simple, 0-D, Lotka-Volterrra type of model
+  the gain of using compiled code. Thus, in the same paper
+  \citep{deSolve_jss}, a very simple, 0-D, Lotka-Volterrra type of model
   describing only 2 state variables was solved 50 times faster when
   using compiled code.
 
@@ -169,13 +167,13 @@ An ODE model implemented in \textbf{pure \proglang{R}} should be
 defined as:
 
 \begin{verbatim}
- yprime = func(t, y, parms,...)
+ yprime = func(t, y, parms, ...)
 \end{verbatim}
 
 where \code{t} is the current time point in the integration, \code{y}
 is the current estimate of the variables in the ODE system, and
 \code{parms} is a vector or list containing the parameter
-values. \code{\dots} (optional) are any other arguments passed to the
+values. The optional dots argument (\code{\dots}) can be used to pass any other arguments to the
 function.  The return value of \code{func} should be a list, whose
 first element is a vector containing the derivatives of \code{y} with
 respect to time, and whose next elements contain output variables that
@@ -204,13 +202,13 @@ above example is:
 jac <- function (t, Y, parameters) {
   with (as.list(parameters),{
 
-    PD[1,1] = -k1
-    PD[1,2] = k2*Y[3]
-    PD[1,3] = k2*Y[2]
-    PD[2,1] = k1
-    PD[2,3] = -PD[1,3]
-    PD[3,2] = k3*Y[2]
-    PD[2,2] = -PD[1,2] - PD[3,2]
+    PD[1,1] <- -k1
+    PD[1,2] <- k2*Y[3]
+    PD[1,3] <- k2*Y[2]
+    PD[2,1] <- k1
+    PD[2,3] <- -PD[1,3]
+    PD[3,2] <- k3*Y[2]
+    PD[2,2] <- -PD[1,2] - PD[3,2]
 
     return(PD)
   })
@@ -222,7 +220,7 @@ This model can then be run as follows:
 <<Run_Rmodel>>=
 parms <- c(k1 = 0.04, k2 = 1e4, k3=3e7)
 Y     <- c(1.0, 0.0, 0.0)
-times <- c(0, 0.4*10^(0:11) )
+times <- c(0, 0.4*10^(0:11))
 PD    <- matrix(nrow = 3, ncol = 3, data = 0)
 out   <- ode(Y, times, model, parms = parms, jacfunc = jac)
 @
@@ -269,16 +267,16 @@ void derivs (int *neq, double *t, double *y, double *ydot,
 \end{verbatim}
 
   where \code{*neq} is the number of equations, \code{*t} is the value
-  of the independent variable, \code{y} points to a double precision
+  of the independent variable, \code{*y} points to a double precision
   array of length \code{*neq} that contains the current value of the
-  state variables, and \code{ydot} points to an array that will
+  state variables, and \code{*ydot} points to an array that will
   contain the calculated derivatives.
 
-  \code{yout} points to a double precision vector whose first
+  \code{*yout} points to a double precision vector whose first
   \code{nout} values are other output variables (different from the
-  state variables y), and the next values are double precision values
+  state variables \code{y}), and the next values are double precision values
   as passed by parameter \code{rpar} when calling the integrator.  The
-  key to the elements of \code{yout} is set in \code{*ip}
+  key to the elements of \code{*yout} is set in \code{*ip}
 
   \code{*ip} points to an integer vector whose length is at least 3;
   the first element (\code{ip[0]}) contains the number of output
@@ -293,10 +291,10 @@ void derivs (int *neq, double *t, double *y, double *ydot,
     although it is standard in the \code{vode} and \code{daspk} codes.
     To make all integrators compatible, we have altered the
     \pkg{ODEPACK} \proglang{FORTRAN} codes to consistently pass these
-    vectors. }
+    vectors.}
 
   Note that, in function \code{derivs}, we start by checking whether
-  enough room is allocated for the output variables (\code{if (ip[0] <
+  enough memory is allocated for the output variables (\code{if (ip[0] <
     1)}), else an error is passed to \proglang{R} and the integration
   is stopped.
 
@@ -314,7 +312,7 @@ void jac(int *neq, double *t, double *y, int *ml,
   selected. \code{*nrow} contains the number of rows of the Jacobian.
   Only for full Jacobian matrices, this is equal to \code{*neq}. In
   case the Jacobian is banded, \code{*nrowpd} will be equal to
-  \code{*mu+*ml+1}.\footnote{Readers familiar with the implementation
+  \code{*mu + *ml + 1}.\footnote{Readers familiar with the implementation
     of the \proglang{FORTRAN} code \code{DVODE} may notice that this
     is not the format in which \code{DVODE} requires the specification
     of the Jacobian; this code needs an extra \code{mu} empty rows. As
@@ -336,14 +334,13 @@ In \proglang{FORTRAN}, parameters may be stored in a common block
 (here called \code{myparms}).  During the initialisation, this common
 block is defined to consist of a 3-valued vector (unnamed), but in the
 subroutines \code{derivs} and \code{jac}, the parameters are given a
-name (\code{k1},...).
+name (\code{k1}, ...).
 
 \subsection{Running ODE models implemented in compiled code}
 
 To run the models described above, the code in \code{mymod.f} and
 \code{mymod.c} must first be compiled\footnote{This requires a
   correctly installed GNU compiler, see above.}.
-
 This can simply be done in \proglang{R} itself, using the
 \code{system} command:
 
@@ -378,9 +375,9 @@ The integration routine (here \code{ode}) recognizes that the model is
 specified as a DLL due to the fact that arguments \code{func} and
 \code{jacfunc} are not regular \proglang{R}-functions but character
 strings. Thus, the integrator will check whether the function is
-loaded in the DLL with name "mymod".
+loaded in the DLL with name \code{mymod}.
 
-Note that "mymod", as specified by \code{dllname} gives the name of
+Note that \code{mymod}, as specified by \code{dllname} gives the name of
 the shared library \emph{without extension}. This DLL should contain
 all the compiled function or subroutine definitions referred to in
 \code{func}, \code{jacfunc} and \code{initfunc}.
@@ -388,7 +385,7 @@ all the compiled function or subroutine definitions referred to in
 Also, if \code{func} is specified in compiled code, then
 \code{jacfunc} and \code{initfunc} (if present) should also be
 specified in a compiled language.  It is not allowed to mix
-\proglang{R}-functions and compiled functions
+\proglang{R}-functions and compiled functions.
 
 Note also that, when invoking the integrator, we have to specify the
 number of ordinary output variables, \code{nout}. This is because the
@@ -399,12 +396,12 @@ of the integration routine the number of output variables is too low,
 then \proglang{R} may freeze and need to be terminated! Therefore it
 is advised that one checks in the code wheter nout has been specified
 correctly.  In the \proglang{FORTRAN} example above, the statement
-\code{if (ip(1) < 1) call rexit("nout should be at least 1") } does
+\code{if (ip(1) < 1) call rexit("nout should be at least 1")} does
 this.  Note that it is not an error (just a waste of memory) to set
 \code{nout} to a too large value.
 
-Finally, in order to label the output matrix, the name of the ordinary
-output variable has to be passed explicitly (\code{outnames}).  The
+Finally, in order to label the output matrix, the names of the ordinary
+output variables have to be passed explicitly (\code{outnames}). The
 names of the state variables are known through their initial condition
 (\code{y}).
 
@@ -498,11 +495,12 @@ can solve \DLLmodels. They are:
 
 \begin{itemize}
 \item all solvers of the \code{lsode} familiy: \code{lsoda},
-  \code{lsode}, \code{lsodar}, \code {lsodes}
-\item \code{vode}
-\item \code{daspk}
+  \code{lsode}, \code{lsodar}, \code {lsodes},
+\item \code{vode},
+\item \code{daspk},
+\item \code{radau},
 \item the C-implemented Runge-Kutta integration routines (including the
-  Euler method)
+  Euler method).
 \end{itemize}
 
 For some of these solvers the interface is slightly different
@@ -513,7 +511,6 @@ compiled language is discussed next.
 \subsection{Complex numbers, function zvode}
 
 \code{zvode} solves ODEs that are composed of complex variables.
-
 The program below uses \code{zvode} to solve the following system of
 2 ODEs:
 
@@ -584,7 +581,7 @@ Also, there is no initialiser function here (\code{initfunc = NULL}).
 
 \subsection{DAE models, integrator daspk}
 
-\code{daspk} is the only integrator in the package that solves DAE
+\code{daspk} is one of the few integrators in the package that solve DAE
 models.  DAEs are specified in implicit form: \[0 = F(y',y,x,t)\]
 i.e. the DAE function (passed via argument \code{res}) specifies the
 ``residuals'' rather than the derivatives (as for ODEs).
@@ -598,13 +595,13 @@ void myres(double *t, double *y, double *ydot, double *cj,
            double *delta, int *ires, double *yout, int *ip)
 \end{verbatim}
 
-where \code{*t} is the value of the independent variable, \code{y}
+where \code{*t} is the value of the independent variable, \code{*y}
 points to a double precision array that contains the current value of
-the state variables, \code{ydot} points to an array that will contain
-the derivatives, \code{delta} points to an array that will contain the
-calculated residuals. \code{cj} points to a scalar, which is normally
-proportional to the inverse of the stepsize, while \code{ires} points
-to an integer (not used). \code{yout} points to any other output
+the state variables, \code{*ydot} points to an array that will contain
+the derivatives, \code{*delta} points to an array that will contain the
+calculated residuals. \code{*cj} points to a scalar, which is normally
+proportional to the inverse of the stepsize, while \code{*ires} points
+to an integer (not used). \code{*yout} points to any other output
 variables (different from the state variables y), followed by the
 double precision values as passed via argument \code{rpar}; finally
 \code{*ip} is an integer vector containing at least 3 elements, its
@@ -1125,7 +1122,7 @@ plot(out, type="l")
 <<lv>>
 @
 \end{center}
-\caption{Solution of the lotka-volterra resource (S)-producer (P) -
+\caption{Solution of the Lotka-Volterra resource (S)-producer (P) -
 consumer (C) model with time-variable input (signal) - see text for R-code}
 \label{fig:lv}
 \end{figure}
@@ -1202,7 +1199,7 @@ out <- ode(y=xstart, times, func = "derivsc",
 dyn.unload("Forcing_lv.dll")
 \end{verbatim}
 
-This code executes about 30 times faster than the R-code.
+This code executes about 30 times faster than the \proglang{R}-code.
 
 With a longer simulation time, the difference becomes more pronounced,
 e.g. with times till 800 days, the DLL code executes 200 times faster%
@@ -1212,20 +1209,20 @@ e.g. with times till 800 days, the DLL code executes 200 times faster%
 
 \section{Implementing events in compiled code}
   An \code{event} occurs when the value of a state variable is suddenly changed,
-  e.g. a certain amount is added, or part is removed. The integration 
+  e.g. a certain amount is added, or part is removed. The integration
   routines cannot deal easily with such state variable changes. Typically these
-  events occur only at specific times.   
-  In \code{deSolve}, events can be imposed by means of an input file that 
+  events occur only at specific times.
+  In \code{deSolve}, events can be imposed by means of an input file that
   specifies at which time a certain state variable is altered, or via
-  an event function. 
+  an event function.
 
   Both types of events combine with compiled code.
-  
-  Take the previous example, the Lotka-Volterra SPC model. Suppose that every 
+
+  Take the previous example, the Lotka-Volterra SPC model. Suppose that every
   10 days, half of the consumer is removed.
 
   We first implement these events as a \code{data.frame}
-  
+
 <<>>=
 eventdata <- data.frame(var=rep("C",10),time=seq(10,100,10),value=rep(0.5,10),
   method=rep("multiply",10))
@@ -1243,7 +1240,7 @@ dyn.unload("Forcing_lv.dll")
 plot(out2, which = c("S","P","C"), type = "l")
 
 \end{verbatim}
-  
+
 The event can also be implemented in \proglang{C} as:
 \begin{verbatim}
 void event(int *n, double *t, double *y) {
@@ -1257,22 +1254,22 @@ dyn.load("Forcing_lv.dll")
   out3 <-  ode(y = y, times, func = "derivsc",
             parms = parms, dllname = "Forcing_lv", initforc="forcc",
             forcings = forcings, initfunc = "parmsc", nout = 2,
-            outnames = c("Sum", "signal"), 
+            outnames = c("Sum", "signal"),
             events = list(func="event",time=seq(10,90,10)))
 dyn.unload("Forcing_lv.dll")
 \end{verbatim}
- 
+
 \setkeys{Gin}{width=1.0\textwidth}
 \begin{figure}
 \begin{center}
 \includegraphics{comp-event}
 \end{center}
-\caption{Solution of the lotka-volterra resource (S)-producer (P) -
+\caption{Solution of the Lotka-Volterra resource (S)~-- producer (P)~--
 consumer (C) model with time-variable input (signal) and with half of
 the consumer removed every 10 days - see text for R-code}
 \label{fig:lv2}
 \end{figure}
-  
+
 \section{Final remark}
 
 Detailed information about communication between \proglang{C},

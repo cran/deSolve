@@ -29,11 +29,11 @@
     function in a dynamically loaded shared library.
 
     If \code{func} is an \R-function, it must be defined as:
-    \code{func <- function(t, y, parms,...)}.  \code{t} is the current time
+    \code{func <- function(t, y, parms, ...)}.  \code{t} is the current time
     point in the integration, \code{y} is the current estimate of the
     variables in the ODE system.  If the initial values \code{y} has a
     \code{names} attribute, the names will be available inside \code{func}.
-    \code{parms} is a vector or list of parameters; ... (optional) are
+    \code{parms} is a vector or list of parameters; \code{...} (optional) are
     any other arguments passed to the function.
 
     The return value of \code{func} should be a list, whose first
@@ -52,7 +52,7 @@
     diagonal.
   }
   \item{method }{the integrator to use, one of \code{"vode"},
-    \code{"lsode"}, \code{"lsoda"}, \code{"lsodar"}.
+    \code{"lsode"}, \code{"lsoda"}, \code{"lsodar"}, \code{"radau"}.
   }
   \item{... }{additional arguments passed to the integrator.}
 }
@@ -86,8 +86,7 @@
 ## ================
 ## Model equations
 ## ================
-Aphid <- function(t, APHIDS, parameters)
-{
+Aphid <- function(t, APHIDS, parameters) {
   deltax  <- c (0.5, rep(1, numboxes-1), 0.5)
   Flux    <- -D*diff(c(0, APHIDS, 0))/deltax
   dAPHIDS <- -diff(Flux)/delx + APHIDS*r
@@ -136,9 +135,9 @@ filled.contour(x = times, y = Distance, DENSITY, color = topo.colors,
   
   For multi-species 1-D models, this method can only be used if the
   state variables are arranged per box, per species (e.g. A[1], B[1],
-  A[2], B[2], A[3], B[3], .... for species A, B).  By default, the
+  A[2], B[2], A[3], B[3], ... for species A, B).  By default, the
   \bold{model} function will have the species arranged as A[1], A[2],
-  A[3], .... B[1], B[2], B[3], ....  in this case, use \code{ode.1D}.
+  A[3], ... B[1], B[2], B[3], ...  in this case, use \code{ode.1D}.
   
   See the selected integrator for the additional options.
 }
