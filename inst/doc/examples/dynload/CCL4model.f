@@ -37,7 +37,8 @@ c=======================================================================
 c In this "event", state variable 1 is increased with 1. DOES NOT WORK...
 c=======================================================================
 
-      subroutine eventfun(t, y)
+      subroutine eventfun(n, t, y)
+      integer n
       double precision t, y(7)
 
       y(1) = y(1) + 1

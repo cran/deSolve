@@ -1,5 +1,3 @@
-# ks 21-12-09: Func <- unlist() ... output variables now set in C-code
-
 ### ============================================================================
 ### lsodar -- solves ordinary differential equation systems
 ### Compared to the other integrators of odepack
@@ -21,7 +19,7 @@
 lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 	jacfunc=NULL, jactype = "fullint", rootfunc=NULL, verbose=FALSE,
   nroot = 0, tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE,
-  maxordn = 12, maxords = 5, bandup = NULL, banddown = NULL, 
+  maxordn = 12, maxords = 5, bandup = NULL, banddown = NULL,
   maxsteps = 5000, dllname=NULL,initfunc=dllname, initpar=parms,
   rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
   initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL, ...)    {
@@ -48,7 +46,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   else if (jactype == "bandint" ) jt <- 5 # banded, calculated internally
   else stop("'jactype' must be one of 'fullint', 'fullusr', 'bandusr' or 'bandint'")
 
-  ## check other specifications depending on Jacobian  
+  ## check other specifications depending on Jacobian
   if (jt %in% c(4,5) && is.null(bandup))
     stop("'bandup' must be specified if banded Jacobian")
   if (jt %in% c(4,5) && is.null(banddown))
@@ -67,7 +65,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
   Eventfunc <- NULL
-  events <- checkevents(events, times, Ynames, dllname, TRUE) 
+  events <- checkevents(events, times, Ynames, dllname, TRUE)
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
@@ -127,15 +125,15 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
        if (events$Type == 2)
          Eventfunc <- function(time,state) {
            attr(state,"names") <- Ynames
-           events$func(time,state,parms,...) 
+           events$func(time,state,parms,...)
          }
     } else {                            # no ynames...
       Func    <- function(time,state)
          unlist(func   (time,state,parms,...))
-        
+
       Func2   <- function(time,state)
         func   (time,state,parms,...)
-         
+
       JacFunc <- function(time,state)
         jacfunc(time,state,parms,...)
 
@@ -144,10 +142,10 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
       if (! is.null(events$Type))
        if (events$Type == 2)
-         Eventfunc <- function(time,state)  
-           events$func(time,state,parms,...) 
+         Eventfunc <- function(time,state)
+           events$func(time,state,parms,...)
     }
-        
+
     ## Check derivative function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
@@ -155,7 +153,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
     ## Check event function
     if (! is.null(events$Type))
-      if (events$Type == 2) 
+      if (events$Type == 2)
         checkEventFunc(Eventfunc,times,y,rho)
 
     ## and for rootfunc
@@ -165,7 +163,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
         stop("root function 'rootfunc' must return a vector\n")
       nroot <- length(tmp2)
     } else nroot = 0
-    
+
     if (jt %in% c(1,4)) {
       tmp <- eval(JacFunc(times[1], y), rho)
       if (!is.matrix(tmp))
@@ -187,7 +185,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   lrw = max(lrn,lrs)                         # actual length: max of both
   liw = 20 + n
 
-## only first 20 elements passed to solver; other will be allocated in C-code  
+## only first 20 elements passed to solver; other will be allocated in C-code
   iwork <- vector("integer",20)
   rwork <- vector("double",20)
   rwork[] <- 0.
@@ -214,21 +212,22 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 ## print to screen...
   if (verbose)  printtask(itask,func,jacfunc)
 
-### calling solver    
+### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-4
 
-  lags <- checklags(lags) 
+  lags <- checklags(lags, dllname)
 
+  on.exit(.C("unlock_solver"))
   out <- .Call("call_lsoda",y,times,Func,initpar,
                rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(jt),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(IN),RootFunc,
                as.integer(nroot), as.double (rpar), as.integer(ipar),
-               as.integer(0), flist, events, lags, PACKAGE="deSolve")   
+               as.integer(0), flist, events, lags, PACKAGE="deSolve")
 
-### saving results    
+### saving results
   iroot  <- attr(out, "iroot")
 
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,

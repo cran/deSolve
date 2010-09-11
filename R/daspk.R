@@ -11,7 +11,7 @@
 
 daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     nalg=0, rtol=1e-6, atol=1e-8, jacfunc=NULL, jacres=NULL,
-    jactype = "fullint", estini = NULL, verbose=FALSE, tcrit = NULL,
+    jactype = "fullint", mass = NULL, estini = NULL, verbose=FALSE, tcrit = NULL,
     hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord =5, bandup=NULL,
     banddown=NULL, maxsteps=5000, dllname=NULL, initfunc=dllname,
     initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL,
@@ -65,6 +65,10 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     stop("`maxord' must be numeric")
   if(maxord < 1 || maxord > 5)
     stop("`maxord' must be >1 and <=5")
+  if (!is.null(func) && !(is.null(res) ))
+    stop("either `func' OR 'res' must be specified, not both")
+  if (!is.null(mass) && !(is.null(res) ))
+    stop("cannot combine `res' with 'mass' - use 'func' instead, or set 'mass' = NULL")
   ## max number of iterations ~ maxstep; a multiple of 500
   maxIt <- max(1,(maxsteps+499)%/%500)
 
@@ -122,7 +126,6 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
    # Easier to deal with NA in C-code
     if (is.null(initfunc)) ModelInit <- NA
   }
-
 
   ## If res is a character vector, then
   ## check to make sure it describes
@@ -193,7 +196,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     ## func or res and jac are overruled, either including ynames, or not
     ## This allows to pass the "..." arguments and the parameters
 
-    if (is.null(res))  {               # res is NOT specified, func is
+    if (is.null(res) && is.null(mass))  {               # res is NOT specified, func is
       rho <- environment(func)
       Res    <- function(time,y,dy) {
         if (ynames) attr(y,"names")  <- Ynames
@@ -202,6 +205,18 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
       }
 
       Res2   <- function(time,y,dy) {
+        if (ynames) attr(y,"names") <- Ynames
+         func   (time,y,parms,...)
+      }
+    } else if (is.null(res))  {               # func with mass
+      rho <- environment(func)
+      Res    <- function(time,y,dy) {
+        if (ynames) attr(y,"names")  <- Ynames
+        FF <-func   (time,y,parms,...)
+        c(mass %*% dy-unlist(FF[1]), unlist(FF[-1]))
+      }
+
+      Res2   <- function(time,y,dy) {    # just for testing
         if (ynames) attr(y,"names") <- Ynames
          func   (time,y,parms,...)
       }
@@ -229,8 +244,8 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
       tmp <- eval(jacfunc(times[1], y, parms, ...), rho)
       if (! is.matrix(tmp))
         stop("jacfunc must return a matrix\n")
-
-      JacRes <- function(Rin,y,dy) {
+      if (is.null(mass)) 
+       JacRes <- function(Rin,y,dy) {
         if(ynames) {
           attr(y,"names")  <- Ynames
           attr(dy,"names") <- dYnames
@@ -243,6 +258,20 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
         else
           JF           <-JF + diag(nc=n,nr=n,x=Rin[2])
         return(JF)
+      }
+      else
+      {
+         if (imp %in% c(24,25))
+           stop("cannot combine banded jacobian with mass")
+         JacRes <- function(Rin,y,dy) {
+          if(ynames) {
+            attr(y,"names")  <- Ynames
+            attr(dy,"names") <- dYnames
+          }
+          JF <- -1* jacfunc(Rin[1],y,parms,...)
+          JF <- JF + Rin[2]*mass
+        return(JF)
+        }
       }
     } else if (! is.null(jacres)) { # Jacobian given
        tmp <- eval(jacres(times[1], y, dy, parms, 1, ...), rho)
@@ -381,7 +410,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
 #       }else print("uses Krylov iterative method")
 #    }
 
-  lags <- checklags(lags) 
+  lags <- checklags(lags,dllname) 
   if (lags$islag == 1) {
     info[3] = 1        # one step and return
     maxIt <- maxsteps  # maxsteps per iteration...
@@ -391,6 +420,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   storage.mode(y) <- storage.mode(dy) <- storage.mode(times) <- "double"
   storage.mode(rtol) <- storage.mode(atol)  <- "double"
 
+  on.exit(.C("unlock_solver"))
   out <- .Call("call_daspk", y, dy, times, Res, initpar,
       rtol, atol,rho, tcrit,
       JacRes, ModelInit, PsolFunc, as.integer(verbose),as.integer(info),

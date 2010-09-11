@@ -145,6 +145,9 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   double *xytmp,  *xdytmp, tin, tout, *Atol, *Rtol;
   double *delta=NULL, cj;
   int    *Info,  ninfo, idid, mflag, ires;
+  int    *iwork, it, ntot= 0, nout;   
+  double *rwork;
+  
 
   /* pointers to functions passed to FORTRAN */
   C_res_func_type     *res_func;
@@ -156,9 +159,12 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
 /******                         STATEMENTS                               ******/
 /******************************************************************************/
 
+  lock_solver(); /* prevent nested call of solvers that have global variables */
+
 /*                      #### initialisation ####                              */    
 
-  init_N_Protect();
+  //init_N_Protect();
+  long int old_N_Protect = save_N_Protected();  
 
   ny   = LENGTH(y);  
   n_eq = ny;                          /* n_eq is a global variable */
@@ -166,8 +172,6 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   mflag = INTEGER(verbose)[0];        
 
   ninfo=LENGTH(info);
-  ml = INTEGER(bd)[0]; 
-  mu = INTEGER(bu)[0]; 
   nrowpd = INTEGER(nRowpd)[0];  
   maxit = INTEGER(maxIt)[0];
   
@@ -178,7 +182,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
    isDll = 0;
   }
 
-  initOutC(isDll, n_eq, nOut, Rpar, Ipar); 
+  initOutC(isDll, &nout, &ntot, n_eq, nOut, Rpar, Ipar); 
 
   /* copies of all variables that will be changed in the FORTRAN subroutine */
   Info  = (int *) R_alloc(ninfo,sizeof(int));
@@ -205,14 +209,16 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   lrw = LENGTH(rWork);
   rwork = (double *) R_alloc(lrw, sizeof(double));
     for (j = 0; j < lrw; j++) rwork[j] = REAL(rWork)[j];
+  timesteps = (double *) R_alloc(2, sizeof(double));
+     for (j=0; j<2; j++) timesteps[j] = 0.;
 
   /**************************************************************************/
   /****** Initialization of globals, Parameters and Forcings (DLLs)    ******/
   /**************************************************************************/
-  initdaeglobals(nt);
+  initdaeglobals(nt, ntot);
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
-  islag = initLags(elag);
+  islag = initLags(elag, 0, 0);
  
  /* pointers to functions res_func, psol_func and daejac_func, 
     passed to the FORTRAN subroutine */
@@ -269,7 +275,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   for (j = 0; j < n_eq; j++)
       REAL(YOUT)[j+1] = REAL(y)[j];
       
-  if (islag == 1) updatehist(REAL(times)[0], xytmp, xdytmp);
+  if (islag == 1) updatehistini(REAL(times)[0], xytmp, xdytmp, rwork, iwork);
     
   if (nout>0)
     {
@@ -301,7 +307,11 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
 			   Info, Rtol, Atol, &idid, 
 			   rwork, &lrw, iwork, &liw, out, ipar, kryljac_func, psol_func);
         }
-    if (islag == 1) updatehist(tin, xytmp, xdytmp);    
+    /* in case timestep is asked for... */    
+    timesteps [0] = rwork[10];
+    timesteps [1] = rwork[11];
+  
+    if (islag == 1) updatehist(tin, xytmp, xdytmp, rwork, iwork);    
         
 	  repcount ++;
 	  if (idid == -1) 
@@ -363,17 +373,20 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
                
 /*                    ####  an error occurred   ####                          */                     
     if (repcount > maxit || tin < tout || idid <= 0) {
-     idid = 0;
-     returnearly(1);
+      idid = 0;
+      returnearly(1, it, ntot);
     	break;
     }
   }    /* end main time loop */
 
 /*                   ####   returning output   ####                           */    
-  terminate(idid, 23, 0, 3, 1);
+  terminate(idid, iwork, 23, 0, rwork, 3, 1);
   REAL(RWORK)[0] = rwork[6];
     
-  unprotect_all();
+  //unprotect_all();
+  restore_N_Protected(old_N_Protect);  
+  unlock_solver();
+  
   if (idid > 0)
     return(YOUT);
   else

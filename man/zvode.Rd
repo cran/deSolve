@@ -9,7 +9,7 @@
 
   \deqn{dy/dt = f(t,y)}
   
-  where dy and y are complex variables. 
+  where \eqn{dy} and \eqn{y} are complex variables. 
     
   The \R function \code{zvode} provides an interface to the FORTRAN ODE
   solver of the same name, written by Peter N. Brown, Alan C. Hindmarsh
@@ -22,8 +22,8 @@
   tcrit = NULL, hmin = 0, hmax = NULL, hini = 0, ynames = TRUE,
   maxord = NULL, bandup = NULL, banddown = NULL, maxsteps = 5000,
   dllname = NULL, initfunc = dllname, initpar = parms, rpar = NULL,
-  ipar = NULL, nout = 0, outnames = NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, ...)
+  ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
+  initforc = NULL, fcontrol = NULL, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system. If \code{y}
@@ -40,7 +40,7 @@
     dynamically loaded shared library.
   
     If \code{func} is an \R-function, it must be defined as:
-     \code{func <- function(t, y, parms,...)}.  \code{t} is the current time
+     \code{func <- function(t, y, parms, ...)}.  \code{t} is the current time
     point in the integration, \code{y} is the current estimate of the
     variables in the ODE system.  If the initial values \code{y} has a
     \code{names} attribute, the names will be available inside \code{func}.
@@ -57,7 +57,7 @@
     If \code{func} is
     a string, then \code{dllname} must give the name of the shared
     library (without extension) which must be loaded before
-    \code{vode()} is called. See package vignette \code{"compiledCode"}
+    \code{zvode()} is called. See package vignette \code{"compiledCode"}
     for more details.
   }
   \item{parms }{vector or list of parameters used in \code{func} or
@@ -70,7 +70,8 @@
     long as \code{y}.  See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function that computes the
-    Jacobian of the system of differential equations dydot(i)/dy(j), or
+    Jacobian of the system of differential equations
+    \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}, or
     a string giving the name of a function or subroutine in
     \file{dllname} that computes the Jacobian (see vignette
     \code{"compiledCode"} for more about this option).
@@ -81,7 +82,7 @@
     that of \code{func}.
 
     If the Jacobian is a full matrix, \code{jacfunc} should return a
-    matrix dydot/dy, where the ith row contains the derivative of
+    matrix \eqn{\dot{dy}/dy}{dydot/dy}, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
     matrix elements by columns (the way \R and FORTRAN store matrices).
     Its elements should be \emph{complex numbers}.
@@ -95,14 +96,14 @@
     \code{"bandint"} - either full or banded and estimated internally or
     by user; overruled if \code{mf} is not \code{NULL}.
   }
-  \item{mf }{the "method flag" passed to function vode - overrules
+  \item{mf }{the "method flag" passed to function \code{zvode} - overrules
     \code{jactype} - provides more options than \code{jactype} - see
     details.
   }
   \item{verbose }{if TRUE: full output to the screen, e.g. will
     print the \code{diagnostiscs} of the integration - see details.
   }
-  \item{tcrit }{if not \code{NULL}, then \code{vode} cannot integrate
+  \item{tcrit }{if not \code{NULL}, then \code{zvode} cannot integrate
     past \code{tcrit}. The FORTRAN routine \code{dvode} overshoots its
     targets (times points in the vector \code{times}), and interpolates
     values for the desired time points.  If there is a time beyond which
@@ -126,8 +127,8 @@
     especially for multi-D models.
   }
   \item{maxord }{the maximum order to be allowed. \code{NULL} uses the default,
-    i.e. order 12 if implicit Adams method (meth = 1), order 5 if BDF
-    method (meth = 2). Reduce maxord to save storage space.
+    i.e. order 12 if implicit Adams method (\code{meth = 1}), order 5 if BDF
+    method (\code{meth = 2}). Reduce maxord to save storage space.
   }
   \item{bandup }{number of non-zero bands above the diagonal, in case
     the Jacobian is banded.
@@ -153,7 +154,7 @@
     blocks (FORTRAN) or global variables (C, C++).
   }
   \item{rpar }{only when \file{dllname} is specified: a vector with
-    double precision values passed to the dll-functions whose names are
+    double precision values passed to the DLL-functions whose names are
     specified by \code{func} and \code{jacfunc}.
   }
   \item{ipar }{only when \file{dllname} is specified: a vector with
@@ -164,7 +165,7 @@
     defined in compiled code: the number of output variables calculated
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
-    indeed the number of output variables calculed in the dll - you have
+    indeed the number of output variables calculated in the DLL - you have
     to perform this check in the code - See package vignette \code{"compiledCode"}.
   }
   \item{outnames }{only used if \file{dllname} is specified and
@@ -209,28 +210,28 @@
 ## =======================================================================
 ## Example 1 - very simple example 
 ## df/dt = 1i*f, where 1i is the imaginary unit
-## The initial value is f(0)=1 = 1+0i
+## The initial value is f(0) = 1 = 1+0i
 ## =======================================================================
 
-ZODE<-function(Time,f,Pars) {
-      df <-  1i*f
-      return(list(df))
+ZODE<-function(Time, f, Pars) {
+  df <-  1i*f
+  return(list(df))
 }
 
 pars    <- NULL
-yini    <- c(f=1+0i)
-times   <- seq(0,2*pi,length=100)
-out     <- zvode(func=ZODE, y=yini, parms=pars, times=times,
-  atol=1e-10,rtol=1e-10)
+yini    <- c(f = 1+0i)
+times   <- seq(0, 2*pi, length = 100)
+out     <- zvode(func = ZODE, y = yini, parms = pars, times = times,
+  atol = 1e-10, rtol = 1e-10)
 
 # The analytical solution to this ODE is the exp-function:
 # f(t) = exp(1i*t)
 #      = cos(t)+1i*sin(t)  (due to Euler's equation)
 
-analytical.solution  <- exp(1i*times) 
+analytical.solution  <- exp(1i * times) 
 
-# compare numerical and analytical solution
-tail(cbind(out[,2],analytical.solution))
+## compare numerical and analytical solution
+tail(cbind(out[,2], analytical.solution))
 
 
 ## =======================================================================
@@ -245,26 +246,26 @@ tail(cbind(out[,2],analytical.solution))
 
 ZODE2<-function(Time,State,Pars) {
   with(as.list(State), {
-       df <- 1i * f
-       dg <- -1i*g*g*f
-       return(list(c(df,dg)))
+    df <- 1i * f
+    dg <- -1i * g*g * f
+    return(list(c(df, dg)))
   })
 }
 
-yini    <- c(f=1+0i, g=1/2.1+0i)
-times   <- seq(0,2*pi,length=100)
-out     <- zvode(func=ZODE2, y=yini, parms=NULL, times=times,
-  atol=1e-10, rtol=1e-10)
+yini    <- c(f = 1 + 0i, g = 1/2.1 + 0i)
+times   <- seq(0, 2*pi, length = 100)
+out     <- zvode(func = ZODE2, y = yini, parms = NULL, times = times,
+  atol = 1e-10, rtol = 1e-10)
 
 
-# The analytical solution is
-# f(t)=exp(1i*t)   (same as above)
-# g(t)=1/(f(t) + 1.1)
+## The analytical solution is
+## f(t) = exp(1i*t)   (same as above)
+## g(t) = 1/(f(t) + 1.1)
 
-analytical  <- cbind(f=exp(1i*times), g=1/(exp(1i*times)+1.1))
+analytical <- cbind(f = exp(1i * times), g = 1/(exp(1i * times) + 1.1))
 
-#compare numerical solution and the two analytical ones:
-tail(cbind(out[,2],analytical[,1]))
+## compare numerical solution and the two analytical ones:
+tail(cbind(out[,2], analytical[,1]))
 
 }
 \references{

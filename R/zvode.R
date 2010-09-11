@@ -250,7 +250,7 @@ zvode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
 ### calling solver
   storage.mode(y) <- "complex"
   storage.mode(times) <- "double"
-  
+  on.exit(.C("unlock_solver"))
   out <- .Call("call_zvode", y, times, Func, initpar, rtol, atol,
        rho, tcrit, JacFunc, ModelInit, as.integer(verbose),as.integer(itask),
        as.double(rwork),as.integer(iwork), as.integer(imp),as.integer(Nglobal),

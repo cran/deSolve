@@ -221,19 +221,25 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   double *xytmp, tin, tout, *Atol, *Rtol, *dy=NULL, ss;
   int itol, itask, istate, iopt, jt, mflag,  is;
   int nroot, *jroot=NULL, isroot,  isDll, type;
-
+  
+  int    *iwork, it, ntot, nout, iroot, *evals =NULL;   
+  double *rwork;
+  SEXP TROOT, NROOT;
+  
   /* pointers to functions passed to FORTRAN */
   C_deriv_func_type *deriv_func;
   C_jac_func_type   *jac_func=NULL;
-  C_jac_vec_type    *jac_vec;
+  C_jac_vec_type    *jac_vec=NULL;
   C_root_func_type  *root_func=NULL;
 
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
 /******************************************************************************/
 
+  lock_solver(); /* prevent nested call of solvers that have global variables */
+
 /*                      #### initialisation ####                              */    
-  init_N_Protect();
+  long int old_N_Protect = save_N_Protected();
 
   jt  = INTEGER(jT)[0];         /* method flag */
   n_eq = LENGTH(y);             /* number of equations */ 
@@ -243,8 +249,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   mflag = INTEGER(verbose)[0];
  
   nroot  = INTEGER(nRoot)[0];   /* number of roots (lsodar, lsode) */
-  solver = INTEGER(Solver)[0];  /* 1=lsoda,2=lsode,3=lsodeS,4=lsodar,5=vode,6=lsoder */
-
+  solver = INTEGER(Solver)[0];  /* 1=lsoda,2=lsode,3=lsodeS,4=lsodar,5=vode,
+                                  6=lsoder */
   
   /* is function a dll ?*/
   if (inherits(derivfunc, "NativeSymbol")) {
@@ -253,9 +259,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
    isDll = 0;
   }
 
-
   /* initialise output ... */
-  initOutC(isDll, n_eq, nOut, Rpar, Ipar);
+  initOutC(isDll, &nout, &ntot, n_eq, nOut, Rpar, Ipar);
 
   /* copies of variables that will be changed in the FORTRAN subroutine */
 
@@ -276,7 +281,11 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   rwork = (double *) R_alloc(lrw, sizeof(double));
      for (j=0; j<length(rWork); j++) rwork[j] = REAL(rWork)[j];
 
-/* if a 1-D or 2-D special-purpose problem (lsodes)
+/* a global variable*/  
+  timesteps = (double *) R_alloc(2, sizeof(double));
+     for (j=0; j<2; j++) timesteps[j] = 0.;
+  
+/* if a 1-D, 2-D or 3-D special-purpose problem (lsodes)
    iwork will contain the sparsity structure */
 
   if (solver ==3)
@@ -291,13 +300,13 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   }
 
 /* initialise global R-variables...  */
-  initglobals (nt);
+  initglobals (nt, ntot);
   
 /* Initialization of Parameters and Forcings (DLL functions)  */
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
   isEvent = initEvents(elist, eventfunc);
-  islag = initLags(elag);
+  islag = initLags(elag, solver, nroot);
   
 /* pointers to functions deriv_func, jac_func, jac_vec, root_func, passed to FORTRAN */
   if (nout > 0 || islag == 1) {
@@ -305,8 +314,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
      for (j = 0; j < n_eq; j++) dy[j] = 0.; 
   }
 
-  if (isDll) 
-    { /* DLL address passed to FORTRAN */
+  if (isDll) {
+     /* DLL address passed to FORTRAN */
       deriv_func = (C_deriv_func_type *) R_ExternalPtrAddr(derivfunc);  
       /* no need to communicate with R - but output variables set here */
 	  
@@ -315,40 +324,39 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
         DLL_deriv_func = deriv_func;
         deriv_func = (C_deriv_func_type *) C_deriv_func_forc;
       }
-    } else {
+  } else {
       /* interface function between FORTRAN and C/R passed to FORTRAN */
       deriv_func = (C_deriv_func_type *) C_deriv_func; 
       /* needed to communicate with R */
       R_deriv_func = derivfunc;
       R_envir = rho;
-    }
+  }
 
-  if (!isNull(jacfunc) && solver !=3)  /* lsodes uses jac_vec */
-    {
-      if (isDll)
-	    {
-	     jac_func = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
-	    } else  {
-	     R_jac_func = jacfunc;
-	     jac_func = C_jac_func;
-	    }
-    }
-
-  if (!isNull(jacfunc) && solver ==3)   /*lsodes*/
-    {
-      if (isDll)
-	    {
-	     jac_vec = (C_jac_vec_type *) R_ExternalPtrAddr(jacfunc);
-	    } else  {
+  if (!isNull(jacfunc) && solver !=3) { /* lsodes uses jac_vec */
+    if (isDll)
+      jac_func = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
+	  else  {
+	    R_jac_func = jacfunc;
+	    jac_func = C_jac_func;
+	  }
+  }  else if (!isNull(jacfunc) && solver ==3) {  /*lsodes*/
+    if (isDll)
+      jac_vec = (C_jac_vec_type *) R_ExternalPtrAddr(jacfunc);
+	  else  {
 	     R_jac_vec = jacfunc;
 	     jac_vec = C_jac_vec;
-	    }
-    }
+	  }
+  }
 
   if ((solver == 4 || solver == 6) && nroot > 0)        /* lsodar, lsoder */
   { jroot = (int *) R_alloc(nroot, sizeof(int));
      for (j=0; j<nroot; j++) jroot[j] = 0;
-  
+     
+     if (isEvent) {
+       evals =(int *) R_alloc(3, sizeof(int));   /* function evaluations */
+       for (j=0; j<3; j++) evals[j] = 0;
+     }
+      
     if (isDll) 
     {
       root_func = (C_root_func_type *) R_ExternalPtrAddr(rootfunc);
@@ -381,13 +389,12 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   if (ss >0 || is > 0) iopt = 1; /* non-standard input */
 
 /*                      #### initial time step ####                           */    
-
   tin = REAL(times)[0];
   REAL(YOUT)[0] = tin;
   for (j = 0; j < n_eq; j++) REAL(YOUT)[j+1] = REAL(y)[j];
   if (islag == 1) {
     C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
-    updatehist(tin, xytmp, dy);
+    updatehistini(tin, xytmp, dy, rwork, iwork);
   }
   if (nout>0)   {
     tin = REAL(times)[0];
@@ -398,6 +405,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
     for (j = 0; j < nout; j++) REAL(YOUT)[j + n_eq + 1] = out[j]; 
   }                 
 
+  iroot = 0;
+
 /*                     ####   main time loop   ####                           */    
   for (it = 0; it < nt-1; it++) {
     tin = REAL(times)[it];
@@ -407,10 +416,12 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       updateevent(&tin, xytmp, &istate);
     }
     repcount = 0;
-    do
-	{  /* error control */
-	    if (islag)       rwork[0] = tout;
- 	    if (istate == -2) {
+    do 	{
+      if (islag)       
+        rwork[0] = tout;
+ 	   
+      /* error control */
+	    if (istate == -2) {
 	      for (j = 0; j < lrtol; j++) Rtol[j] *= 10.0;
 	      for (j = 0; j < latol; j++) Atol[j] *= 10.0;
 	      warning("Excessive precision requested.  `rtol' and `atol' have been scaled upwards by the factor %g\n",10.0);
@@ -444,17 +455,25 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 			   &lrw, iwork, &liw, jac_func, &jt, root_func, &nroot, jroot, 
          out, ipar);
       }
+      /* in case size of timesteps is called for */
+      timesteps [0] = rwork[10];
+      timesteps [1] = rwork[11];
     
 	    if (istate == -1)  {
         warning("an excessive amount of work (> maxsteps ) was done, but integration was not successful - increase maxsteps");
       } else if (istate == 3 && (solver == 4 || solver == 6)){
        /* root found - take into account if an EVENT */
         if (isEvent && rootevent) {
-          tEvent=tin;
+          tEvent = tin;
+          /* function evaluations set to 0 again . */
+          for (j=0; j<3; j++) evals[j] = evals[j] + iwork[10+j];
+          
           updateevent(&tin, xytmp, &istate);
           istate = 1;
           repcount = 0;
           if (mflag ==1) Rprintf("root found at time %g\n",tin);
+          if (iroot <= Rootsave) troot[iroot] = tin;
+          iroot ++; 
         } else{
 	       istate = -20;  repcount = 50;
 	      } 
@@ -469,7 +488,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       }
     if (islag == 1) {
       C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
-      updatehist(tin, xytmp, dy);    
+      updatehist(tin, xytmp, dy, rwork, iwork);    
       repcount = 0;
     }
 	    repcount ++;
@@ -497,9 +516,9 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 /*                    ####  an error occurred   ####                          */    
    if (istate < 0 || tin < tout) {
 	  if (istate != -20) 
-      returnearly (1);
+      returnearly (1, it, ntot);
     else 
-      returnearly (0);  /* stop because a root was found */
+      returnearly (0, it, ntot);  /* stop because a root was found */
     break;
     }
   }     /* end main time loop */
@@ -508,7 +527,10 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
 
   /*                   ####   returning output   ####                           */    
-  terminate(istate,23,0,5,10);    /* istate, iwork, rwork */
+  if (isEvent && rootevent && iroot > 0)
+    for (j=0; j<3; j++) iwork[10+j] = evals[j];
+
+  terminate(istate,iwork, 23,0, rwork, 5,10);    /* istate, iwork, rwork */
   
   if (istate == -20) INTEGER(ISTATE)[0] = 3; 	  
 
@@ -516,14 +538,30 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
     isroot = 1   ;
     PROTECT(IROOT = allocVector(INTSXP, nroot));incr_N_Protect();
     for (k = 0;k<nroot;k++) INTEGER(IROOT)[k] = jroot[k];
-    if (istate > 0) 
-      setAttrib(YOUT, install("iroot"), IROOT);
-    else 
-      setAttrib(YOUT2, install("iroot"), IROOT);
+    setAttrib(YOUT2, install("iroot"), IROOT);
   }
+  if (iroot > 0) {                                 /* root + events */
+    PROTECT(NROOT = allocVector(INTSXP, 1));incr_N_Protect();
+    INTEGER(NROOT)[0] = iroot;
+    
+    if (iroot > Rootsave) iroot = Rootsave; 
+    
+    PROTECT(TROOT = allocVector(REALSXP, iroot)); incr_N_Protect();
+    for (k = 0; k < iroot; k++) REAL(TROOT)[k] = troot[k];
 
+    if (istate > 0 ) {
+      setAttrib(YOUT, install("troot"), TROOT);
+      setAttrib(YOUT, install("nroot"), NROOT);
+    }  
+    else  {
+      setAttrib(YOUT2, install("troot"), TROOT);
+      setAttrib(YOUT2, install("nroot"), NROOT);
+    }      
+  }
 /*                       ####   termination   ####                            */    
-  unprotect_all();
+  restore_N_Protected(old_N_Protect);
+  unlock_solver();
+
   if (istate > 0)
     return(YOUT);
   else

@@ -19,7 +19,7 @@
 \source{
   Evans, et al. 1994 Applications of sensitivity analysis to a
   physiologically based pharmacokinetic model for carbon tetrachloride
-  in rats.  Toxicology and Applied Pharmacology \bold{128}: 36 -- 44.
+  in rats. Toxicology and Applied Pharmacology \bold{128}: 36 -- 44.
 }
 \examples{
 plot(ChamberConc ~ time, data = ccl4data, xlab = "Time (hours)",

@@ -8,11 +8,14 @@
 ###                  lsode, lsoda, lsodar and lsodes.
 ### ode.2D uses lsodes.
 ###
+### KS: added **bandwidth** to ode.1D
+###     to do: make it work with lsodes + with ode.2D, ode.3D!!
 ### ============================================================================
 
 ode    <- function (y, times, func, parms,
                     method= c("lsoda","lsode","lsodes","lsodar","vode","daspk",
-                              "euler", "rk4", "ode23", "ode45"),
+                              "euler", "rk4", "ode23", "ode45", "radau",
+                              "bdf", "bdf_d", "adams", "impAdams", "impAdams_d"),
                     ...)  {
   if (is.null(method)) method <- "lsoda"
   if (is.list(method)) {
@@ -23,6 +26,15 @@ ode    <- function (y, times, func, parms,
     out <- rk(y, times, func, parms, method = method, ...)
   } else if (is.function(method))
     out <- method(y, times, func, parms,...)
+  else if (is.complex(y))
+    out <- switch(match.arg(method),
+      vode  = zvode(y, times, func, parms, ...),
+      bdf  = zvode(y, times, func, parms, mf = 22, ...),
+      bdf_d = zvode(y, times, func, parms, mf = 23, ...),
+      adams = zvode(y, times, func, parms, mf = 10, ...),
+      impAdams = zvode(y, times, func, parms, mf = 12, ...),
+      impAdams_d = zvode(y, times, func, parms, mf = 13, ...)
+    )
   else
     out <- switch(match.arg(method),
       lsoda = lsoda(y, times, func, parms, ...),
@@ -31,10 +43,16 @@ ode    <- function (y, times, func, parms,
       lsodes= lsodes(y, times, func, parms, ...),
       lsodar= lsodar(y, times, func, parms, ...),
       daspk = daspk(y, times, func, parms, ...),
-      euler = rk(y, times, func, parms, method = "euler",  ...),
+      euler = rk(y, times, func, parms, method = "euler", ...),
       rk4   = rk(y, times, func, parms, method = "rk4", ...),
       ode23 = rk(y, times, func, parms, method = "ode23", ...),
-      ode45 = rk(y, times, func, parms, method = "ode45", ...)
+      ode45 = rk(y, times, func, parms, method = "ode45", ...),
+      radau = radau(y, times, func, parms, ...),
+      bdf  = lsode(y, times, func, parms, mf = 22, ...),
+      bdf_d = lsode(y, times, func, parms, mf = 23, ...),
+      adams = lsode(y, times, func, parms, mf = 10, ...),
+      impAdams = lsode(y, times, func, parms, mf = 12, ...),
+      impAdams_d = lsode(y, times, func, parms, mf = 13, ...)
     )
 
   return(out)
@@ -42,19 +60,30 @@ ode    <- function (y, times, func, parms,
 
 ### ============================================================================
 
-ode.1D    <- function (y, times, func, parms, nspec = NULL, dimens = NULL,
-                       method= "lsode", ...)   {
+ode.1D    <- function (y, times, func, parms, nspec = NULL,
+                       dimens = NULL, method= c("lsoda","lsode",
+                              "lsodes","lsodar","vode","daspk",
+                              "euler", "rk4", "ode23", "ode45","radau",
+                              "bdf", "adams", "impAdams"),
+                              names = NULL, bandwidth = 1, ...)   {
 # check input
+  if (is.character(method)) method <- match.arg(method)
+  islsodes <- FALSE
+  if (is.character(method))
+   if (method=="lsodes") islsodes <- TRUE
+
+  if (is.null(method)) method <- "lsoda"
+
   if (any(!is.na(pmatch(names(list(...)), "jacfunc"))))
     stop ("cannot run ode.1D with jacfunc specified - remove jacfunc from call list")
 
   if (is.null(nspec) && is.null(dimens))
     stop ("cannot run ode.1D: nspec OR dimens should be specified")
 
-  if (nspec == 1 & method != "lsodes") {
-    out <- ode.band(y, times, func, parms, nspec = nspec, method = method, ...)
-    return(out)
-  }
+#  if (islsodes && bandwidth != 1)
+#    stop ("cannot combine 'method = lsodes' with 'bandwidth' not = 1")
+
+  iscomplex <- is.complex(y)
 
   N     <- length(y)
   if (is.null(nspec)  )
@@ -62,12 +91,58 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL, dimens = NULL,
   if (N%%nspec !=0    )
     stop ("cannot run ode.1D: nspec is not an integer fraction of number of state variables")
 
-# if lsodes is used
-  if (is.character(func) || method=="lsodes") {
-    if ( method != "lsodes") warning("ode.1D: R-function specified in a DLL-> integrating with lsodes")
-    if (is.null(dimens) ) dimens    <- N/nspec
-    out <- lsodes(y=y,times=times,func=func,parms,sparsetype="1D",nnz=c(nspec,dimens),...)
+  if (! is.null(names) && length(names) != nspec)
+    stop("length of 'names' should equal 'nspec'")
 
+# Use ode.band if implicit method with nspec=1
+  if (is.character(method))
+    if( nspec == 1 & method %in% c("lsoda","lsode","lsodar","vode","daspk","radau")) {
+      out <- ode.band(y, times, func, parms, nspec = nspec,
+        method = method, bandup = nspec*bandwidth,
+        banddown = nspec*bandwidth, ...)
+      return(out)
+    }
+
+# Use lsodes
+  if (is.character(func) || islsodes) {
+    if (is.character(method))
+    if ( method != "lsodes")
+      warning("ode.1D: R-function specified in a DLL-> integrating with lsodes")
+    if (is.null(dimens) ) dimens    <- N/nspec
+    if (bandwidth != 1)         # try to remove this....
+      out <- lsodes(y=y,times=times,func=func,parms,...)
+    else
+      out <- lsodes(y=y,times=times,func=func,parms,sparsetype="1D",
+                     nnz=c(nspec,dimens,bandwidth),...)
+
+# a Runge-Kutta or Euler
+  } else if (is.list(method)) {
+    #  is() should work from R 2.7 on ...
+    #   if (!is(method, "rkMethod"))
+    if (!"rkMethod" %in% class(method))
+      stop("'method' should be given as string or as a list of class 'rkMethod'")
+    out <- rk(y, times, func, parms, method = method, ...)
+
+# a function
+  } else if (is.function(method))
+    out <- method(y, times, func, parms,...)
+
+# an explicit method...
+    else if (method  %in% c("euler", "rk4", "ode23", "ode45", "adams")) {
+     if (method == "euler")
+      out <- rk(y, times, func, parms, method = "euler", ...)
+     else if (method == "rk4")
+      out <- rk(y, times, func, parms, method = "rk4", ...)
+     else if (method == "ode23")
+      out <- rk(y, times, func, parms, method = "ode23", ...)
+     else if (method == "ode45")
+      out <- rk(y, times, func, parms, method = "ode45", ...)
+     else if (method == "adams" && ! iscomplex)
+      out <- lsode(y, times, func, parms, mf = 10, ...)
+     else if (method == "adams" && iscomplex)
+      out <- zvode(y, times, func, parms, mf = 10, ...)
+
+# an implicit method that needs restructuring...
   } else {
     NL <-names(y)
 
@@ -88,26 +163,57 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL, dimens = NULL,
 
     if (is.null(method))
       method <- "lsode"
-    if (method == "vode")
-      out <- vode(y[ii], times, func=bmod, parms=parms, bandup=nspec,
-                  banddown=nspec, jactype="bandint", ...)
-    else if (method == "lsode")
-      out <- lsode(y[ii], times, func=bmod, parms=parms, bandup=nspec,
-                   banddown=nspec, jactype="bandint", ...)
+    if (iscomplex) {
+       if (method == "vode")
+        out <- zvode(y[ii], times, func=bmod, parms=parms,
+                  bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                  jactype="bandint", ...)
+       else if (method == "bdf")
+        out <- zvode(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   jactype="bandint", ...)
+       else if (method == "impAdams")
+        out <- zvode(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   mf = 15, ...)
+    }
+    else if (method == "vode")
+      out <- vode(y[ii], times, func=bmod, parms=parms,
+                  bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                  jactype="bandint", ...)
+    else if (method == "lsode" || method == "bdf")
+      out <- lsode(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   jactype="bandint", ...)
+    else if (method == "impAdams")
+      out <- lsode(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   mf = 15, ...)
     else if (method == "lsoda")
-      out <- lsoda(y[ii], times, func=bmod, parms=parms, bandup=nspec,
-                   banddown=nspec, jactype="bandint", ...)
+      out <- lsoda(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   jactype="bandint", ...)
     else if (method == "lsodar")
-      out <- lsodar(y[ii], times, func=bmod, parms=parms, bandup=nspec,
-                   banddown=nspec, jactype="bandint", ...)
+      out <- lsodar(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   jactype="bandint", ...)
+    else if (method == "daspk")
+      out <- daspk(y[ii], times, func=bmod, parms=parms,
+                  bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                  jactype="bandint", ...)
+    else if (method == "radau")
+      out <- radau(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   jactype="bandint", ...)
     else
-      stop ("cannot run ode.1D: method should be one of vode, lsoda, lsodar, lsode")
+      stop ("cannot run ode.1D: not a valid 'method'")
       out[,(ii+1)] <- out[,2:(N+1)]
       if (! is.null(NL)) colnames(out)[2:(N+1)]<- NL
   }
   if (is.null(dimens)) dimens <- N/nspec
   attr (out,"dimens") <- dimens
   attr (out,"nspec") <- nspec
+  attr(out,"ynames") <- names
 
   return(out)
 }
@@ -115,9 +221,17 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL, dimens = NULL,
 ### ============================================================================
 
 ode.2D    <- function (y, times, func, parms, nspec=NULL, dimens,
-   cyclicBnd = NULL, ...)  {
+   method= c("lsodes","euler", "rk4", "ode23", "ode45", "adams"),
+   names = NULL, cyclicBnd = NULL,  ...)  {
 
  # check input
+  if (is.character(method)) method <- match.arg(method)
+
+  if (is.null(method)) method <- "lsodes"
+  islsodes <- FALSE
+  if (is.character(method))
+   if (method=="lsodes") islsodes <- TRUE
+
   if (any(!is.na(pmatch(names(list(...)), "jacfunc"))))
     stop ("cannot run ode.2D with jacfunc specified - remove jacfunc from call list")
   if (is.null(dimens))
@@ -133,6 +247,8 @@ ode.2D    <- function (y, times, func, parms, nspec=NULL, dimens,
     nspec = N/prod(dimens) else
   if (nspec*prod(dimens) != N)
     stop ("cannot run ode.2D: dimens[1]*dimens[2]*nspec is not equal to number of state variables")
+  if (! is.null(names) && length(names) != nspec)
+    stop("length of 'names' should equal 'nspec'")
 
   Bnd <- c(0,0)
   if (! is.null(cyclicBnd)) {
@@ -141,20 +257,57 @@ ode.2D    <- function (y, times, func, parms, nspec=NULL, dimens,
     Bnd[cyclicBnd[cyclicBnd>0]]<-1
   }
 
-  # use lsodes - note:expects rev(dimens)...
-   out <- lsodes(y=y, times=times, func=func, parms, sparsetype="2D",
-          nnz=c(nspec,rev(dimens), rev(Bnd)), ...)
+# use lsodes - note:expects rev(dimens)...
+  if (is.character(func) || islsodes) {
+    if (is.character(method))
+      if ( method != "lsodes")
+        warning("ode.2D: R-function specified in a DLL-> integrating with lsodes")
+#    if (bandwidth != 1)  # try to use sparsetype also for bandwidth != 1
+#      out <- lsodes(y=y,times=times,func=func,parms,...)
+#    else
+     bandwidth<-1
+     out <- lsodes(y=y, times=times, func=func, parms, sparsetype="2D",
+          nnz=c(nspec, rev(dimens), rev(Bnd), bandwidth), ...)
+# a runge kutta
+  } else  if (is.list(method)) {
+    if (!"rkMethod" %in% class(method))
+      stop("'method' should be given as string or as a list of class 'rkMethod'")
+    out <- rk(y, times, func, parms, method = method, ...)
+# a function
+  } else if (is.function(method))
+    out <- method(y, times, func, parms,...)
+
+# an explicit method
+    else if (method  %in% c("euler", "rk4", "ode23", "ode45", "adams")) {
+     if (method == "euler")
+      out <- rk(y, times, func, parms, method = "euler", ...)
+     else if (method == "rk4")
+      out <- rk(y, times, func, parms, method = "rk4", ...)
+     else if (method == "ode23")
+      out <- rk(y, times, func, parms, method = "ode23", ...)
+     else if (method == "ode45")
+      out <- rk(y, times, func, parms, method = "ode45", ...)
+     else if (method == "adams")
+      out <- lsode(y, times, func, parms, mf = 10, ...)
+  } else {
+      stop ("cannot run ode.2D: not a valid 'method'")
+  }
 
   attr (out,"dimens") <- dimens
-  attr (out,"nspec") <- nspec
+  attr (out,"nspec")  <- nspec
+  attr (out,"ynames") <- names
 
   return(out)
 }
 
 ### ============================================================================
 
-ode.3D    <- function (y, times, func, parms, nspec=NULL, dimens, ...){
+ode.3D    <- function (y, times, func, parms, nspec=NULL, dimens,
+  method= c("lsodes","euler", "rk4", "ode23", "ode45", "adams"),
+  names = NULL, cyclicBnd = NULL, ...){
  # check input
+  if (is.character(method)) method <- match.arg(method)
+  if (is.null(method)) method <- "lsodes"
   if (any(!is.na(pmatch(names(list(...)), "jacfunc"))))
     stop ("cannot run ode.3D with jacfunc specified - remove jacfunc from call list")
   if (is.null(dimens))
@@ -170,14 +323,57 @@ ode.3D    <- function (y, times, func, parms, nspec=NULL, dimens, ...){
     nspec = N/prod(dimens) else
   if (nspec*prod(dimens) != N)
     stop ("cannot run ode.3D: dimens[1]*dimens[2]*dimens[3]*nspec is not equal to number of state variables")
+  if (! is.null(names) && length(names) != nspec)
+    stop("length of 'names' should equal 'nspec'")
 
   Bnd <- c(0,0,0)    #  cyclicBnd not included
+  if (! is.null(cyclicBnd)) {
+    if (max(cyclicBnd) > 3 )
+      stop ("cannot run steady.3D: cyclicBnd should be a vector or number not exceeding 3")
+    Bnd[cyclicBnd[cyclicBnd>0]]<-1
+  }
 
-  # use lsodes - note:expects rev(dimens)...
-   out <- lsodes(y=y, times=times, func=func, parms, sparsetype="3D",
-          nnz=c(nspec,rev(dimens), rev(Bnd)), ...)
+# use lsodes - note:expects rev(dimens)...
+  if (is.character(func) || method=="lsodes") {
+    if ( method != "lsodes")
+      warning("ode.3D: R-function specified in a DLL-> integrating with lsodes")
+#    if (bandwidth != 1)  # try to use sparsetype also for bandwidth != 1
+#      out <- lsodes(y=y,times=times,func=func,parms,...)
+#    else
+     bandwidth<-1
+
+    out <- lsodes(y=y, times=times, func=func, parms, sparsetype="3D",
+          nnz=c(nspec,rev(dimens), rev(Bnd), bandwidth), ...)
+
+# a runge-kutta
+  } else if (is.list(method)) {
+    if (!"rkMethod" %in% class(method))
+      stop("'method' should be given as string or as a list of class 'rkMethod'")
+    out <- rk(y, times, func, parms, method = method, ...)
+
+# another function
+  } else if (is.function(method))
+    out <- method(y, times, func, parms,...)
+
+# an explicit method
+   else if (method  %in% c("euler", "rk4", "ode23", "ode45", "adams")) {
+    if (method == "euler")
+      out <- rk(y, times, func, parms, method="euler", ...)
+    else if (method == "rk4")
+      out <- rk(y, times, func, parms, method = "rk4", ...)
+    else if (method == "ode23")
+      out <- rk(y, times, func, parms, method = "ode23", ...)
+    else if (method == "ode45")
+      out <- rk(y, times, func, parms, method = "ode45", ...)
+    else if (method == "adams")
+      out <- lsode(y, times, func, parms, mf = 10, ...)
+  } else {
+      stop ("cannot run ode.3D: not a valid 'method'")
+  }
+
   attr (out,"dimens") <- dimens
-  attr (out,"nspec") <- nspec
+  attr (out,"nspec")  <- nspec
+  attr (out,"ynames") <- names
 
   return(out)
 }
@@ -204,6 +400,12 @@ ode.band  <- function (y, times, func, parms, nspec=NULL, bandup=nspec,
          jactype="bandint", ...)
   else if (method == "lsodar")
    out <- lsodar(y, times, func, parms=parms, bandup=bandup, banddown=banddown,
+          jactype="bandint", ...)
+  else if (method == "daspk")
+   out <- daspk(y, times, func, parms=parms, bandup=bandup, banddown=banddown,
+         jactype="bandint", ...)
+  else if (method == "radau")
+   out <- radau(y, times, func, parms=parms, bandup=bandup, banddown=banddown,
           jactype="bandint", ...)
   else
    stop ("cannot run ode.band: method should be one of vode, lsoda, lsodar or lsode")

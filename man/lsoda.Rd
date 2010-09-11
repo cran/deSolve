@@ -82,7 +82,8 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     long as \code{y}. See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function, that computes the
-    Jacobian of the system of differential equations dydot(i)/dy(j), or
+    Jacobian of the system of differential equations 
+    \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}, or
     a string giving the name of a function or subroutine in
     \file{dllname} that computes the Jacobian (see vignette
     \code{"compiledCode"} for more about this option).
@@ -93,7 +94,7 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     that of \code{func}.
 
     If the Jacobian is a full matrix, \code{jacfunc} should return a
-    matrix dydot/dy, where the ith row contains the derivative of
+    matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
     matrix elements by columns (the way \R and FORTRAN store matrices).
     
@@ -172,7 +173,7 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     defined in compiled code: the number of output variables calculated
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
-    indeed the number of output variables calculed in the dll - you have
+    indeed the number of output variables calculated in the dll - you have
     to perform this check in the code. See package vignette
     \code{"compiledCode"}.
   }
@@ -282,15 +283,13 @@ parms   <- c(k1 = 0.04, k2 = 1e4, k3 = 3e7)
 my.atol <- c(1e-6,  1e-10,  1e-6)
 times   <- c(0,4 * 10^(-1:10))
 
-lsexamp <- function(t, y, p)
-{
+lsexamp <- function(t, y, p) {
   yd1 <- -p["k1"] * y[1] + p["k2"] * y[2]*y[3]
   yd3 <- p["k3"] * y[2]^2
   list(c(yd1, -yd1-yd3, yd3), c(massbalance = sum(y)))
 }
 
-exampjac <- function(t, y, p)
-{
+exampjac <- function(t, y, p) {
   matrix(c(-p["k1"],	   p["k1"],       0,
 
             p["k2"]*y[3],
@@ -420,7 +419,7 @@ diagnostics(outJ) # shows what lsoda did internally
     }
 \seealso{
   \itemize{
-    \item \code{\link{rk}}, \item \code{\link{rk4}} and \code{\link{euler}} for
+    \item \code{\link{rk}}, \code{\link{rkMethod}}, \code{\link{rk4}} and \code{\link{euler}} for
       Runge-Kutta integrators.
     \item  \code{\link{lsode}}, which can also find a root
     \item  \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},

@@ -48,13 +48,24 @@ rkMethod(method = NULL, ...)
                        \tab | \tab (also known as \bold{dopri5}, MATLAB:
 		         \bold{ode45}, Octave: \bold{ode45, pair=0})\cr
     "rk78f"            \tab | \tab Runge-Kutta-Fehlberg, order 7(8)\cr		       
+    "rk78dp"           \tab | \tab Dormand-Prince, order 7(8)\cr
   }
   
   Note that this table is based on the Runge-Kutta coefficients only,
   but the algorithms differ also in their implementation, in their
-  stepsize adaption strategy and interpolation methods. The table
-  reflects the state at time of writing and it is of course possible
+  stepsize adaption strategy and interpolation methods. 
+
+  The table reflects the state at time of writing and it is of course possible
   that implementations change.
+  
+  Methods \code{"rk45dp7"} (alias \code{"ode45"}) and \code{"rk45ck"} contain
+  specific and efficient built-in interpolation schemes (dense output).
+
+  As an alternative, Neville-Aitken polynomials can be used to interpolate between
+  time steps. This is available for all methods and may be useful to speed
+  up computation if no dense-output formula is available. Note however, that 
+  this can introduce considerable local error; it is disabled by default 
+  (see \code{nknots} below).
 }
 
 \note{  
@@ -85,10 +96,14 @@ rkMethod(method = NULL, ...)
   
     \item Method \code{"rk45dp7"} (alias \code{"ode45"}) contains an
       efficient built-in interpolation scheme (dense output) based on
-      intermediate function evaluations. Interpolation for all other
-      methods is disabled by default (see \code{nknots} below).
-  }
-}
+      intermediate function evaluations.
+    }
+
+    Starting with version 1.8 implicit Runge-Kutta (\code{irk}) methods
+    are also supported by the general \code{rk} interface, however their
+    implementation is still experimental.  Instead of this you may
+    consider \code{\link{radau}} for a specific full implementation of an
+    implicit Runge-Kutta method.  }
    
 \value{
   A list with the following elements:
@@ -118,6 +133,12 @@ rkMethod(method = NULL, ...)
   \item{d}{optional coefficients for built-in polynomial interpolation
     of the outputs from internal steps (dense output), currently only
     available for method \code{rk45dp7} (Dormand-Prince).
+  }
+  
+  \item{densetype}{optional integer value specifying the dense output formula;
+    currently \code{densetype = 1} for \code{rk45dp7} (Dormand-Prince)
+    and \code{densetype = 2} for \code{rk45ck} (Cash-Karp). Undefined values
+    (e.g., \code{densetype = NULL}) disable dense output.
   }
   
   \item{stage}{number of function evaluations needed (corresponds to
@@ -166,9 +187,6 @@ rkMethod(method = NULL, ...)
   Dormand, J. R. and Prince, P. J. (1980) A family of embedded
   Runge-Kutta formulae, J. Comput. Appl. Math. \bold{6}(1), 19--26.
 
-  Dormand, J. R. and Prince, P. J. (1981) High order embedded
-  Runge-Kutta formulae, J. Comput. Appl. Math. \bold{7}(1), 67--75.
-
   Engeln-Muellges, G. and Reutter, F. (1996) Numerik Algorithmen:
   Entscheidungshilfe zur Auswahl und Nutzung. VDI Verlag, Duesseldorf.
 
@@ -180,7 +198,10 @@ rkMethod(method = NULL, ...)
   Differentialgleichungen, Z. Math. Phys. \bold{46}, 435--453.
 
   Octave-Forge - Extra Packages for GNU Octave, Package OdePkg.
-  \url{http://octave.sourceforge.net/doc/odepkg.html}
+  \url{http://octave.sourceforge.net/odepkg}
+
+  Prince, P. J.  and Dormand, J. R. (1981) High order embedded
+  Runge-Kutta formulae, J. Comput. Appl. Math. \bold{7}(1), 67--75.
 
   Runge, C. (1895) Ueber die numerische Aufloesung von
   Differentialgleichungen, Math. Ann. \bold{46}, 167--178.
@@ -214,9 +235,11 @@ ode(x, times, func, parms, method = "ode45")
 
 o0 <- ode(x, times, func, parms, method = "lsoda")
 o1 <- ode(x, times, func, parms, method = rkMethod("rk45dp7"))
+
 ## disable dense-output interpolation
-## and fall back to Neville-Aitken polynomials
-o2 <- ode(x, times, func, parms, method = rkMethod("rk45dp7", d = NULL))
+## and use Neville-Aitken polynomials only
+o2 <- ode(x, times, func, parms, 
+  method = rkMethod("rk45dp7", densetype = NULL, nknots=5))
 
 ## show differences between methods
 par(mfrow=c(3,1))
@@ -228,10 +251,10 @@ matplot(o1[,1], o2[,-1]-o1[,-1], type="l", lty="dashed", xlab="Time",
   main="difference: Neville-Aitken - Dense Output")
 abline(h=0, col="grey")
 
-## disable interpolation 
+## disable interpolation completely
 ## and integrate explicitly between external time steps
 o3 <- ode(x, times, func, parms, 
-  method = rkMethod("rk45dp7", d = NULL, nknots = 0))
+  method = rkMethod("rk45dp7", densetype = NULL, nknots = 0))
 
 ## define and use a new rk method
 ode(x, times, func, parms, 
@@ -244,6 +267,13 @@ ode(x, times, func, parms,
     Qerr    = 1
   )
 )
+
+## compare method diagnostics
+times  <- seq(0, 200, length = 10)
+o1 <- ode(x, times, func, parms, method = rkMethod("rk45ck"))
+o1b <- ode(x, times, func, parms, method = rkMethod("rk78dp"))
+diagnostics(o1)
+diagnostics(o1b)
 
 }
 

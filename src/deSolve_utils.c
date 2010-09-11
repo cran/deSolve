@@ -3,6 +3,7 @@
 #include <R.h>
 #include <Rdefines.h>
 #include <R_ext/Applic.h>
+#include <R_ext/Rdynload.h>
 #include "deSolve.h"
 
 /*==================================================
@@ -11,7 +12,10 @@ are PROTECTed, and UNPROTECTing them in the
 case of a FORTRAN stop.
 ==================================================*/
  
-long int N_Protected;
+long int N_Protected = 0; //initialize this with zero at the first time
+
+int solver_locked = 0; /* prevent nested calls of odepack solvers */
+
 
 void init_N_Protect(void) { N_Protected = 0; }
 
@@ -19,10 +23,33 @@ void incr_N_Protect(void) { N_Protected++; }
 
 void unprotect_all(void) { UNPROTECT((int) N_Protected); }
 
+long int save_N_Protected(void) {
+  int saved_N = N_Protected;
+  init_N_Protect();
+  return saved_N; 
+}
+
+void restore_N_Protected(long int n) {
+  unprotect_all();
+  N_Protected = n; 
+}
+
 void my_unprotect(int n) {
     UNPROTECT(n);
     N_Protected -= n;
 }
+
+void lock_solver(void) {
+  if (solver_locked) {
+    /* important: unlock for the next call *after* error */
+    solver_locked = 0; 
+    error("The used combination of solvers cannot be nested.\n");
+  }
+  solver_locked = 1;
+}
+
+void unlock_solver(void) {solver_locked = 0;}
+
 
 /* Globals :*/
 SEXP R_deriv_func;
@@ -38,19 +65,21 @@ SEXP R_res_func;
 SEXP R_daejac_func;
 SEXP R_psol_func;
 
+SEXP R_mas_func;
+
 SEXP de_gparms;
 
 /*======================================================
 SEXP initialisation functions
 =======================================================*/
 
-void initglobals(int nt) {
+void initglobals(int nt, int ntot) {
   PROTECT(Time = NEW_NUMERIC(1));                  incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,(n_eq)));        incr_N_Protect();
   PROTECT(YOUT = allocMatrix(REALSXP,ntot+1,nt));  incr_N_Protect();
 }
 
-void initdaeglobals(int nt) {
+void initdaeglobals(int nt, int ntot) {
   PROTECT(Time = NEW_NUMERIC(1));                    incr_N_Protect();
   PROTECT(Rin  = NEW_NUMERIC(2));                    incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,n_eq));            incr_N_Protect();
@@ -91,12 +120,28 @@ SEXP get_deSolve_gparms(void) {
   return de_gparms;
 }
 
-/*==================================================
+/*=========================================================================== 
+  C-equivalent of R-function timestep: gets the past and new time step
+  =========================================================================== */
+SEXP getTimestep() {
+  SEXP value;
+  PROTECT(value = NEW_NUMERIC(2));
+  if (timesteps == NULL) {         /* integration not yet started... */
+    for (int i = 0; i < 2; i++) 
+      NUMERIC_POINTER(value)[i] = 0.0;
+  } else
+    for (int i = 0; i < 2; i++) 
+      NUMERIC_POINTER(value)[i] = timesteps[i];
+  UNPROTECT(1);
+  return(value);
+}
+  
+/*============================ ======================
  Termination 
 ===================================================*/
 
 /* an error occurred - save output in YOUT2 */
-void returnearly (int Print) {
+void returnearly (int Print, int it, int ntot) {
   int j, k;
   if (Print) 
     warning("Returning early. Results are accurate, as far as they go\n");
@@ -107,7 +152,8 @@ void returnearly (int Print) {
 }   
 
 /* add ISTATE and RSTATE */
-void terminate(int istate, int ilen, int ioffset, int rlen, int roffset) {
+void terminate(int istate, int * iwork, int ilen, int ioffset, 
+  double * rwork, int rlen, int roffset) {
 
   int k;
   
@@ -125,6 +171,9 @@ void terminate(int istate, int ilen, int ioffset, int rlen, int roffset) {
     setAttrib(YOUT2, install("istate"), ISTATE);
     setAttrib(YOUT2, install("rstate"), RWORK);
   }
+  /* timestep = 0 - for use in getTimestep */
+  timesteps[0] = 0;
+  timesteps[1] = 0;
 }
 
 /*==================================================
@@ -155,25 +204,25 @@ SEXP getListElement(SEXP list, const char *str) {
 
 /* Initialise output - output variables calculated in R-code ... */
 
-void initOutR(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
+void initOutR(int isDll, int *nout, int *ntot, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
 
-  int j;
-  nout = INTEGER(nOut)[0];       /* number of output variables */
+  int j, lrpar, lipar;
+  *nout = INTEGER(nOut)[0];       /* number of output variables */
   if (isDll) {                   /* function is a dll */
-    if (nout > 0) isOut = 1;
-    ntot  = neq + nout;          /* length of yout */
-    lrpar = nout + LENGTH(Rpar); /* length of rpar; LENGTH(Rpar) is always >0 */
+    if (*nout > 0) isOut = 1;
+    *ntot  = neq + *nout;          /* length of yout */
+    lrpar = *nout + LENGTH(Rpar); /* length of rpar; LENGTH(Rpar) is always >0 */
     lipar = 3 + LENGTH(Ipar);    /* length of ipar */
   } else {                       /* function is not a dll */
     isOut = 0;
-    ntot = neq;
+    *ntot = neq;
     lipar = 1;
     lrpar = 1;
   }
   out  = (double*) R_alloc(lrpar, sizeof(double));
   ipar = (int*)    R_alloc(lipar, sizeof(int));
   if (isDll ==1) {
-    ipar[0] = nout;              /* first 3 elements of ipar are special */
+    ipar[0] = *nout;              /* first 3 elements of ipar are special */
     ipar[1] = lrpar;
     ipar[2] = lipar;
 
@@ -182,33 +231,33 @@ void initOutR(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
 
     /* first nout elements of rpar reserved for output variables
        other elements are set in R-function lsodx via argument *rpar* */
-    for (j = 0; j < nout; j++)        out[j] = 0.;
-    for (j = 0; j < LENGTH(Rpar); j++) out[nout+j] = REAL(Rpar)[j];
+    for (j = 0; j < *nout; j++)        out[j] = 0.;
+    for (j = 0; j < LENGTH(Rpar); j++) out[*nout+j] = REAL(Rpar)[j];
    }
 }
 
 /* Initialise output - output variables calculated in C-code ... */
 
-void initOutC(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
-  int j;
+void initOutC(int isDll, int *nout, int *ntot, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
+  int j, lrpar, lipar;
   /* initialise output when a dae ... */   
   /*  output always done here in C-code (<-> lsode, vode)... */
 
-  nout  = INTEGER(nOut)[0];
-  ntot  = n_eq+nout;
+  *nout  = INTEGER(nOut)[0];
+  *ntot  = n_eq+*nout;
   
   if (isDll == 1) {                /* function is a dll */
-    lrpar = nout + LENGTH(Rpar);   /* length of rpar */
+    lrpar = *nout + LENGTH(Rpar);   /* length of rpar */
     lipar = 3    + LENGTH(Ipar);   /* length of ipar */
   } else {                         /* function is not a dll */
     lipar = 3;
-    lrpar = nout;
+    lrpar = *nout;
   }
   out   = (double*) R_alloc(lrpar, sizeof(double));
   ipar  = (int*)    R_alloc(lipar, sizeof(int));
 
   if (isDll == 1) {
-    ipar[0] = nout;                /* first 3 elements of ipar are special */
+    ipar[0] = *nout;                /* first 3 elements of ipar are special */
     ipar[1] = lrpar;
     ipar[2] = lipar;
 
@@ -217,8 +266,8 @@ void initOutC(int isDll, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar) {
 
     /* first nout elements of rpar reserved for output variables
        other elements are set in R-function lsodx via argument *rpar* */
-    for (j = 0; j < nout;         j++) out[j] = 0.;
-    for (j = 0; j < LENGTH(Rpar); j++) out[nout+j] = REAL(Rpar)[j];
+    for (j = 0; j < *nout;         j++) out[j] = 0.;
+    for (j = 0; j < LENGTH(Rpar); j++) out[*nout+j] = REAL(Rpar)[j];
    }
 }
 /*==================================================
@@ -235,7 +284,7 @@ void sparsity1D (SEXP Type, int* iwork, int neq, int liw) {
     k = 1;
     for( i = 0; i < nspec; i++) {
       for( j = 0; j < nx; j++) {
-        if (ij > liw-4)  error ("not enough memory allocated in iwork - increase liw %i ",liw);
+        if (ij > liw-3-nspec)  error ("not enough memory allocated in iwork - increase liw %i ",liw);
         iwork[ij++] = k;
         if (j < nx-1) iwork[ij++] = k+1 ;
         if (j > 0)    iwork[ij++] = k-1 ;
@@ -269,7 +318,7 @@ void sparsity2D (SEXP Type, int* iwork, int neq, int liw) {
       isp = i*Nt;
       for( j = 0; j < nx; j++) {
         for( k = 0; k < ny; k++) {
-          if (ij > liw-4)  
+          if (ij > liw-8-nspec)  
             error("not enough memory allocated in iwork - increase liw %i ",liw);
           iwork[ij++] = m;
           if (k < ny-1)     iwork[ij++] = m+1;
@@ -293,21 +342,46 @@ void sparsity2D (SEXP Type, int* iwork, int neq, int liw) {
       }
     }
 }
+void interact (int *ij, int nnz, int *iwork, int is, int ival) {
+  int i, isave;
+
+  isave = 1;
+/* check if not yet present for current state */
+	for (i = is; i < *ij; i++) 
+	  if (iwork[i] == ival) {
+	     isave = 0;
+	     break;
+	  }
+
+/* save */
+	if (isave == 1) {
+    if (*ij > nnz) 
+       error ("not enough memory allocated in iwork - increase liw %i ", nnz);
+     iwork[(*ij)++] = ival;
+  }
+}
 
 /*==================================================*/
+/* an element in C-array A(I,J,K), i=0,dim(1)-1 etc... is positioned at 
+   j*dim(2)*dim(3) + k*dim(3) + l + 1 in FORTRAN VECTOR! 
+   includes check on validity
+
+   dimens and boundary are reversed ... 
+*/
 
 void sparsity3D (SEXP Type, int* iwork, int neq, int liw) {
+    int nspec, nx, ny, nz, bndx, bndy, bndz, Nt, ij, is, isp, i, j, k, l, m, ll;
 
-    int nspec, nx, ny, nz,  Nt, ij, isp, i, j, k, l, m, ll;
+    nspec = INTEGER(Type)[1]; 
+    nx    = INTEGER(Type)[2]; 
+    ny    = INTEGER(Type)[3]; 
+    nz    = INTEGER(Type)[4]; 
+    bndx  = INTEGER(Type)[5];
+    bndy  = INTEGER(Type)[6]; 
+    bndz  = INTEGER(Type)[7]; 
 
-    nspec = INTEGER(Type)[1]; /* number components*/
-    nx    = INTEGER(Type)[2]; /* dimension x*/
-    ny    = INTEGER(Type)[3]; /* dimension y*/
-    nz    = INTEGER(Type)[4]; /* dimension y*/
-/*     bndx  = INTEGER(Type)[5];
-       bndy  = INTEGER(Type)[6];  cyclic boundary NOT yet implemented*/
     Nt    = nx*ny*nz;
-    ij     = 31+neq;
+    ij    = 31+neq;
     iwork[30] = 1;
     m = 1;
     for( i = 0; i < nspec; i++) {
@@ -315,18 +389,43 @@ void sparsity3D (SEXP Type, int* iwork, int neq, int liw) {
       for( j = 0; j < nx; j++) {
         for( k = 0; k < ny; k++) {
           for( ll = 0; ll < nz; ll++) {
-            if (ij > liw-4)  
+            is = ij;
+            
+            if (ij > liw-6-nspec)  
               error ("not enough memory allocated in iwork - increase liw %i ", liw);
-            iwork[ij++] = m;
-            if (ll < nz-1)  iwork[ij++] = m+1;
-            if (k < ny-1)   iwork[ij++] = m+nz;
-            if (j < nx-1)   iwork[ij++] = m+ny*nz;
+                            interact (&ij, liw, iwork, is, m);
+            if (ll < nz-1)  
+              interact (&ij, liw, iwork, is, m+1);
+            else if (bndz == 1)
+              interact (&ij, liw, iwork, is, isp + j*ny*nz + k*nz + 1);              
+            
+            if (k  < ny-1) 
+              interact (&ij, liw, iwork, is, m+nz);
+            else  if (bndy == 1)
+              interact (&ij, liw, iwork, is, isp + j*ny*nz + ll + 1);
+              
+            if (j  < nx-1)  
+              interact (&ij, liw, iwork, is, m+ny*nz);
+            else if (bndx == 1)  
+              interact (&ij, liw, iwork, is, isp + k*nz + ll + 1);
 
-            if (j > 0)      iwork[ij++] = m-ny*nz;
-            if (k > 0)      iwork[ij++] = m-nz;
-            if (ll > 0)     iwork[ij++] = m-1;
+            if (j > 0)      
+              interact (&ij, liw, iwork, is, m-ny*nz);
+            else if (bndx == 1)
+              interact (&ij, liw, iwork, is, isp+(nx-1)*ny*nz+k*nz+ll+1);
+                                         
+            if (k > 0)  
+              interact (&ij, liw, iwork, is, m-nz);
+            else  if (bndy == 1)
+              interact (&ij, liw, iwork, is, isp + j*ny*nz+(ny-1)*nz+ll+1);              
+            
+            if (ll > 0) 
+              interact (&ij, liw, iwork, is, m-1);
+            else if (bndz == 1)  
+              interact (&ij, liw, iwork, is, isp + j*ny*nz+k*nz+nz);
+
             for(l = 0; l < nspec; l++)
-              if (l != i) iwork[ij++] = l*Nt+j*ny*nz+k*nz+ll+1;
+              if (l != i) interact (&ij, liw, iwork, is, l*Nt+j*ny*nz+k*nz+ll+1);
             iwork[30+m] = ij-30-neq;
             m = m+1;
           }
@@ -334,3 +433,4 @@ void sparsity3D (SEXP Type, int* iwork, int neq, int liw) {
       }
     }
 }
+

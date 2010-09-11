@@ -5,9 +5,11 @@
   Solves either:
   \itemize{
     \item a system of ordinary differential equations (ODE) of the form
-      \deqn{y' = f(t,y,...)} or
+      \deqn{y' = f(t, y, ...)} or
     \item a system of differential algebraic equations (DAE) of the form
-      \deqn{F(t,y,y') = 0}
+      \deqn{F(t,y,y') = 0} or
+    \item a system of linearly implicit DAES in the 
+       form \deqn{M y' = f(t, y)}    
   }
   using a combination of backward differentiation formula (BDF) and a
   direct linear system solution method (dense or banded).
@@ -24,7 +26,7 @@
 \usage{
 daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   nalg = 0, rtol = 1e-6, atol = 1e-8, jacfunc = NULL,
-  jacres = NULL, jactype = "fullint", estini = NULL,
+  jacres = NULL, jactype = "fullint", mass = NULL, estini = NULL,
   verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL,
   hini = 0, ynames = TRUE, maxord = 5, bandup = NULL,
   banddown = NULL, maxsteps = 5000, dllname = NULL,
@@ -74,11 +76,11 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     system.  Ignored if an ODE.
   }
   \item{res }{if a DAE system: either an \R-function that computes the
-    residual function F(t,y,y') of the DAE system (the model
+    residual function \eqn{F(t,y,y')} of the DAE system (the model
     defininition) at time \code{t}, or a character string giving the
     name of a compiled function in a dynamically loaded shared library.
       
-    If \code{res} is a user-supplied R-function, it must be defined as:
+    If \code{res} is a user-supplied \R-function, it must be defined as:
     \code{res <- function(t, y, dy, parms, ...)}.
     
     Here \code{t} is the current time point in the integration, \code{y}
@@ -90,7 +92,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     
     The return value of \code{res} should be a list, whose first element
     is a vector containing the residuals of the DAE system,
-    i.e. delta = F(t,y,y'), and whose next elements contain output
+    i.e. \eqn{\delta = F(t,y,y')}{delta = F(t,y,y')}, and whose next elements contain output
     variables that are required at each point in \code{times}.
   
     If \code{res} is a string, then \code{dllname} must give the name of
@@ -112,12 +114,12 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   }
   \item{jacfunc }{if not \code{NULL}, an \R function that computes the
     Jacobian of the system of differential equations. Only used in case
-    the system is an ODE (y' = f(t,y)), specified by \code{func}. The \R
+    the system is an ODE (\eqn{y' = f(t, y)}), specified by \code{func}. The \R
     calling sequence for \code{jacfunc} is identical to that of
     \code{func}.
     
     If the Jacobian is a full matrix, \code{jacfunc} should return a
-    matrix dydot/dy, where the ith row contains the derivative of
+    matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
     matrix elements by columns (the way \R and FORTRAN store matrices).
     
@@ -126,7 +128,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     row-wise. See first example of lsode.
   }
   \item{jacres }{ \code{jacres} and not \code{jacfunc} should be used if
-    the system is specified by the residual function F(t,y,y'),
+    the system is specified by the residual function \eqn{F(t, y, y')},
     i.e. \code{jacres} is used in conjunction with \code{res}.
     
     If \code{jacres} is an \R-function, the calling sequence for
@@ -143,7 +145,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     parameters (which may have a names attribute).
     
     If the Jacobian is a full matrix, \code{jacres} should return the
-    matrix dG/dy + cj*dG/dyprime, where the ith row is the sum of the
+    matrix \eqn{dG/dy + c_j\cdot dG/dy'}{dG/dy + cj*dG/dyprime}, where the \eqn{i}th row is the sum of the
     derivatives of \eqn{G_i} with respect to \eqn{y_j} and the scaled
     derivatives of \eqn{G_i} with respect to \eqn{dy_j}.
     
@@ -156,8 +158,18 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     \code{"bandint"} - either full or banded and estimated internally or
     by the user.
   }
+  \item{mass }{the mass matrix. 
+      If not \code{NULL}, the problem is a linearly
+     implicit DAE and defined as \eqn{M\, dy/dt = f(t,y)}{M dy/dt = f(t,y)}. The mass-matrix \eqn{M}
+     should be of dimension \eqn{n*n} where \eqn{n} is the 
+     number of \eqn{y}-values.
+
+     If \code{mass=NULL} then the model is either an ODE or a DAE, specified with
+     \code{res}
+  }
   \item{estini }{only if a DAE system, and if initial values of \code{y}
-    and \code{dy} are not consistent (i.e. F(t,y,dy) is not = 0), setting
+    and \code{dy} are not consistent (i.e. \eqn{F(t,y,dy) \neq 0}{F(t,
+     y, dy) != 0}), setting
     \code{estini} = 1 or 2, will solve for them.  If \code{estini} = 1: dy
     and the algebraic variables are estimated from \code{y}; in this
     case, the number of algebraic equations must be given (\code{nalg}).
@@ -193,11 +205,11 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   }
   \item{bandup }{number of non-zero bands above the diagonal, in case
     the Jacobian is banded (and \code{jactype} one of
-    "bandint","bandusr")
+    "bandint", "bandusr")
   }
   \item{banddown }{number of non-zero bands below the diagonal, in case
     the Jacobian is banded (and \code{jactype} one of
-    "bandint","bandusr")
+    "bandint", "bandusr")
   }
   \item{maxsteps }{maximal number of steps per output interval taken by the
     solver; will be recalculated to be at least 500 and a multiple of
@@ -230,7 +242,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     defined in compiled code: the number of output variables calculated
     in the compiled function \code{res}, present in the shared
     library. Note: it is not automatically checked whether this is
-    indeed the number of output variables calculed in the dll - you have
+    indeed the number of output variables calculated in the dll - you have
     to perform this check in the code - See package vignette
     \code{"compiledCode"}.
   }
@@ -340,6 +352,31 @@ Res_DAE <- function (t, y, yprime, pars)
   })
 }
 
+## =======================================================================
+## Chemical problem formulation 3: Mass * Func
+## Based on the DAE formulation
+## =======================================================================
+
+Mass_FUN <- function (t, y, pars)
+{
+  with (as.list(c(y, pars)), {
+
+    ## as above, but without the 
+    f1 <- prod
+    f2 <- - r*B
+    
+    ## and the equilibrium equation
+    f3   <- K*D - A*B
+
+    return(list(c(f1, f2, f3),
+                CONC = A+B+D))
+  })
+}
+Mass <- matrix(nr=3, nc=3, byrow = TRUE, 
+  data=c(1,  0, 1,         # dA + 0 + dB
+        -1,  1, 0,         # -dA + dB +0
+         0,  0, 0))        # algebraic
+         
 times <- seq(0, 100, by = 2)
 
 ## Initial conc; D is in equilibrium with A,B
@@ -355,6 +392,8 @@ dy  <- c(dA = 0, dB = 0, dD = 0)
 ## DAE model solved with daspk
 DAE <- as.data.frame(daspk(y = y, dy = dy, times = times,
          res = Res_DAE, parms = pars, atol = 1e-10, rtol = 1e-10))
+
+MASS<- daspk(y=y, times=times, func = Mass_FUN, parms = pars, mass = Mass)
 
 ## ================
 ## plotting output
@@ -467,7 +506,7 @@ par(mfrow = opa)
     \item an ODE system of the form \deqn{y' = f(t,y,...)}  for y = Y,
     or
     \item a DAE system of the form \deqn{F(t,y,y') = 0} for y = Y and y'
-    = YPRIME.
+    = YPRIME. The index of the DAE should be <=1.
   }
   
   ODEs are specified in \code{func}, DAEs are specified in \code{res}.
@@ -536,6 +575,7 @@ par(mfrow = opa)
 }
 \seealso{
   \itemize{
+    \item \code{\link{radau}} for integrating DAEs up to index 3,
     \item \code{\link{rk}}, \item \code{\link{rk4}} and \code{\link{euler}} for
       Runge-Kutta integrators.
     \item \code{\link{lsoda}}, \code{\link{lsode}},
@@ -552,7 +592,7 @@ par(mfrow = opa)
   \code{\link{diagnostics}} to print diagnostic messages.
 }
 \note{
-  In this version, the krylov method is not (yet) supported.
+  In this version, the Krylov method is not (yet) supported.
 }
 \keyword{math}
 

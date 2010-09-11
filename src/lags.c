@@ -21,19 +21,47 @@
    
    These R-functions call C-functions "getLagValue" and "getLagDeriv" which
    first find the interval in the history vectors in which the lagged value is 
-   to be found ("findHistInt"), and then use hermite interpolation to interpolate
+   to be found ("findHistInt"), and then either use hermite interpolation 
    to the requested time (functions "Hermite" and "dHermite" for values and 
-   derivatives). 
+   derivatives), or use the Nordsieck history array. 
    
-   findHistInt finds interval by bisectioning; only marginally
+   Note: findHistInt finds interval by bisectioning; only marginally
    more/less efficient than straightforward findHistInt2...
    
    
-   to do:    
+   to do: make lags callable from external C/Fortran function 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /*=========================================================================== 
-  Hermitian interpolation of y to x
+  Higher-order interpolation of y to x, based on Nordsieck history array 
+  if interpolMethod ==2
+  =========================================================================== */
+
+/* definition of the calls to the FORTRAN function INTERPOLY,
+as derived from dintdy */
+
+void F77_NAME(interpoly)(double *, int *, int *, double *, int *, double *, 
+   int *, double *, double *);
+   
+double interpolate(int i, int k, double t0, double hh, double t, 
+  double *Yh, int nq) {
+  
+  double  res;
+ 
+  if (nq > 12)
+    error("illegal nq in interpolate, %i, at time %g", nq, t);
+  if (k > nq)
+    error("illegal k %i, nq in interpolate, %i, at time %g", k, nq, t);
+                
+  if (i > n_eq || i <1)
+    error("illegal i %i, n_eq %i, at time %g", i, n_eq, t);
+
+  F77_CALL(interpoly) (&t, &k, &i, Yh, &n_eq, &res, &nq, &t0, &hh); 
+  return(res);
+}  
+
+/*=========================================================================== 
+  Hermitian interpolation of y to x (interpolMethod==1)
   =========================================================================== */
 
 double Hermite (double t0, double t1, double y0, double y1, double dy0,
@@ -78,23 +106,46 @@ double dHermite (double t0, double t1, double y0, double y1, double dy0,
 }
 
 /*=========================================================================== 
-  initialise history arrays + indices at start integration
+  initialise history arrays + indices at start integration 
   =========================================================================== */
 
-void inithist(int max, int maxlags) {
-
+void inithist(int max, int maxlags, int solver, int nroot) {
+  int maxord;  
+  
   histsize = max;
   initialisehist = 1;
   indexhist  = -1; // indexhist+1 = next time in circular buffer.
   starthist  = 0;  // start time in circular buffer.
   endreached = 0;  // if end of buffer reached and new values added at start
   
-  histvar  = (double *) R_alloc (n_eq * histsize, sizeof(double));
-  histdvar = (double *) R_alloc (n_eq * histsize, sizeof(double));
-  histtime = (double *) R_alloc (histsize, sizeof(double));
+  /* interpolMethod = Hermite, higherOrder */
+  if (interpolMethod ==1) {
+    offset   = n_eq; /* size needed for saving one time-step in histvar*/
+  
+  } else {
+    if (solver == 0) 
+      error("illegal input in lags - cannot combine interpol=2 with chosen solver");
+    maxord  = 12;   /* 5(bdf) or 12 (adams) */
+    lyh     = 20;   /* position of history array in rwork (C-index) */
+    lhh     = 11;   /* position of h in rwork (C-index)
+                       Note: for lsodx this is NEXT time step! */
+    lo      = 13;   /* position of method order in iwork (C-index) */
+    if (solver == 5) {  /* different for vode!  uses current time step*/  
+      lhh = 10;        
+      lo = 13;             
+    }                      
+    if (solver == 4 || solver == 6)  /* lsodar or lsoder */
+      lyh = 20+3*nroot;
 
-  /*lagindex = (int *) R_alloc ( maxlags, sizeof(int));  // not yet used
-   for (j = 0; j < maxlags; j++) lagindex[j] = 0; */
+    offset  = n_eq*(maxord+1);       
+    histord = (int *) R_alloc (histsize, sizeof(int));
+    histhh  = (double *) R_alloc (histsize, sizeof(double));
+  }
+
+  histtime = (double *) R_alloc (histsize, sizeof(double));
+  histvar  = (double *) R_alloc (offset * histsize, sizeof(double));
+  histdvar = (double *) R_alloc (n_eq * histsize, sizeof(double));
+
 }
 
 /*=========================================================================== 
@@ -114,31 +165,51 @@ int nexthist(int i) {
   update history arrays each time step
   =========================================================================== */
 
-void updatehist(double t, double *y, double *dy) {
+/* first time: just store y, dy and t */
+void updatehistini(double t, double *y, double *dY, double *rwork, int *iwork){
+  int intpol;
+
+  intpol = interpolMethod;
+  interpolMethod = 1; 
+  updatehist(t,y,dY, rwork, iwork);
+  interpolMethod = intpol; 
+  if (interpolMethod ==2){ 
+    histord[0] = 0;
+    histhh[0] = timesteps[0];    
+  }  
+}
+
+
+void updatehist(double t, double *y, double *dY, double *rwork, int *iwork) {
   int j, ii;
 
   indexhist = nexthist(indexhist);
-  
-  ii = indexhist * n_eq;    /* offset */
-  
-  for (j = 0; j < n_eq; j++) {
-    histvar [ii  + j ] = y[j];
-    histdvar[ii  + j ] = dy[j];
+  ii = indexhist * offset;     
+
+  /* interpolMethod = Hermite */
+  if (interpolMethod ==1) {
+    for (j = 0; j < n_eq; j++)  
+      histvar [ii  + j ] = y[j];
+ 
+  } else {       /* higherOrder */
+    histord[indexhist] = iwork[lo];    
+
+    for (j = 0; j < offset; j++)
+      histvar[ii + j] = rwork[lyh + j];
+    histhh [indexhist] = rwork[lhh];   
+ 
   }
+
+  ii = indexhist * n_eq;     
+ 
+  for (j = 0; j < n_eq; j++)
+    histdvar[ii + j] = dY[j];
+ 
   histtime [indexhist] = t;
 
-  if (endreached == 1) {      /* starthist stays 0 until end reached... */
-   starthist = nexthist(starthist);
-  }
+  if (endreached == 1)       /* starthist stays 0 until end reached... */
+    starthist = nexthist(starthist);
 }
-
-/* ============================================================================
-   not yet used - to be used at start of each timestep, to keep up with the 
-   previous position of the time-lagged variable 
-void initlag() {
-  indexlag = 0;
-}
-*/
 
 /*=========================================================================== 
   find a past value (val==1) or a past derivative (val == 0) 
@@ -146,22 +217,46 @@ void initlag() {
 
 double past(int i, int interval, double t, int val)
 
-	/* Interrogates the history ringbuffers. Not very efficient...*/
+	/* finds past values (val=1) or past derivatives (val=2)*/
 
-{ int j, jn;
-  double t0, t1, y0, y1, dy0, dy1, res;
+{ int j, jn, nq;
+  double t0, t1, y0, y1, dy0, dy1, res, hh;
+  double *Yh;
 
   /* error checking */
-  if ( i > n_eq)
+  if ( i >= n_eq)
     error("illegal input in lagvalue - var nr too high, %i", i+1);
-
-  if ( interval == indexhist) {    
+  
+  /* equal to current value... */   
+  if ( interval == indexhist && t == histtime[interval]) {   
     if (val == 1)
-      res = histvar [interval * n_eq  + i ];
+      res = histvar [interval * offset  + i ];
     else 
-      res = histdvar [interval * n_eq  + i ];   
-  }  else {
-   
+      res = histdvar [interval * offset  + i ];   
+  
+  /* within last interval - for now: just extrapolate  */ 
+  } else if ( interval == indexhist && interpolMethod == 1) {
+    if (val == 1) {
+      t0  = histtime[interval];
+      y0  = histvar [interval * offset  + i ];
+      dy0 = histdvar [interval * n_eq  + i ];
+      res = y0 + dy0*(t-t0);
+    }
+    else 
+      res = histdvar [interval * n_eq  + i ];
+
+  } else if ( interval == indexhist && interpolMethod == 1) {
+    if (val == 1) {
+      t0  = histtime[interval];
+      y0  = histvar [interval * offset  + i ];
+      dy0 = histdvar [interval * n_eq  + i ];
+      res = y0 + dy0*(t-t0);
+    }
+    else 
+      res = histdvar [interval * n_eq  + i ];
+
+  /* Hermite interpolation */
+  }  else if (interpolMethod == 1) {
     j  = interval;
     jn = nexthist(j);
 
@@ -175,6 +270,29 @@ double past(int i, int interval, double t, int val)
       res = Hermite (t0, t1, y0, y1, dy0, dy1, t);
     else
       res = dHermite (t0, t1, y0, y1, dy0, dy1, t);
+  
+  /* dense interpolation */
+  } else { 
+    j  = interval;
+    jn = nexthist(j);
+
+    t0  = histtime[j];
+    t1  = histtime[jn];
+    nq  = histord [j];
+    if (nq ==0) {
+      y0  = histvar [j  * offset  + i ];
+      y1  = histvar [jn * offset  + i ];
+      dy0 = histdvar [j  * n_eq  + i ];
+      dy1 = histdvar [jn * n_eq  + i ];
+      if (val == 1)
+        res = Hermite (t0, t1, y0, y1, dy0, dy1, t);
+      else
+        res = dHermite (t0, t1, y0, y1, dy0, dy1, t);
+    } else { 
+      Yh  = &histvar [j * offset];
+      hh = histhh[j];
+      res = interpolate(i+1, val-1, t0, hh, t, Yh, nq); 
+    }  
   }
   return(res);
 }
@@ -183,6 +301,7 @@ double past(int i, int interval, double t, int val)
   Find interval in history ring buffers, corresponding to "t"
   two alternatives; only findHistInt used
   =========================================================================== */
+
 int findHistInt2 (double t) {
   int j, jn;
   
@@ -190,7 +309,7 @@ int findHistInt2 (double t) {
     return(indexhist);
 	if ( t < histtime[starthist])
 	  error("illegal input in lagvalue - lag, %g, too large, at time = %g\n",
-      t, histtime[starthist]);
+      t, histtime[indexhist]);
  
    /* find embracing time starting from beginning  */
     j  = starthist;
@@ -211,7 +330,7 @@ int findHistInt (double t) {
     return(indexhist);
 	if ( t < histtime[starthist])
 	  error("illegal input in lagvalue - lag, %g, too large, at time = %g\n",
-      t, histtime[starthist]);
+      t, histtime[indexhist]);
 
   if (endreached == 0) {  /* still filling buffer; not yet wrapped */
     ilo = 0;
@@ -295,39 +414,46 @@ SEXP getLagDeriv(SEXP T, SEXP nr)
   if ((ilen ==1) && (INTEGER(nr)[0] == 0)) {
   	PROTECT(value=NEW_NUMERIC(n_eq));
   	for(i=0; i<n_eq; i++) {
-	  	NUMERIC_POINTER(value)[i] = past(i, interval, t, 0);
+	  	NUMERIC_POINTER(value)[i] = past(i, interval, t, 2);
 	  }
   } else {
 	  PROTECT(value=NEW_NUMERIC(ilen));
-  	for(i=0; i<ilen; i++) {
-	  	NUMERIC_POINTER(value)[i] = past(INTEGER(nr)[i]-1, interval, t, 0);
+  	for(i=0; i<ilen; i++) {                                              
+	  	NUMERIC_POINTER(value)[i] = past(INTEGER(nr)[i]-1, interval, t, 2);
 	  }
 	}
   UNPROTECT(1);
 	return(value);
 }
 
+
 /* ============================================================================
   Interrogate the lag settings as in an R-list   
    ==========================================================================*/
 
-int initLags(SEXP elag) {
+int initLags(SEXP elag, int solver, int nroot) {
 
-  SEXP Mxhist, Islag;       
+  SEXP Mxhist, Islag, Interpol ;       
   int mxhist, islag;
     
   Islag = getListElement(elag, "islag");
   islag = INTEGER(Islag)[0];
-
+    
   if (islag ==1) { 
    Mxhist = getListElement(elag, "mxhist");
    mxhist = INTEGER(Mxhist)[0];
-   inithist(mxhist,1);
-  } else mxhist = 0;
+   Interpol = getListElement(elag, "interpol");
+   interpolMethod = INTEGER(Interpol)[0];
+   if (interpolMethod < 1) interpolMethod = 1;
+   inithist(mxhist,1, solver, nroot);
 
+  } else {
+    mxhist = 0;
+    interpolMethod = 1;
+  }  
   return(islag);
 }
-
+/* =========================================================================== */
 
 
 

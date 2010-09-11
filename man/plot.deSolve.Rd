@@ -1,5 +1,6 @@
 \name{plot.deSolve}
 \alias{plot.deSolve}
+\alias{plot.1D}
 \alias{hist.deSolve}
 \alias{image.deSolve}
 \title{
@@ -12,7 +13,9 @@ Plot the output of numeric integration routines.
 \method{plot}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, ...)
 \method{hist}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, ...)
 \method{image}{deSolve}(x, which = NULL, ask = NULL, 
-  add.contour = FALSE, grid = NULL, ...)  
+  add.contour = FALSE, grid = NULL, method="image", ...)  
+plot.1D (x, which=NULL, ask=NULL, grid=NULL, xyswap = FALSE, ...) 
+
 }
 
 \arguments{
@@ -28,30 +31,49 @@ Plot the output of numeric integration routines.
     interactive, see \code{\link{par}(ask=.)} and
     \code{\link{dev.interactive}}.}
   
-  \item{add.contour }{if \code{TRUE}, will add contours to the image plot. }
+  \item{add.contour }{if \code{TRUE}, will add contours to the image plot.}
 
-  \item{grid }{only for \code{image} plots: the 1-D grid as a vector (output 
-    generated with \code{ode.1D}, or the x- and y-grid, as a \code{list} for 
-    output generated with \code{ode.2D}. }
+  \item{method }{the name of the plotting method to use, one of "image", 
+    "filled.contour", "persp", "contour".}
 
+  \item{grid }{only for \code{image} plots and for \code{plot.1D}: 
+    the 1-D grid as a vector (output generated with \code{ode.1D}, 
+    or the x- and y-grid, as a \code{list} for output generated with 
+    \code{ode.2D}.}
+
+  \item{xyswap }{ if \code{TRUE}, then x-and y-values are swapped and the 
+    y-axis is from top to bottom. Useful for drawing vertical profiles.}
+    
   \item{\dots}{additional graphics arguments passed to
     \code{\link{plot.default}}, \code{\link{image}} or \code{\link{hist}}}
 }
 
 \details{
   The number of panels per page is automatically determined up to 3 x 3
-  (\code{par(mfrow=c(3, 3))}). This default can be overwritten by
+  (\code{par(mfrow = c(3, 3))}). This default can be overwritten by
   specifying user-defined settings for \code{mfrow} or \code{mfcol}.
+  Set \code{mfrow} equal to \code{NULL} to avoid the plotting function to 
+  change user-defined \code{mfrow} or \code{mfcol} settings.
+  
 
   Other graphical parameters can be passed as well. Parameters
   \code{xlab} and \code{ylab} are vectorized, so it is possible to
   assign specific axis labels to individual plots.
   
-  Image plots will only work for 1-D and 2-D variables, as solved with 
+  Image plots will only work for 1-D and 2-D variables, as solved with
   \code{\link{ode.1D}} and \code{\link{ode.2D}}. In the first case, an
-  image with \code{times} as x- and \code{the grid} as y-axis will be created.
-  in second case, an x-y plot will be created, for all times. Unless 
-  \code{ask=FALSE}, the user will be asked to confirm page changes. 
+  image with \code{times} as x- and \code{the grid} as y-axis will be
+  created.  in second case, an x-y plot will be created, for all
+  times. Unless \code{ask = FALSE}, the user will be asked to confirm
+  page changes.  For images, it is possible to pass an argument
+  \code{method} which can take the values "image" (default),
+  "filled.contour", "contour" or "persp", in order to use the respective
+  plotting method.
+  
+  \code{plot} will always have \code{times} on the x-axis. For problems
+  solved with \code{ode.1D}, it may be more useful to use \code{plot.1D}
+  which will plot how spatial variables change with time. These plots will
+  have the \code{grid} on the x-axis.
 }
 
 \seealso{
@@ -88,7 +110,21 @@ plot(out, type = "l")
 plot(out, type = "l", ylab = c("Prey 1", "Prey 2", "Pred 1", "Pred 2"),
   xlab = "Time (d)", main = "Time Series") 
 
-hist(out, col="darkblue", breaks = 50)
+## Set user-defined mfrow
+pm <- par (mfrow = c(2, 2))
+## "mfrow=NULL" keeps user-defined mfrow
+plot(out, which = c("prey1", "pred2"), mfrow = NULL, type = "l", lwd = 2)
+
+plot(out[,"prey1"], out[,"pred1"], xlab="prey1", 
+  ylab = "pred1", type = "l", lwd = 2)
+plot(out[,"prey2"], out[,"pred2"], xlab = "prey2", 
+  ylab = "pred2", type = "l",lwd = 2)
+
+## restore graphics parameters
+par ("mfrow" = pm)
+
+
+hist(out, col = "darkblue", breaks = 50)
 
 ## =======================================================================
 ## The Aphid model from Soetaert and Herman, 2009.
@@ -101,13 +137,11 @@ hist(out, col="darkblue", breaks = 50)
 ## ================
 ## Model equations
 ## ================
-Aphid <- function(t, APHIDS, parameters)
-{
-  deltax  <- c (0.5, rep(1, numboxes-1), 0.5)
-  Flux    <- -D*diff(c(0, APHIDS, 0))/deltax
-  dAPHIDS <- -diff(Flux)/delx + APHIDS*r
-
-  list(dAPHIDS)   # the output
+Aphid <- function(t, APHIDS, parameters) {
+  deltax  <- c (0.5, rep(1, numboxes - 1), 0.5)
+  Flux    <- -D * diff(c(0, APHIDS, 0))/deltax
+  dAPHIDS <- -diff(Flux)/delx + APHIDS * r
+  list(dAPHIDS)
 }
   
 ## ==================
@@ -133,7 +167,14 @@ state         <- c(APHIDS = APHIDS)      # initialise state variables
 times <- seq(0, 200, by = 1)   # output wanted at these time intervals
 out   <- ode.1D(state, times, Aphid, parms = 0, nspec = 1)
 
-image(out, grid = Distance, main="Aphid model", ylab="distance, m")
+image(out, grid = Distance, main = "Aphid model", ylab = "distance, m")
+
+image(out, grid = Distance, main = "Aphid model", ylab = "distance, m", 
+  method = "persp", border = NA, theta = 30)
+\dontrun{
+  plot(out,ask = FALSE, mfrow = c(1, 1))
+  plot.1D(out, ask = FALSE, type = "l", lwd = 2, xyswap = TRUE)
+}
 }
 
 \keyword{ hplot }

@@ -155,37 +155,28 @@ state <- c(OM=OM_ini, O2=O2_ini, NO3=NO3_ini, H=H_ini,
 
 times <- c(0, 350:405)
 
-outA <- as.data.frame(vode(state, times, FKAmodel, phPars, scenario="A" , hmax=1))[-1,]
-outB <- as.data.frame(vode(state, times, FKAmodel, phPars, scenario="B1", hmax=1))[-1,]
-outC <- as.data.frame(vode(state, times, FKAmodel, phPars, scenario="C" , hmax=1))[-1,]
+outA <- vode(state, times, FKAmodel, phPars, scenario = "A" , hmax = 1)
+outB <- vode(state, times, FKAmodel, phPars, scenario = "B1", hmax = 1)
+outC <- vode(state, times, FKAmodel, phPars, scenario = "C" , hmax = 1)
 
 #---------------------
 # plot model output
 #---------------------
+par(mfrow = c(3, 4), mar = c(1, 2, 2, 1),  oma = c(3, 3, 3, 0))
+Selection <- c("pH","TA","SumCO2","O2")
+plot(outA, mfrow = NULL, xlim = c(350,405), type = "l",
+  xaxt = "n", which = Selection)
+plot(outB, mfrow = NULL, xlim = c(350,405), type = "l",
+  xaxt = "n", which = Selection)
+plot(outC, mfrow = NULL, xlim = c(350,405), type = "l",
+  xaxt = "n", which = Selection)
 
-par(mfrow=c(3, 4), mar=c(1, 2, 0, 1),  oma=c(3, 3, 3, 0))
+mtext(side = 1, outer = TRUE, "time, d", line = 2, cex = 1.2)
+mtext(side = 2, at = 0.2, outer = TRUE, "Scenario C", line = 1.5, cex = 1.2)
+mtext(side = 2, at = 0.5, outer = TRUE, "Scenario B", line = 1.5, cex = 1.2)
+mtext(side = 2, at = 0.8, outer = TRUE, "Scenario A", line = 1.5, cex = 1.2)
 
-plot(outA$time, outA$pH, type="l", xlab="", ylab="", xaxt="n")
-plot(outA$time, outA$TA, type="l", xlab="", ylab="", xaxt="n")
-plot(outA$time, outA$SumCO2, type="l", xlab="", ylab="", xaxt="n")
-plot(outA$time, outA$O2, type="l", xlab="", ylab="", xaxt="n")
-
-plot(outB$time, outB$pH, type="l", xlab="", ylab="", xaxt="n")
-plot(outB$time, outB$TA, type="l", xlab="", ylab="", xaxt="n")
-plot(outB$time, outB$SumCO2, type="l", xlab="", ylab="", xaxt="n")
-plot(outB$time, outB$O2, type="l", xlab="", ylab="", xaxt="n")
-
-plot(outC$time, outC$pH, type="l", xlab="", ylab="")
-plot(outC$time, outC$TA, type="l", xlab="", ylab="")
-plot(outC$time, outC$SumCO2, type="l", xlab="", ylab="")
-plot(outC$time, outC$O2, type="l", xlab="", ylab="")
-
-mtext(side=1, outer=TRUE, "time, d", line=2, cex=1.2)
-mtext(side=2, at=0.2, outer=TRUE, "Scenario C", line=1.5, cex=1.2)
-mtext(side=2, at=0.5, outer=TRUE, "Scenario B", line=1.5, cex=1.2)
-mtext(side=2, at=0.8, outer=TRUE, "Scenario A", line=1.5, cex=1.2)
-
-mtext(side=3, at=0.125, outer=TRUE, "pH, -", line=1, cex=1.2)
-mtext(side=3, at=0.375, outer=TRUE, "TA, µmol/kg", line=1, cex=1.2)
-mtext(side=3, at=1-0.375, outer=TRUE, "CO2, µmol/kg", line=1, cex=1.2)
-mtext(side=3, at=1-0.125, outer=TRUE, "O2, µmol/kg", line=1, cex=1.2)
+mtext(side = 3, at = 0.125, outer = TRUE, "pH, -", line = 1, cex = 1.2)
+mtext(side = 3, at = 0.375, outer = TRUE, "TA, µmol/kg", line = 1, cex = 1.2)
+mtext(side = 3, at = 1-0.375, outer = TRUE, "CO2, µmol/kg", line = 1, cex = 1.2)
+mtext(side = 3, at = 1-0.125, outer = TRUE, "O2, µmol/kg", line = 1, cex = 1.2)

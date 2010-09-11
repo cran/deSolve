@@ -10,12 +10,13 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
   SEXP   yout;
 
   double *ytmp, *dy, tin, *delta, cj;
-  int    ny, j,  type, ires, isDll, isForcing;
+  int    ny, j,  type, ires, isDll, isForcing, nout=0, ntot=0;
   
   C_deriv_func_type *derivs;
   C_res_func_type *res;
 
-  init_N_Protect();
+  //init_N_Protect();
+  long int old_N_Protect = save_N_Protected();
 
   ny   = LENGTH(y);
   type = INTEGER(Type)[0];
@@ -28,7 +29,7 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
   }
 
 /* initialise output, parameters, forcings ... */
-  initOutR(isDll, ny, nOut, Rpar, Ipar);
+  initOutR(isDll,  &nout, &ntot, ny, nOut, Rpar, Ipar);
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
 
@@ -67,6 +68,8 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
 	       REAL(yout)[j + ny] = out[j]; 
   }
 
-  unprotect_all();
+  //unprotect_all();
+  restore_N_Protected(old_N_Protect);
+  
   return(yout);
 }

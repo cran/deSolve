@@ -2,7 +2,8 @@
 /* Runge-Kutta Solvers, (C) Th. Petzoldt, License: GPL >=2                  */
 /* General RK Solver for methods with adaptive step size                    */
 /*==========================================================================*/
-
+/* Karline: call to rk_auto, setIstate: + number of rejected steps it_rej  
+   dense output Cash-Karp : R_TD, densetype=2 : dense output method 2...           */
 #include "rk_util.h"
 
 SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
@@ -12,7 +13,7 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   SEXP Method, SEXP Maxsteps, SEXP Flist) {
 
   /**  Initialization **/
-  init_N_Protect();
+  long int old_N_Protect = save_N_Protected();
 
   double *tt = NULL, *xs = NULL;
 
@@ -26,7 +27,7 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   int fsal = FALSE;       /* assume no FSAL */
   int interpolate = TRUE; /* polynomial interpolation is done by default */
 
-  int i = 0, j=0, it=0, it_tot = 0, it_ext = 0, nt = 0, neq = 0;
+  int i = 0, j = 0, it = 0, it_tot = 0, it_ext = 0, nt = 0, neq = 0, it_rej = 0;
   int isForcing, isEvent;
 
   /*------------------------------------------------------------------------*/
@@ -51,8 +52,8 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 
   int stage     = (int)REAL(getListElement(Method, "stage"))[0];
 
-  SEXP R_A, R_B1, R_B2, R_C, R_D;
-  double  *A, *bb1, *bb2=NULL, *cc=NULL, *dd=NULL;
+  SEXP R_A, R_B1, R_B2, R_C, R_D, R_densetype;
+  double  *A, *bb1, *bb2 = NULL, *cc = NULL, *dd = NULL;
 
   PROTECT(R_A = getListElement(Method, "A")); incr_N_Protect();
   A = REAL(R_A);
@@ -68,6 +69,11 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 
   PROTECT(R_D = getListElement(Method, "d")); incr_N_Protect();
   if (length(R_D)) dd = REAL(R_D);
+
+  /* dense output Cash-Karp: densetype = 2 */
+  int densetype = 0;
+  PROTECT(R_densetype = getListElement(Method, "densetype")); incr_N_Protect();
+  if (length(R_densetype)) densetype = INTEGER(R_densetype)[0];
 
   double  qerr = REAL(getListElement(Method, "Qerr"))[0];
   double  beta = 0;      /* 0.4/qerr; */
@@ -89,6 +95,11 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   PROTECT(Xstart = AS_NUMERIC(Xstart)); incr_N_Protect();
   xs  = NUMERIC_POINTER(Xstart);
   neq = length(Xstart);
+  /*------------------------------------------------------------------------*/
+  /* timesteps (for compatibility with lsoda)                               */
+  /*------------------------------------------------------------------------*/
+  timesteps = (double *)R_alloc(2, sizeof(double)); 
+  for (i = 0; i < 2; i++) timesteps[i] = 1;
 
   /*------------------------------------------------------------------------*/
   /* DLL, ipar, rpar (for compatibility with lsoda)                         */
@@ -157,6 +168,8 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   if (length(R_nknots)) nknots = INTEGER(R_nknots)[0] + 1;
 
   if (nknots < 2) {nknots = 1; interpolate = FALSE;}
+  //if (dd || densetype > 0) interpolate = TRUE;
+  if (densetype > 0) interpolate = TRUE;
   
   yknots = (double*) R_alloc((neq + 1) * (nknots + 1), sizeof(double));
 
@@ -217,14 +230,15 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   it     = 1; /* step counter; zero element is initial state   */
   it_ext = 0; /* counter for external time step (dense output) */
   it_tot = 0; /* total number of time steps                    */
+  it_rej = 0;
   
   if (interpolate) {
   /* integrate over the whole time step and interpolate internally */
     rk_auto(
       fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
-      maxsteps, nt,
-      &iknots, &it, &it_ext, &it_tot,
-      istate, ipar,
+      densetype, maxsteps, nt,
+      &iknots, &it, &it_ext, &it_tot, &it_rej,
+      istate, ipar, 
       t, tmax, hmin, hmax, alpha, beta,
       &dt, &errold,
       tt, y0, y1, y2, dy1, dy2, f, y, Fj, tmp, FF, rr, A,
@@ -243,8 +257,8 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
        if (verbose) Rprintf("\n %d th time interval = %g ... %g", j, t, tmax);
        rk_auto(
           fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
-          maxsteps, nt,
-          &iknots, &it, &it_ext, &it_tot,
+          densetype, maxsteps, nt,
+          &iknots, &it, &it_ext, &it_tot, &it_rej,
           istate, ipar,
           t,  tmax, hmin, hmax, alpha, beta,
           &dt, &errold,
@@ -275,12 +289,20 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     }
   }
   /* attach essential internal information (codes are compatible to lsoda) */
-  setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr);
+
+  setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr, it_rej);
+
+  if (densetype == 2)   istate[12] = it_tot * stage + 2; /* number of function evaluations */
+  
+  // experimental
+  // set default value for timesteps
+  for (i = 0; i < 2; i++) timesteps[i] = 0;
 
   /* release R resources */
   if (verbose) 
-    Rprintf("\nNumber of time steps it = %d, it_ext = %d, it_tot = %d\n", 
-      it, it_ext, it_tot);
-  unprotect_all();
+    Rprintf("\nNumber of time steps it = %d, it_ext = %d, it_tot = %d it_rej %d\n", 
+      it, it_ext, it_tot, it_rej);
+  /* release R resources */
+  restore_N_Protected(old_N_Protect);
   return(R_yout);
 }

@@ -85,7 +85,8 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     long as \code{y}. See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function that computes the
-    Jacobian of the system of differential equations dydot(i)/dy(j), or
+    Jacobian of the system of differential equations
+    \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}, or
     a string giving the name of a function or subroutine in
     \file{dllname} that computes the Jacobian (see vignette
     \code{"compiledCode"} for more about this option).
@@ -96,7 +97,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     that of \code{func}.
 
     If the Jacobian is a full matrix,
-    \code{jacfunc} should return a matrix dydot/dy, where the ith row
+    \code{jacfunc} should return a matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row
     contains the derivative of \eqn{dy_i/dt} with respect to \eqn{y_j},
     or a vector containing the matrix elements by columns (the way \R
     and FORTRAN store matrices).  \cr If the Jacobian is banded,
@@ -189,7 +190,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     defined in compiled code: the number of output variables calculated
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
-    indeed the number of output variables calculed in the dll - you have
+    indeed the number of output variables calculated in the dll - you have
     to perform this check in the code - See package vignette
     \code{"compiledCode"}.
   }
@@ -244,8 +245,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 ## =======================================================================
 
 ## the model, 5 state variables
-f1 <- function  (t, y, parms)
-{
+f1 <- function  (t, y, parms) {
   ydot <- vector(len = 5)
 
   ydot[1] <-  0.1*y[1] -0.2*y[2]
@@ -258,25 +258,23 @@ f1 <- function  (t, y, parms)
 }
 
 ## the Jacobian, written as a full matrix
-fulljac <- function  (t, y, parms)
-{
-   jac <- matrix(nrow = 5, ncol = 5, byrow = TRUE,
+fulljac <- function  (t, y, parms) {
+  jac <- matrix(nrow = 5, ncol = 5, byrow = TRUE,
                 data = c(0.1, -0.2,  0  ,  0  ,  0  ,
                         -0.3,  0.1, -0.2,  0  ,  0  ,
                          0  , -0.3,  0.1, -0.2,  0  ,
                          0  ,  0  , -0.3,  0.1, -0.2,
-                         0  ,  0  ,  0  , -0.3,  0.1)    )
-   return(jac)
+                         0  ,  0  ,  0  , -0.3,  0.1))
+  return(jac)
 }
 
 ## the Jacobian, written in banded form
-bandjac <- function  (t, y, parms)
-{
-   jac <- matrix(nrow = 3, ncol = 5, byrow = TRUE,
-                 data = c( 0  , -0.2, -0.2, -0.2, -0.2,
-                           0.1,  0.1,  0.1,  0.1,  0.1,
-                          -0.3, -0.3, -0.3, -0.3,    0)    )
-   return(jac)
+bandjac <- function  (t, y, parms) {
+  jac <- matrix(nrow = 3, ncol = 5, byrow = TRUE,
+                data = c( 0  , -0.2, -0.2, -0.2, -0.2,
+                          0.1,  0.1,  0.1,  0.1,  0.1,
+                         -0.3, -0.3, -0.3, -0.3,    0))
+  return(jac)
 }
 
 ## initial conditions and output times
@@ -308,8 +306,7 @@ out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
 ##   partially specified Jacobian
 ## =======================================================================
 
-diffusion2D <- function(t, Y, par)
-{
+diffusion2D <- function(t, Y, par) {
    y <- matrix(nr = n, nc = n, data = Y)
    dY   <- r*y     # production
 
@@ -331,21 +328,20 @@ r     <- 0.025     # production rate
 times <- c(0, 1)
 
 n  <- 50
-y  <- matrix(nr = n, nc = n, 0.)
+y  <- matrix(nr = n, nc = n, 0)
 
 pa <- par(ask = FALSE)
 
 ## initial condition
 for (i in 1:n) {
   for (j in 1:n) {
-    dst <- (i-n/2)^2+(j-n/2)^2
-    y[i,j] <- max(0.,1.-1./(n*n)*(dst-n)^2)
+    dst <- (i - n/2)^2 + (j - n/2)^2
+    y[i, j] <- max(0, 1 - 1/(n*n) * (dst - n)^2)
   }
 }
 filled.contour(y, color.palette = terrain.colors)
 
 ## =======================================================================
-## Example 3:
 ##   jacfunc need not be estimated exactly
 ##   a crude approximation, with a smaller bandwidth will do.
 ##   Here the half-bandwidth 1 is used, whereas the true
@@ -361,7 +357,7 @@ print(system.time(
     filled.contour(matrix(nr = n, nc = n, out[2,-1]), zlim = c(0,1),
                   color.palette = terrain.colors, main = i)
 
-    y <- out[2,-1]
+    y <- out[2, -1]
   }
 ))
 par(ask = pa)

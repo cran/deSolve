@@ -19,7 +19,7 @@ void rk_fixed(
        /* double pointers */
        double* _dt,
        /* arrays */
-       double* tt, double* y0, double* y1,double* dy1, 
+       double* tt, double* y0, double* y1, double* dy1, 
        double* f, double* y, double* Fj, double* tmp,
        double* FF, double* rr, double* A, double* out, 
        double* bb1, double* cc, 
@@ -43,8 +43,11 @@ void rk_fixed(
     else
       dt = tt[it] - tt[it-1];
 
+    timesteps[0] = timesteps[1];     // experimental, check this
+    timesteps[1] = dt;               // experimental, check this  
+
     /******  Prepare Coefficients from Butcher table ******/
-    /* NOTE: must be given as subdiagonal here, not matrix !!!  */
+    /* NOTE: must be given as subdiagonal here, not matrix !  */
     for (j = 0; j < stage; j++) {
       if (j == 0) 
         for(i = 0; i < neq; i++) Fj[i] = 0;

@@ -7,7 +7,9 @@
   that have been converted to ODEs by numerical differencing.
 }
 \usage{ode.1D(y, times, func, parms, nspec = NULL, dimens = NULL, 
-       method = "lsode", ...)
+   method= c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
+   "euler", "rk4", "ode23", "ode45", "radau", "bdf", "adams", "impAdams"),
+   names = NULL, bandwidth = 1, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
@@ -23,11 +25,11 @@
     function in a dynamically loaded shared library.
   
     If \code{func} is an \R-function, it must be defined as:
-     \code{func <- function(t, y, parms,...)}.  \code{t} is the current time
+     \code{func <- function(t, y, parms, ...)}.  \code{t} is the current time
     point in the integration, \code{y} is the current estimate of the
     variables in the ODE system.  If the initial values \code{y} has a
     \code{names} attribute, the names will be available inside \code{func}.
-    \code{parms} is a vector or list of parameters; ... (optional) are
+    \code{parms} is a vector or list of parameters; \code{...} (optional) are
     any other arguments passed to the function.
   
     The return value of \code{func} should be a list, whose first
@@ -40,14 +42,27 @@
     will be used. See details.
   }
   \item{parms }{parameters passed to \code{func}.}
-  \item{nspec }{the number of *species* (components) in the model. If
-    NULL, then \code{dimens} should be specified.
+  \item{nspec }{the number of \bold{species} (components) in the model. If
+    \code{NULL}, then \code{dimens} should be specified.
   }
-  \item{dimens}{the number of *boxes* in the model. If NULL, then
+  \item{dimens}{the number of \bold{boxes} in the model. If \code{NULL}, then
     \code{nspec} should be specified.
   }
-  \item{method }{the integrator to use, one of \code{"vode"},
-    \code{"lsode"}, \code{"lsoda"}, \code{"lsodar"}, \code{"lsodes"}.
+  \item{method }{the integrator. Use \code{"vode", "lsode", "lsoda", 
+     "lsodar", "daspk"}, or \code{"lsodes"} if the model is very stiff;
+     \code{"impAdams"} or \code{"radau"} may be best suited for mildly stiff problems; 
+     \code{"euler", "rk4", "ode23", "ode45", "adams"} are most
+     efficient for non-stiff problems. Also allowed is to pass an integrator
+     \code{function}. Use one of the other Runge-Kutta methods via 
+     \code{rkMethod}. For instance, \code{method = rkMethod("ode45ck")} will
+     trigger the Cash-Karp method of order 4(5).
+  }
+  \item{names }{the names of the components; used for plotting.
+  }
+  \item{bandwidth }{the number of adjacent boxes over which transport occurs.
+    Normally equal to 1 (box i only interacts with box i-1, and i+1). 
+    Values larger than 1 will not work with \code{method = "lsodes"}.
+    Ignored if the method is explicit.
   }
   \item{... }{additional arguments passed to the integrator.}
 }
@@ -91,29 +106,28 @@
 ## Model equations
 ## ================
 
-lvmod <- function (time, state, parms, N, rr, ri, dr, dri)
-{
+lvmod <- function (time, state, parms, N, rr, ri, dr, dri) {
   with (as.list(parms), {
     PREY <- state[1:N]
     PRED <- state[(N+1):(2*N)]
 
     ## Fluxes due to diffusion
     ## at internal and external boundaries: zero gradient
-    FluxPrey <- -Da * diff(c(PREY[1],PREY,PREY[N]))/dri
-    FluxPred <- -Da * diff(c(PRED[1],PRED,PRED[N]))/dri
+    FluxPrey <- -Da * diff(c(PREY[1], PREY, PREY[N]))/dri
+    FluxPred <- -Da * diff(c(PRED[1], PRED, PRED[N]))/dri
 
     ## Biology: Lotka-Volterra model
-    Ingestion     <- rIng * PREY*PRED
-    GrowthPrey    <- rGrow* PREY*(1-PREY/cap)
-    MortPredator  <- rMort* PRED
+    Ingestion     <- rIng  * PREY * PRED
+    GrowthPrey    <- rGrow * PREY * (1-PREY/cap)
+    MortPredator  <- rMort * PRED
 
     ## Rate of change = Flux gradient + Biology
     dPREY    <- -diff(ri * FluxPrey)/rr/dr   +
                 GrowthPrey - Ingestion
     dPRED    <- -diff(ri * FluxPred)/rr/dr   +
-                Ingestion*assEff -MortPredator
+                Ingestion * assEff - MortPredator
 
-    return (list(c(dPREY,dPRED)))
+    return (list(c(dPREY, dPRED)))
   })
 }
 
@@ -135,11 +149,11 @@ parms <- c(Da     = 0.05,       # m2/d, dispersion coefficient
            rGrow  = 1.0,        # /day, growth rate of prey
            rMort  = 0.2 ,       # /day, mortality rate of pred
            assEff = 0.5,        # -, assimilation efficiency
-           cap    = 10 )        # density, carrying capacity
+           cap    = 10)         # density, carrying capacity
 
 ## Initial conditions: both present in central circle (box 1) only
-state    <- rep(0, 2*N)
-state[1] <- state[N+1] <- 10
+state    <- rep(0, 2 * N)
+state[1] <- state[N + 1] <- 10
                 
 ## RUNNING the model:
 times  <- seq(0, 200, by = 1)   # output wanted at these time intervals
@@ -147,15 +161,17 @@ times  <- seq(0, 200, by = 1)   # output wanted at these time intervals
 ## the model is solved by the two implemented methods:
 ## 1. Default: banded reformulation
 print(system.time(
-  out    <- ode.1D(y = state, times = times, func = lvmod, parms = parms,
-                   nspec = 2, N = N, rr = r, ri = ri, dr = dr, dri = dri)
+  out <- ode.1D(y = state, times = times, func = lvmod, parms = parms,
+                nspec = 2, names = c("PREY", "PRED"),
+                N = N, rr = r, ri = ri, dr = dr, dri = dri)
 ))
 
 ## 2. Using sparse method
 print(system.time(
-  out2   <- ode.1D(y = state, times = times, func = lvmod, parms = parms,
-                   nspec = 2, N = N, rr = r, ri = ri, dr = dr, dri = dri,
-                   method = "lsodes")
+  out2 <- ode.1D(y = state, times = times, func = lvmod, parms = parms,
+                 nspec = 2, names = c("PREY","PRED"), 
+                 N = N, rr = r, ri = ri, dr = dr, dri = dri,
+                 method = "lsodes")
 ))
 
 ## ================
@@ -164,11 +180,16 @@ print(system.time(
 # the data in 'out' consist of: 1st col times, 2-N+1: the prey
 # N+2:2*N+1: predators
 
-PREY   <- out[,2:(N  +1)]
+PREY   <- out[, 2:(N + 1)]
 
 filled.contour(x = times, y = r, PREY, color = topo.colors,
                xlab = "time, days", ylab = "Distance, m",
                main = "Prey density")
+# similar:
+image(out, which = "PREY", grid = r, xlab = "time, days", 
+      ylab = "Distance, m", main = "Prey density")
+
+image(out2, grid = r)
 
 ## =======================================================================
 ## Example 2.
@@ -179,23 +200,21 @@ filled.contour(x = times, y = r, PREY, color = topo.colors,
 ## ================
 ## Model equations
 ## ================
-O2BOD <- function(t,state,pars)
-{
+O2BOD <- function(t, state, pars) {
   BOD <- state[1:N]
   O2  <- state[(N+1):(2*N)]
 
   ## BOD dynamics
-  FluxBOD <- v*c(BOD_0,BOD)   # fluxes due to water transport
-  FluxO2  <- v*c(O2_0,O2)
+  FluxBOD <- v * c(BOD_0, BOD)   # fluxes due to water transport
+  FluxO2  <- v * c(O2_0, O2)
   
-  BODrate <- r*BOD            # 1-st order consumption
+  BODrate <- r * BOD             # 1-st order consumption
 
   ## rate of change = flux gradient  - consumption + reaeration (O2)
   dBOD         <- -diff(FluxBOD)/dx - BODrate
-  dO2          <- -diff(FluxO2)/dx  - BODrate     + p*(O2sat-O2)
+  dO2          <- -diff(FluxO2)/dx  - BODrate      +  p * (O2sat-O2)
 
   return(list(c(dBOD = dBOD, dO2 = dO2)))
-
 }
  
  
@@ -215,22 +234,26 @@ BOD_0   <- 1000      # mmol/m3 riverine BOD concentration
 
 ## initial conditions:
 state <- c(rep(200, N), rep(200, N))
-times     <- seq(0, 20, by = 0.1)
+times <- seq(0, 20, by = 0.1)
 
 ## running the model
 ##  step 1  : model spinup
-out       <- ode.1D(y = state, times, O2BOD, parms = NULL, nspec = 2)
+out <- ode.1D(y = state, times, O2BOD, parms = NULL, 
+              nspec = 2, names = c("BOD", "O2"))
 
 ## ================
 ## Plotting output
 ## ================
 ## select oxygen (first column of out:time, then BOD, then O2
-O2   <- out[,(N+2):(2*N+1)]
+O2   <- out[, (N + 2):(2 * N + 1)]
 color = topo.colors
 
 filled.contour(x = times, y = x, O2, color = color, nlevels = 50,
                xlab = "time, days", ylab = "Distance from river, m",
                main = "Oxygen")
+               
+## or quicker plotting:
+image(out, grid = x,  xlab = "time, days", ylab = "Distance from river, m")               
 }
 \details{
 
@@ -245,7 +268,7 @@ filled.contour(x = times, y = x, O2, color = color, nlevels = 50,
   Two methods are implemented.
   \itemize{
     \item The default method rearranges the state variables as
-      A[1],B[1],...A[2],B[2],...A[3],B[3],.... This reformulation leads
+      A[1], B[1], ... A[2], B[2], ... A[3], B[3], .... This reformulation leads
       to a banded Jacobian with (upper and lower) half bandwidth =
       number of species.
 
@@ -265,6 +288,14 @@ filled.contour(x = times, y = x, O2, color = color, nlevels = 50,
       return with an error message telling the size of the work array
       actually needed. In the second try then, set \code{lrw} equal to
       this number.
+
+     For instance, if you get the error:
+\preformatted{   
+DLSODES- RWORK length is insufficient to proceed.                               
+  Length needed is .ge. LENRW (=I1), exceeds LRW (=I2)                    
+  In above message,  I1 =     27627   I2 =     25932 
+}      
+     set \code{lrw} equal to 27627 or a higher value
 
   }
   If the model is specified in compiled code (in a DLL), then option 2,

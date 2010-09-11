@@ -1,3 +1,118 @@
+@MANUAL{Rexts2009,
+  title = {Writing \proglang{R} Extensions},
+  author = {{\proglang{R} Development Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2009},
+  note = {{ISBN} 3-900051-11-9},
+  url = {http://www.R-project.org}
+}
+
+@MANUAL{Rcore,
+  title = {\proglang{R}: A Language and Environment for Statistical Computing},
+  author = {{\proglang{R} Development Core Team}},
+  organization = {\proglang{R} Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2008},
+  note = {{ISBN} 3-900051-07-0},
+  url = {http://www.R-project.org}
+}
+
+@ARTICLE{Bogacki1989,
+  author = {Bogacki, P and Shampine, L F},
+  title = {A 3(2) Pair of Runge-Kutta Formulas},
+  journal = {Applied Mathematics Letters},
+  year = {1989},
+  volume = {2},
+  pages = {1--9}
+}
+
+@BOOK{Brenan96,
+  title = {Numerical Solution of Initial-Value Problems in Differential-Algebraic
+	Equations},
+  publisher = {SIAM Classics in Applied Mathematics},
+  year = {1996},
+  author = {Brenan, K E and Campbell, S L and Petzold, L R}
+}
+
+@ARTICLE{Brown89,
+  author = {Brown, P N and Byrne, G D and Hindmarsh, A C},
+  title = {\pkg{VODE}, A Variable-Coefficient ODE Solver},
+  journal = {SIAM Journal on Scientific and Statistical Computing},
+  year = {1989},
+  volume = {10},
+  pages = {1038--1051}
+}
+
+@BOOK{Butcher1987,
+  title = {The Numerical Analysis of Ordinary Differential Equations, Runge-Kutta
+	and General Linear Methods},
+  publisher = {John Wiley \& Sons},
+  year = {1987},
+  author = {Butcher, J C},
+  volume = {2},
+  pages = {1--9},
+  address = {Chichester and New York.}
+}
+
+@ARTICLE{Cash1990,
+  author = {Cash, J R and Karp, A H},
+  title = {A Variable Order Runge-Kutta Method for Initial Value Problems With
+	Rapidly Varying Right-Hand Sides},
+  journal = {ACM Transactions on Mathematical Software},
+  year = {1990},
+  volume = {16},
+  pages = {201--222}
+}
+
+@ARTICLE{Dormand1981,
+  author = {Dormand, J R and Prince, P J},
+  title = {High Order Embedded Runge-Kutta Formulae},
+  journal = {Journal of Computational and Applied Mathematics},
+  year = {1981},
+  volume = {7},
+  pages = {67--75},
+  issue = {1}
+}
+
+@ARTICLE{Dormand1980,
+  author = {Dormand, J R and Prince, P J},
+  title = {A family of embedded Runge-Kutta formulae},
+  journal = {Journal of Computational and Applied Mathematics},
+  year = {1980},
+  volume = {6},
+  pages = {19--26},
+  issue = {1}
+}
+
+@ARTICLE{Fehlberg1967,
+  author = {Fehlberg, E},
+  title = {Klassische Runge-Kutta-Formeln fuenfter and siebenter Ordnung mit
+	Schrittweiten-Kontrolle},
+  journal = {Computing (Arch. Elektron. Rechnen)},
+  year = {1967},
+  volume = {4},
+  pages = {93--106}
+}
+
+@BOOK{Hairer1,
+  title = {Solving Ordinary Differential Equations I: Nonstiff Problems. Second
+	Revised Edition},
+  publisher = {Springer-Verlag},
+  year = {2009},
+  author = {Hairer, E and Norsett, S. P. and Wanner, G},
+  address = {Heidelberg}
+}
+
+@BOOK{Hairer2,
+  title = {Solving Ordinary Differential Equations II: Stiff and Differential-Algebraic
+	Problems. Second Revised Edition},
+  publisher = {Springer-Verlag},
+  year = {2010},
+  author = {Hairer, E and Wanner, G},
+  address = {Heidelberg}
+}
+
 @INCOLLECTION{Hindmarsh83,
   author = {Hindmarsh, A. C.},
   title = {\pkg{ODEPACK}, a Systematized Collection of {ODE} Solvers},
@@ -8,6 +123,16 @@
   editor = {Stepleman, R.},
   pages = {55-64},
   address = {Amsterdam}
+}
+
+@ARTICLE{Petzold1983,
+  author = {Linda R. Petzold},
+  title = {Automatic Selection of Methods for Solving Stiff and Nonstiff Systems
+	of Ordinary Differential Equations},
+  journal = {SIAM Journal on Scientific and Statistical Computing},
+  year = {1983},
+  volume = {4},
+  pages = {136--148}
 }
 
 @BOOK{Press92,
@@ -25,17 +150,10 @@
   year = {2001},
   note = {R package version 0.1-1}
 }
- @Manual{deSolve,
-    title = {deSolve: General solvers for initial value problems of ordinary differential equations
-(ODE), partial differential equations (PDE), differential algebraic equations (DAE) and 
-delay differential equations (DDE)},
-    author = {Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer},
-    year = {2010},
-    note = {R package version 1.7},
-  }
+
 @BOOK{Soetaert08,
-  title = {A Practical Guide to Ecological Modelling. Using R as a Simulation
-	Platform},
+  title = {A Practical Guide to Ecological Modelling. Using \proglang{R} as
+	a Simulation Platform},
   publisher = {Springer},
   year = {2009},
   author = {Soetaert, K and Herman, P M J},
@@ -46,40 +164,29 @@ delay differential equations (DDE)},
 @ARTICLE{deSolve_jss,
   author = {Soetaert, K and Petzoldt, T and Setzer, RW},
   title = {Solving Differential Equations in \proglang{R}: Package \pkg{deSolve}},
-  journal =	{Journal of Statistical Software},
-  volume =	{33},
-  number =	{9},
-  pages =	{1--25},
-  year = 	{2010},
-  CODEN =	{JSSOBK},
-  ISSN = 	{1548-7660},
-  URL =  	{http://www.jstatsoft.org/v33/i09} 
+  journal = {Journal of Statistical Software},
+  year = {2010},
+  volume = {33},
+  pages = {1--25},
+  number = {9},
+  coden = {JSSOBK},
+  issn = {1548-7660},
+  url = {http://www.jstatsoft.org/v33/i09}
 }
-@Manual{compiledCode,
-    title = {\proglang{R} package \pkg{deSolve}: Writing Code in Compiled
-                  Languages},
-    author = {Karline Soetaert Thomas Petzoldt and R. Woodrow Setzer},
-    year = {2008},
-    note = {{deSolve} vignette - R package version 1.7},
-  }
 
- @Manual{Rcore,
-    title = {R: A Language and Environment for Statistical Computing},
-    author = {{R Development Core Team}},
-    organization = {R Foundation for Statistical Computing},
-    address = {Vienna, Austria},
-    year = {2008},
-    note = {{ISBN} 3-900051-07-0},
-    url = {http://www.R-project.org},
-  }
-
-
-@MANUAL{Rexts2009,
-  title = {Writing \proglang{R} Extensions},
-  author = {{\proglang{R} Development Core Team}},
-  organization = {R Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  year = {2009},
-  note = {{ISBN} 3-900051-11-9},
-  url = {http://www.R-project.org}
+@MANUAL{deSolve,
+  title = {deSolve: General solvers for initial value problems of ordinary differential
+	equations (ODE), partial differential equations (PDE), differential
+	algebraic equations (DAE) and delay differential equations (DDE)},
+  author = {Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer},
+  year = {2010},
+  note = {R package version 1.8}
 }
+
+@MANUAL{compiledCode,
+  title = {\proglang{R} package \pkg{deSolve}: Writing Code in Compiled Languages},
+  author = {Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer},
+  year = {2008},
+  note = {\pkg{deSolve} vignette - \proglang{R} package version 1.8}
+}
+

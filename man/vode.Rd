@@ -79,7 +79,8 @@
     long as \code{y}.  See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function that computes the
-    Jacobian of the system of differential equations dydot(i)/dy(j), or
+    Jacobian of the system of differential equations 
+    \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}, or
     a string giving the name of a function or subroutine in
     \file{dllname} that computes the Jacobian (see vignette
     \code{"compiledCode"} for more about this option).
@@ -90,7 +91,7 @@
     that of \code{func}.
 
     If the Jacobian is a full matrix, \code{jacfunc} should return a
-    matrix dydot/dy, where the ith row contains the derivative of
+    matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
     matrix elements by columns (the way \R and FORTRAN store matrices).
 
@@ -172,7 +173,7 @@
     defined in compiled code: the number of output variables calculated
     in the compiled function \code{func}, present in the shared
     library. Note: it is not automatically checked whether this is
-    indeed the number of output variables calculed in the dll - you have
+    indeed the number of output variables calculated in the dll - you have
     to perform this check in the code - See package vignette \code{"compiledCode"}.
   }
   \item{outnames }{only used if \file{dllname} is specified and
@@ -225,13 +226,12 @@
 ## Lorenz 1963. J. Atmos. Sci. 20, 130-141.
 ## =======================================================================
 
-chaos <- function(t, state, parameters)
-{
-  with(as.list(c(state)),{
+chaos <- function(t, state, parameters) {
+  with(as.list(c(state)), {
 
-    dx     <- -8/3*x+y*z
-    dy     <- -10*(y-z)
-    dz     <- -x*y+28*y-z
+    dx     <- -8/3 * x + y * z
+    dy     <- -10 * (y - z)
+    dz     <- -x * y + 28 * y - z
 
     list(c(dx, dy, dz))
   })
@@ -242,9 +242,9 @@ times <- seq(0, 100, 0.01)
 
 out   <- vode(state, times, chaos, 0)
 
-plot(out, type="l")   # all versus time
+plot(out, type = "l")   # all versus time
 plot(out[,"x"], out[,"y"], type = "l", main = "Lorenz butterfly",
-  xlab="x",ylab="y")
+  xlab = "x", ylab = "y")
 
 
 ## =======================================================================
@@ -255,52 +255,52 @@ plot(out[,"x"], out[,"y"], type = "l", main = "Lorenz butterfly",
 ## example from Soetaert and Herman, 2009, chapter 3. (simplified)
 ## =======================================================================
 
-# Forcing function data
-Flux <- matrix(ncol=2,byrow=TRUE,data=c(
-  1, 0.654, 11, 0.167,   21, 0.060, 41, 0.070, 73,0.277, 83,0.186,
-  93,0.140,103, 0.255,  113, 0.231,123, 0.309,133,1.127,143,1.923,
-  153,1.091,163,1.001,  173, 1.691,183, 1.404,194,1.226,204,0.767,
-  214, 0.893,224,0.737, 234,0.772,244, 0.726,254,0.624,264,0.439,
-  274,0.168,284 ,0.280, 294,0.202,304, 0.193,315,0.286,325,0.599,
-  335, 1.889,345, 0.996,355,0.681,365,1.135))
+## Forcing function data
+Flux <- matrix(ncol = 2, byrow = TRUE, data = c(
+  1,  0.654, 11, 0.167,  21, 0.060, 41, 0.070, 73, 0.277, 83, 0.186,
+  93, 0.140,103, 0.255, 113, 0.231,123, 0.309,133, 1.127,143, 1.923,
+  153,1.091,163, 1.001, 173, 1.691,183, 1.404,194, 1.226,204, 0.767,
+  214,0.893,224, 0.737, 234, 0.772,244, 0.726,254, 0.624,264, 0.439,
+  274,0.168,284, 0.280, 294, 0.202,304, 0.193,315, 0.286,325, 0.599,
+  335,1.889,345, 0.996, 355, 0.681,365, 1.135))
 
-parms <- c(k=0.01)
+parms <- c(k = 0.01)
 
-meanDepo <- mean(approx(Flux[,1],Flux[,2], xout=seq(1,365,by=1))$y)
+meanDepo <- mean(approx(Flux[,1], Flux[,2], xout = seq(1, 365, by = 1))$y)
 Yini <- meanDepo/parms
 
 times <- 1:365
-out <- as.data.frame( vode(Yini, times, func = "scocder",
+out <- as.data.frame(vode(Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
-    initforc="scocforc",  forcings=Flux,
+    initforc = "scocforc", forcings = Flux,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation","Depo")))
+    outnames = c("Mineralisation", "Depo")))
 
-plot(out$time,out$Depo,type="l",col="red")
-lines(out$time,out$Mineralisation,col="blue")
+plot(out$time, out$Depo, type = "l", col = "red")
+lines(out$time, out$Mineralisation, col = "blue")
 
-# Constant interpolation of forcing function - left side of interval
-fcontrol<-list(method="constant")
+## Constant interpolation of forcing function - left side of interval
+fcontrol <- list(method = "constant")
 
 out2 <- as.data.frame( vode(Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
-    initforc="scocforc",  forcings=Flux, fcontrol=fcontrol,
+    initforc = "scocforc",  forcings = Flux, fcontrol = fcontrol,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation","Depo")))
+    outnames = c("Mineralisation", "Depo")))
 
-plot(out2$time,out2$Depo,type="l",col="red")
-lines(out2$time,out2$Mineralisation,col="blue")
+plot(out2$time, out2$Depo, type = "l", col = "red")
+lines(out2$time, out2$Mineralisation, col = "blue")
 
-# Constant interpolation of forcing function - middle of interval
-fcontrol<-list(method="constant",f=0.5)
+## Constant interpolation of forcing function - middle of interval
+fcontrol <- list(method = "constant", f = 0.5)
 
 out3 <- as.data.frame( vode(Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
-    initforc="scocforc",  forcings=Flux, fcontrol=fcontrol,
+    initforc = "scocforc",  forcings = Flux, fcontrol = fcontrol,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation","Depo")))
+    outnames = c("Mineralisation", "Depo")))
 
-lines(out3$time,out3$Depo,type="l",col="orange",lty=2)
+lines(out3$time, out3$Depo, type = "l", col = "orange", lty = 2)
 
 }
 \references{
