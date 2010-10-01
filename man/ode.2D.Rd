@@ -160,7 +160,7 @@ yini[cc] <- yini[NN+cc] <- 1
 times   <- seq(0, 50, by = 1)
 out <- ode.2D(y = yini, times = times, func = lvmod2D, parms = pars,
               dimens = c(N, N), names = c("Prey", "Pred"),
-              N = N, dx = dx, Da = Da, , method = rkMethod("rk45ck"))
+              N = N, dx = dx, Da = Da, method = rkMethod("rk45ck"))
 
 ## plot results
 Col <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
@@ -189,12 +189,12 @@ diffusion2D <- function(t, Y, par) {
   BNDy <- rep(1, ny)   # boundary concentration
 
   ## diffusion in X-direction; boundaries=imposed concentration
-  Flux <- -Dx * rbind(y[1,]-BNDy,(y[2:nx,]-y[1:(nx-1),]),BNDy-y[nx,])/dx
-  dY   <- dY - (Flux[2:(nx+1),]-Flux[1:nx,])/dx
+  Flux <- -Dx * rbind(y[1,] - BNDy, (y[2:nx,] - y[1:(nx-1),]), BNDy - y[nx,])/dx
+  dY   <- dY - (Flux[2:(nx+1),] - Flux[1:nx,])/dx
 
   ## diffusion in Y-direction
-  Flux <- -Dy * cbind(y[,1]-BNDx,(y[,2:ny]-y[,1:(ny-1)]),BNDx-y[,ny])/dy
-  dY   <- dY - (Flux[,2:(ny+1)]-Flux[,1:ny])/dy
+  Flux <- -Dy * cbind(y[,1] - BNDx, (y[,2:ny]-y[,1:(ny-1)]), BNDx - y[,ny])/dy
+  dY   <- dY - (Flux[,2:(ny+1)] - Flux[,1:ny])/dy
 
   ## extra flux on two sides
   dY[,1] <- dY[,1] + 10
@@ -223,10 +223,10 @@ print(system.time(
 ))
 
 \dontrun{
-zlim <- range(ST3[,-1])
+zlim <- range(ST3[, -1])
 for (i in 2:nrow(ST3)) {
-  y <- matrix(nr=nx,nc=ny,data=ST3[i,-1])
-  filled.contour(y,zlim=zlim,main=i)
+  y <- matrix(nr = nx, nc = ny, data = ST3[i, -1])
+  filled.contour(y, zlim = zlim, main = i)
 }
 }
 

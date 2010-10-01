@@ -175,7 +175,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   iknots++;
 
   t = tt[0];                   
-  tmax = fmax(tt[nt], tcrit);
+  tmax = fmax(tt[nt - 1], tcrit);
 
   /* Initialization of work arrays (to be on the safe side, remove this later) */
   for (i = 0; i < neq; i++)  {

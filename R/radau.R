@@ -36,7 +36,7 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
     stop("sum of of `nind' must equal n, the number of equations")
 
 ### Jacobian
-  full = TRUE
+  full <- TRUE
 
     if (jactype == "fullint" ) {  # full, calculated internally
       ijac <- 0
@@ -71,7 +71,7 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
   ModelInit <- NULL
 
   if (is.character(func)) {   # function specified in a DLL
-    DLL <- checkDLL(func,NULL,dllname,
+    DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
 
     ModelInit <- DLL$ModelInit

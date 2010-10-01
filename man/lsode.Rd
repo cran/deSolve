@@ -232,7 +232,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   in \code{times} and as many columns as elements in \code{y} plus the number of "global"
   values returned in the next elements of the return from \code{func},
   plus and additional column for the time value.  There will be a row
-  for each element in \code{times} unless the FORTRAN routine `lsoda'
+  for each element in \code{times} unless the FORTRAN routine `lsode'
   returns with an unrecoverable error. If \code{y} has a names
   attribute, it will be used to label the columns of the output value.
 

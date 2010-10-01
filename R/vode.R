@@ -74,7 +74,7 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
   Func <- NULL
   JacFunc <- NULL
 
-  ## if (miter == 4) Jacobian should have banddown empty rows-vode only!
+  ## if (miter == 4) Jacobian should have banddown empty rows!
   if (miter == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
 
@@ -101,14 +101,6 @@ vode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
     Eventfunc <- events$func
-     if (!is.null(jacfunc)) {
-       #  if (miter == 4) Jacobian should have empty banddown empty rows
-       # This is so for vode only; other solvers do not need this
-       # As this is not compatible with other solvers, this option has been
-       # toggled off (otherwise DLL function might crash)
-      if (miter == 4&& banddown>0)
-        stop("The combination of user-supplied banded Jacobian in a dll is NOT allowed")
-     }
   } else {
     if(is.null(initfunc))
        initpar <- NULL # parameter initialisation not needed if function is not a DLL

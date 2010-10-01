@@ -23,14 +23,14 @@
 
 void F77_NAME(radau5)( int *,
          void (*)(int *, double *, double *, double *,
-                              double *, int *),         // func
+                              double *, int *),           // func
 		     double *, double *, double *, double *,
 		     double *, double *, int *,  
- 	       void (*)(int *, double *, double *, double *, int *,
-                              double *, int *),         // jac
+ 	       void (*)(int *, double *, double *, int *, int *, 
+                    double *, int *, double *, int *),    // jac
 		     int *, int *, int *,
  	       void (*)(int *, double *, int *,
-                              double *, int *),         // mas
+                              double *, int *),           // mas
 		     int *, int *, int *,
          void (*)(int *, double *, double *, double *, double *,  
 			            int *, int *, double *, int *, int *, double *),   // soloutrad
@@ -146,9 +146,8 @@ static void C_soloutrad(int * nr, double * told, double *t, double * y,
 }
 
 /* interface to jacobian function */
-
-static void C_jac_func_rad(int *neq, double *t, double *y, double *pd, 
-         int *nrowpd, double *yout, int *iout)
+static void C_jac_func_rad(int *neq, double *t, double *y, int *ml,
+		    int *mu, double *pd, int *nrowpd, double *yout, int *iout)
 {
   int i;
   SEXP R_fcall, ans;
@@ -171,8 +170,8 @@ typedef void C_solout_type (int *, double *, double *, double *,
 typedef void C_mas_type (int *, double *, int *, double *, int *);
 
 // to be changed...
-typedef void C_jac_func_type_rad(int *, double *, double *, double *, int*,
-                      double *, int *);
+typedef void C_jac_func_type_rad(int *, double *, double *, int *, 
+                     int *, double *, int*, double *, int *);
 
 /* MAIN C-FUNCTION, CALLED FROM R-code */
 
