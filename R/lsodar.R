@@ -67,6 +67,9 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   Eventfunc <- NULL
   events <- checkevents(events, times, Ynames, dllname, TRUE)
 
+  if (jt == 4 && banddown>0)
+    erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
+
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
@@ -115,7 +118,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       }
       JacFunc <- function(time,state){
         attr(state,"names") <- Ynames
-        jacfunc(time,state,parms,...)
+         rbind(jacfunc(time,state,parms,...),erow)
       }
       RootFunc <- function(time,state) {
         attr(state,"names") <- Ynames
@@ -135,7 +138,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
         func   (time,state,parms,...)
 
       JacFunc <- function(time,state)
-        jacfunc(time,state,parms,...)
+         rbind(jacfunc(time,state,parms,...),erow)
 
       RootFunc <- function(time,state)
         rootfunc(time,state,parms,...)

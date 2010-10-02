@@ -184,7 +184,7 @@ void rk_implicit( double * alfa,  // neq*stage * neq*stage
           for (i = 0; i < neq; i++)
             yout[it_ext + nt * (1 + i)] = tmp[i];
         }
-        if(it_ext < nt) t_ext = tt[++it_ext]; else break;
+        if(it_ext < nt-1) t_ext = tt[++it_ext]; else break;
        }
        shiftBuffer(yknots, nknots, neq + 1);
       }

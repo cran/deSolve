@@ -357,7 +357,7 @@ index <- c(4, 4, 2)
 
 times <- seq(0, 3, by = 0.01)
 out <- radau(y = yini, mass = Mass, times = times, func = caraxisfun,
-        parms = parameter, nind = index)
+        parms = NULL, nind = index)
 
 plot(out, which = 1:4, type = "l", lwd = 2)
 }

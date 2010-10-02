@@ -205,7 +205,8 @@ int initEvents(SEXP elist, SEXP eventfunc) {
      i = LENGTH(Time);
      timeevent = (double *) R_alloc((int) i+1, sizeof(double));
      for (j = 0; j < i; j++) timeevent[j] = REAL(Time)[j];
-     timeevent[i+1] = 0;
+     //timeevent[i+1] = 0; // thpe removed
+     timeevent[i] = 0;     // thpe added
       
      if (typeevent == 1) {  
        /* specified in a data.frame */

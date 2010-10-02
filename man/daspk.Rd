@@ -547,7 +547,7 @@ par(mfrow = opa)
   
   The input parameters \code{rtol}, and \code{atol} determine the
   \bold{error control} performed by the solver.  If the request for
-  precision exceeds the capabilities of the machine, daspk will return
+  precision exceeds the capabilities of the machine, \code{daspk} will return
   an error code. See \code{\link{lsoda}} for details.
   
   \bold{res and jacres} may be defined in compiled C or FORTRAN code, as
