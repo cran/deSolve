@@ -1,4 +1,4 @@
-
+ 
 ### ============================================================================
 ### radau, implicit runge-kutta
 ### ============================================================================
@@ -150,6 +150,10 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
      imas  <- 1
 
      dimens <- dim(mass)
+     if(is.null(dimens)) {
+       mass <- matrix(nrow = 1, data = mass)
+       dimens <- dim(mass)
+     } 
      if (dimens[2] != n)
        stop ("mass matrix should have as many columns as number of variables in 'y'")
      if (dimens[1] != n) {

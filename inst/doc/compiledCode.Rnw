@@ -1306,11 +1306,11 @@ function (\code{initforc="scocforc"}).
 
 <<>>=
 times <- 1:365
-out <- as.data.frame( ode(y=Yini, times, func = "scocder",
+out <- ode(y=Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
     initforc="scocforc",  forcings=Flux,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation","Depo")))
+    outnames = c("Mineralisation","Depo"))
 head(out)
 @
 
@@ -1319,25 +1319,25 @@ Rather than linear interpolation, constant (block, step) interpolation is used.
 
 <<>>=
 fcontrol <- list(method="constant")
-out2 <- as.data.frame( ode(y=Yini, times, func = "scocder",
+out2 <- ode(y=Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
     initforc="scocforc",  forcings=Flux, fcontrol=fcontrol,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation","Depo")))
+    outnames = c("Mineralisation","Depo"))
 @
 
 Finally, the results are plotted:
 
 <<label=scoc,include=FALSE>>=
 par (mfrow=c(1,2))
-plot(out$time, out$Depo, type="l", col="red",
+plot(out, which = "Depo", col="red",
   xlab="days", ylab="mmol C/m2/ d", main="method='linear'")
-lines(out$time, out$Mineralisation, lwd=2, col="blue")
+lines(out[,"time"], out[,"Mineralisation"], lwd=2, col="blue")
 legend("topleft",lwd=1:2,col=c("red","blue"), c("Flux","Mineralisation"))
 
-plot(out2$time, out2$Depo, type="l", col="red",
+plot(out, which = "Depo", col="red",
   xlab="days", ylab="mmol C/m2/ d", main="method='constant'")
-lines(out2$time, out2$Mineralisation, lwd=2, col="blue")
+lines(out2[,"time"], out2[,"Mineralisation"], lwd=2, col="blue")
 @
 \setkeys{Gin}{width=0.8\textwidth}
 
@@ -1396,7 +1396,7 @@ out <- ode(y = xstart,times = times,
 All output is printed at once:
 
 <<label=lv,include=FALSE>>=
-plot(out, type="l")
+plot(out)
 @
 
 \setkeys{Gin}{width=1.0\textwidth}

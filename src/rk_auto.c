@@ -203,7 +203,7 @@ void rk_auto(
     } /* else rejected time step */
     dt = fmin(dtnew, tmax - t);
     if (it_ext > nt) {
-      Rprintf("error in rk_solvers.c - call_rkauto: output buffer overflow\n");
+      Rprintf("error in RK solver rk_auto.c: output buffer overflow\n");
       break;
     }
     if (it_tot > maxsteps) {
@@ -211,7 +211,8 @@ void rk_auto(
       istate[0] = -1;
       break;
     }
-  } while (t < tmax); /* end of rk main loop */
+    /* tolerance to avoid rounding errors */
+  } while (t < (tmax - 100.0 * DBL_EPSILON * dt)); /* end of rk main loop */
 
   /* return reference values */
   *_iknots = iknots; *_it = it; *_it_ext = it_ext; *_it_rej = nreject;

@@ -1,5 +1,5 @@
 \name{ode.2D}
-\alias{ode.2D}
+\alias{ode.2D}                                             
 
 \title{Solver for 2-Dimensional Ordinary Differential Equations}
 
@@ -162,11 +162,13 @@ out <- ode.2D(y = yini, times = times, func = lvmod2D, parms = pars,
               dimens = c(N, N), names = c("Prey", "Pred"),
               N = N, dx = dx, Da = Da, method = rkMethod("rk45ck"))
 
+diagnostics(out)
+summary(out)
+
+\dontrun{
 ## plot results
 Col <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
                           "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
-
-\dontrun{
 for (i in seq(1, length(times), by = 1))
    image(matrix(nr = N, nc = N, out[i, 2:(NN+1)]),
    col = Col(100), xlab = , zlim = range(out[,2:(NN+1)]))
@@ -174,6 +176,17 @@ for (i in seq(1, length(times), by = 1))
 ## similar:
 image(out, xlab = "x", ylab = "y")
 }
+
+# plot prey and pred at t = 10; first use subset to select data
+prey10 <-  matrix (nrow = N, ncol = N, 
+     data = subset(out, select = "Prey", subset = (time == 10)))
+pred10 <-  matrix (nrow = N, ncol = N, 
+     data = subset(out, select = "Pred", subset = (time == 10)))
+
+mf <- par(mfrow = c(1,2))
+image(prey10)
+image(pred10)
+par (mfrow = mf)
 
 ## =======================================================================
 ## An example with a cyclic boundary condition.
@@ -218,9 +231,19 @@ y  <- matrix(nrow = nx, ncol = ny, 1)
 
 print(system.time(
   ST3 <- ode.2D(y, times = 1:100, func = diffusion2D, parms = NULL,
-                dimens = c(nx, ny), verbose = TRUE,
+                dimens = c(nx, ny), verbose = TRUE, names = "Y",
                 lrw = 400000, atol = 1e-10, rtol = 1e-10, cyclicBnd = 2)
 ))
+
+# summary of 2-D variable
+summary(ST3)
+
+# plot output at t = 10
+t10 <-  matrix (nrow = nx, ncol = ny, 
+     data = subset(ST3, select = "Y", subset = (time == 10)))
+
+persp(t10, theta = 30, border = NA, phi = 70, 
+     col = "lightblue", shade = 0.5, box = FALSE)
 
 \dontrun{
 zlim <- range(ST3[, -1])

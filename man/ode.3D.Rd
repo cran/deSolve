@@ -150,6 +150,8 @@ print(system.time(
 y <- array(dim = c(n, n, n), data = RES[nrow(RES), -1])
 filled.contour(y[, , n/2], color.palette = terrain.colors)
 
+summary(RES)
+
 \dontrun{
 for (i in 2:nrow(RES)) {
   y <- array(dim=c(n,n,n),data=RES[i,-1])

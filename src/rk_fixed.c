@@ -43,11 +43,11 @@ void rk_fixed(
     else
       dt = tt[it] - tt[it-1];
 
-    timesteps[0] = timesteps[1];     // experimental, check this
-    timesteps[1] = dt;               // experimental, check this  
+    timesteps[0] = timesteps[1];
+    timesteps[1] = dt;
 
     /******  Prepare Coefficients from Butcher table ******/
-    /* NOTE: must be given as subdiagonal here, not matrix !  */
+    /* NOTE: the fixed-step solver needs coefficients as, not matrix !  */
     for (j = 0; j < stage; j++) {
       if (j == 0) 
         for(i = 0; i < neq; i++) Fj[i] = 0;
@@ -115,15 +115,17 @@ void rk_fixed(
     it++;
     for (i = 0; i < neq; i++) y0[i] = y1[i];
     if (it_ext > nt) {
-      Rprintf("error in rk_solvers.c - call_rk4auto: output buffer overflow\n");
+      Rprintf("error in RK solver rk_fixed.c: output buffer overflow\n");
       break;
     }
     if (it_tot > maxsteps) {
       if (verbose) Rprintf("Max. number of steps exceeded\n");
       break;
     }
-  } while (t < tmax); /* end of rk main loop */
+    /* tolerance to avoid rounding errors */
+  } while (t < (tmax - 100.0 * DBL_EPSILON * dt)); /* end of rk main loop */
   
   /* return reference values */
   *_iknots = iknots; *_it = it; *_it_ext = it_ext; *_it_tot = it_tot;
 }
+ 

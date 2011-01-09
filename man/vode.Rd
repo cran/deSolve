@@ -1,5 +1,5 @@
 \name{vode}
-\alias{vode}
+\alias{vode}                                   
 
 \title{Solver for Ordinary Differential Equations (ODE)}
 
@@ -267,41 +267,43 @@ Flux <- matrix(ncol = 2, byrow = TRUE, data = c(
 parms <- c(k = 0.01)
 
 meanDepo <- mean(approx(Flux[,1], Flux[,2], xout = seq(1, 365, by = 1))$y)
-Yini <- meanDepo/parms
+
+Yini <- c(y = as.double(meanDepo/parms))
 
 times <- 1:365
-out <- as.data.frame(vode(Yini, times, func = "scocder",
+out <- vode(Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
     initforc = "scocforc", forcings = Flux,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation", "Depo")))
+    outnames = c("Mineralisation", "Depo"))
 
-plot(out$time, out$Depo, type = "l", col = "red")
-lines(out$time, out$Mineralisation, col = "blue")
+matplot(out[,1], out[,c("Depo", "Mineralisation")], 
+        type = "l", col = c("red", "blue"), xlab = "time", ylab = "Depo")
 
 ## Constant interpolation of forcing function - left side of interval
 fcontrol <- list(method = "constant")
 
-out2 <- as.data.frame( vode(Yini, times, func = "scocder",
+out2 <- vode(Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
     initforc = "scocforc",  forcings = Flux, fcontrol = fcontrol,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation", "Depo")))
-
-plot(out2$time, out2$Depo, type = "l", col = "red")
-lines(out2$time, out2$Mineralisation, col = "blue")
+    outnames = c("Mineralisation", "Depo"))
+matplot(out2[,1], out2[,c("Depo", "Mineralisation")], 
+        type = "l", col = c("red", "blue"), xlab = "time", ylab = "Depo")
 
 ## Constant interpolation of forcing function - middle of interval
 fcontrol <- list(method = "constant", f = 0.5)
 
-out3 <- as.data.frame( vode(Yini, times, func = "scocder",
+out3 <- vode(Yini, times, func = "scocder",
     parms = parms, dllname = "deSolve",
     initforc = "scocforc",  forcings = Flux, fcontrol = fcontrol,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation", "Depo")))
+    outnames = c("Mineralisation", "Depo"))
 
-lines(out3$time, out3$Depo, type = "l", col = "orange", lty = 2)
+matplot(out3[,1], out3[,c("Depo", "Mineralisation")], 
+        type = "l", col = c("red", "blue"), xlab = "time", ylab = "Depo")
 
+plot(out, out2, out3)
 }
 \references{
   

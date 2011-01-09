@@ -50,7 +50,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   PROTECT(R_C = getListElement(Method, "c")); incr_N_Protect();
   if (length(R_C)) cc = REAL(R_C);
   
-    double  qerr  = REAL(getListElement(Method, "Qerr"))[0];
+  double  qerr  = REAL(getListElement(Method, "Qerr"))[0];
 
   PROTECT(Times = AS_NUMERIC(Times)); incr_N_Protect();
   tt = NUMERIC_POINTER(Times);
@@ -61,10 +61,12 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   neq = length(Xstart);
 
   /*------------------------------------------------------------------------*/
-  /* timesteps (for compatibility with lsoda)                               */
+  /* timesteps (for advection computation in ReacTran)                      */
   /*------------------------------------------------------------------------*/
-  timesteps = (double *)R_alloc(2, sizeof(double)); 
-  for (i = 0; i < 2; i++) timesteps[i] = 1;
+  if (hini > 0)
+    for (i = 0; i < 2; i++) timesteps[i] = fmin(hini, tt[1] - tt[0]);
+  else
+    for (i = 0; i < 2; i++) timesteps[i] = tt[1] - tt[0];
   
   /**************************************************************************/
   /****** DLL, ipar, rpar (to be compatible with lsoda)                ******/
@@ -97,15 +99,8 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   if (isDll == 1) {
     /* other elements of ipar are set in R-function lsodx via argument *ipar* */
     for (j = 0; j < LENGTH(Ipar); j++) ipar[j+3] = INTEGER(Ipar)[j];
-    /* 
-       rpar is passed via "out" which may be seen as a hack.
-       However, such an approach was required for the Livermore solvers.
-       It would have been unwise to re-implement these highly efficient
-       codes from scratch again.
-       
-       out:  first nout elements of out are reserved for output variables
-       other elements are set via argument *rpar* 
-    */
+    /* out:  first nout elements of out are reserved for output variables
+       other elements are set via argument *rpar*  */
     for (j = 0; j < nout; j++)         out[j] = 0.0;                
     for (j = 0; j < LENGTH(Rpar); j++) out[nout+j] = REAL(Rpar)[j];
   }
@@ -131,11 +126,8 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 
   PROTECT(R_nknots = getListElement(Method, "nknots")); incr_N_Protect();
   if (length(R_nknots)) nknots = INTEGER(R_nknots)[0] + 1;
-
   if (nknots < 2) {nknots=1; interpolate = FALSE;}
-  
   yknots = (double *) R_alloc((neq + 1) * (nknots + 1), sizeof(double));
-
 
   /* matrix for holding states and global outputs */
   PROTECT(R_yout = allocMatrix(REALSXP, nt, neq + nout + 1)); incr_N_Protect();
@@ -207,6 +199,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   	     Func, Parms, Rho
     );
   } else {
+  /* integrate until next time step and return */
    for (int j = 0; j < nt - 1; j++) {
        t = tt[j];
        tmax = fmin(tt[j + 1], tcrit);
@@ -214,12 +207,12 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
        if (isEvent) {
          updateevent(&t, y0, istate);
        }
-      rk_fixed(
+       rk_fixed(
          fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
          maxsteps, nt,
   	     &iknots, &it, &it_ext, &it_tot,
          istate, ipar,
-  	     t, tmax, hini,
+  	     t, tmax, fmin(hini, dt),
   	     &dt,
   	     tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
   	     out, bb1, cc, yknots,  yout,
@@ -236,7 +229,6 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* call derivs again to get global outputs                            */
   /* j = -1 suppresses unnecessary internal copying                     */
   /*====================================================================*/
-
   if(nout > 0) {
     for (int j = 0; j < nt; j++) {
       t = yout[j];
@@ -248,12 +240,8 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     }
   }
 
-  /* attach essential internal information (codes are compatible to lsoda) */
+  /* attach diagnostic information (codes are compatible to lsoda) */
   setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr, 0);
-
-  // experimental
-  // set default value for timesteps
-  for (i = 0; i < 2; i++) timesteps[i] = 1;
 
   /* release R resources */
   if (verbose) {
@@ -261,6 +249,9 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     Rprintf("Maxsteps %d\n", maxsteps);
   }
   /* release R resources */
+  timesteps[0] = 0;
+  timesteps[1] = 0;
   restore_N_Protected(old_N_Protect);
   return(R_yout);
 }
+ 

@@ -166,19 +166,9 @@ state <- c(DIN     = 6.,     # mmol N/m3
               
 out <- aquaphy(times, state, parameters, Par)
 
-out2 <- as.data.frame(out) # facilitates printing...
-
-plot (times, out2$PAR, type = "l",
-      main = "PAR", xlab = "time, hours",ylab = "uEinst/m2/s")
-
-plot (times, out2$Chlorophyll, type = "l",
-      main = "Chlorophyll", xlab = "time, hours",ylab = "ug/l")
-
-plot (times, out2$DIN, type = "l", main = "DIN",
-      xlab = "time, hours",ylab = "mmolN/m3")
-
-plot (times, out2$NCratio, type = "l", main = "NCratio",
-      xlab = "time, hours", ylab = "molN/molC")
+plot(out, which = c("PAR", "Chlorophyll", "DIN", "NCratio"), 
+     xlab = "time, hours", 
+     ylab = c("uEinst/m2/s", "ug/l", "mmolN/m3", "molN/molC"))
 
 mtext(outer = TRUE, side = 3, "AQUAPHY, PAR=forcing", cex = 1.5)
 

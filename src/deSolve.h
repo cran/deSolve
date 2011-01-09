@@ -2,9 +2,10 @@
 #include <Rdefines.h>
 
 /*============================================================================
-  global R variables      it,
+  global R variables 
 ============================================================================*/
-double *timesteps;
+
+double *timesteps; /* see also: R_init_deSolve.c */
 
 SEXP YOUT, YOUT2, ISTATE, RWORK, IROOT;    /* returned to R */
 SEXP Time, Y, YPRIME , Rin;
@@ -54,7 +55,7 @@ typedef void C_res_func_type(double*, double*, double*, double*, double*,
 C_res_func_type* DLL_res_func;
 
 
-/* this is in compiled code */
+/* this is for use in compiled code */
 typedef void init_func_type (void (*)(int*, double*));
 
 /*============================================================================

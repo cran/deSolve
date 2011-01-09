@@ -3,28 +3,42 @@
 \alias{plot.1D}
 \alias{hist.deSolve}
 \alias{image.deSolve}
+\alias{subset.deSolve}
 \title{
- Plot and Histogram Method for deSolve Objects
+ Plot, Image and Histogram Method for deSolve Objects
 }
 \description{
 Plot the output of numeric integration routines.
 }
 \usage{
-\method{plot}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, ...)
-\method{hist}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, ...)
+\method{plot}{deSolve}(x, \dots, which = NULL, ask = NULL, 
+              obs = NULL, obspar = list())
+\method{hist}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, \dots)
 \method{image}{deSolve}(x, which = NULL, ask = NULL, 
-  add.contour = FALSE, grid = NULL, method="image", ...)  
-plot.1D (x, which=NULL, ask=NULL, grid=NULL, xyswap = FALSE, ...) 
+              add.contour = FALSE, grid = NULL, 
+              method = "image", legend = FALSE, \dots)  
+\method{subset}{deSolve}(x, subset = NULL, select= NULL,
+             which = select, \dots)
 
+plot.1D (x, which = NULL, ask = NULL, grid = NULL, xyswap = FALSE, delay=0, \dots) 
 }
 
 \arguments{
   \item{x }{an object of class \code{deSolve}, as returned by the
-    integrators, and to be plotted.}
+    integrators, and to be plotted.
+    
+    For \code{plot.deSolve}, it is allowed to pass several objects of class
+    \code{deSolve} after \code{x} (unnamed) - see second example.
+    }
 
   \item{which }{the name(s) or the index to the variables that should be
-    plotted.  Default = all variables. }
+    plotted or selected.  Default = all variables, except \code{time}. }
 
+  \item{select }{which variable/columns to be selected.
+  }
+  \item{subset }{logical expression indicating elements or rows to keep in 
+    \code{select}: missing values are taken as \code{false}
+  }
   \item{ask }{logical; if \code{TRUE}, the user is \emph{ask}ed before
     each plot, if \code{NULL} the user is only asked if more than one
     page of plots is necessary and the current graphics device is set
@@ -37,15 +51,54 @@ plot.1D (x, which=NULL, ask=NULL, grid=NULL, xyswap = FALSE, ...)
     "filled.contour", "persp", "contour".}
 
   \item{grid }{only for \code{image} plots and for \code{plot.1D}: 
-    the 1-D grid as a vector (output generated with \code{ode.1D}, 
-    or the x- and y-grid, as a \code{list} for output generated with 
-    \code{ode.2D}.}
+    the 1-D grid as a vector (for output generated with \code{ode.1D}), 
+    or the x- and y-grid, as a \code{list} (for output generated with 
+    \code{ode.2D}).}
 
-  \item{xyswap }{ if \code{TRUE}, then x-and y-values are swapped and the 
+  \item{xyswap }{if \code{TRUE}, then x-and y-values are swapped and the 
     y-axis is from top to bottom. Useful for drawing vertical profiles.}
+  
+  \item{delay }{adds a delay (in milliseconds) between consecutive plots 
+    of \code{plot.1D} to enable animations.}
     
-  \item{\dots}{additional graphics arguments passed to
-    \code{\link{plot.default}}, \code{\link{image}} or \code{\link{hist}}}
+  \item{obs }{a \code{data.frame} or \code{matrix} with "observed data" that 
+    will be added as \code{points} to the plots. \code{obs} can also be a 
+    \code{list} with multiple data.frames and/or matrices containing 
+    observed data.
+    
+    By default the first column of an observed data set should contain 
+    the \code{time}-variable.   The other columns contain the observed values
+    and they should have names that are known in \code{x}.
+    
+    If the first column of \code{obs} consists of factors or characters (strings),
+    then it is assumed that the data are presented in long (database) format,
+    where the first three columns contain (name, time, value).  
+    
+    If \code{obs} is not \code{NULL} and \code{which} is \code{NULL}, 
+    then the variables, common to both \code{obs} and \code{x} will be plotted.
+  }
+  \item{obspar }{additional graphics arguments passed to \code{points}, for 
+    plotting the observed data. If \code{obs} is a \code{list} containing multiple
+    observed data sets, then the graphics arguments can be  a vector
+    or a list (e.g. for \code{xlim}, \code{ylim}), specifying each data set 
+    separately.
+  }
+  \item{legend }{if \code{TRUE}, a color legend will be drawn on the right 
+    of each image.
+  }
+  \item{\dots}{additional arguments.
+  
+    The graphical arguments are passed to
+    \code{\link{plot.default}}, \code{\link{image}} or \code{\link{hist}} 
+
+    For \code{plot.deSolve}, the dots may contain other objects of class 
+    \code{deSolve}, as returned by the integrators, and 
+    to be plotted on the same graphs as \code{x}  - see second example.
+    In this case, \code{x} and and these other objects should be compatible, 
+    i.e. the column names should be the same.
+    
+    For \code{plot.deSolve}, the arguments after \ldots must be matched exactly.     
+  } 
 }
 
 \details{
@@ -54,11 +107,21 @@ plot.1D (x, which=NULL, ask=NULL, grid=NULL, xyswap = FALSE, ...)
   specifying user-defined settings for \code{mfrow} or \code{mfcol}.
   Set \code{mfrow} equal to \code{NULL} to avoid the plotting function to 
   change user-defined \code{mfrow} or \code{mfcol} settings.
-  
 
   Other graphical parameters can be passed as well. Parameters
-  \code{xlab} and \code{ylab} are vectorized, so it is possible to
-  assign specific axis labels to individual plots.
+  are vectorized, either according to the number of plots 
+  (\code{xlab, ylab}, \code{main, sub}, \code{xlim, ylim}, \code{log},
+   \code{asp, ann, axes, frame.plot},\code{panel.first,panel.last},
+   \code{cex.lab,cex.axis,cex.main}) or 
+  according to the number of lines within one plot (other parameters 
+  e.g. \code{col}, \code{lty}, \code{lwd} etc.) so it is possible to
+  assign specific axis labels to individual plots, resp. different plotting 
+  style. Plotting parameter \code{ylim}, or \code{xlim} can also be a list 
+  to assign different axis limits to individual plots.
+  
+  Similarly, the graphical parameters for observed data, as passed by 
+  \code{obspar} can be vectorized, according to the number of observed 
+  data sets.
   
   Image plots will only work for 1-D and 2-D variables, as solved with
   \code{\link{ode.1D}} and \code{\link{ode.2D}}. In the first case, an
@@ -81,7 +144,7 @@ plot.1D (x, which=NULL, ask=NULL, grid=NULL, xyswap = FALSE, ...)
 }
 \examples{
 ## =======================================================================
-## A Predator-Prey model with 4 species in matrix formulation
+## Example 1. A Predator-Prey model with 4 species in matrix formulation
 ## =======================================================================
 
 LVmatrix <- function(t, n, parms) {
@@ -112,6 +175,7 @@ plot(out, type = "l", ylab = c("Prey 1", "Prey 2", "Pred 1", "Pred 2"),
 
 ## Set user-defined mfrow
 pm <- par (mfrow = c(2, 2))
+
 ## "mfrow=NULL" keeps user-defined mfrow
 plot(out, which = c("prey1", "pred2"), mfrow = NULL, type = "l", lwd = 2)
 
@@ -124,7 +188,57 @@ plot(out[,"prey2"], out[,"pred2"], xlab = "prey2",
 par ("mfrow" = pm)
 
 
+## =======================================================================
+## Example 2. Add second and third output, and observations
+## =======================================================================
+
+# New runs with different parameter settings
+parms2      <- parms
+parms2$r[1] <- 0.2
+out2 <- ode(y, times, LVmatrix, parms2)
+
+# New runs with different parameter settings
+parms3      <- parms
+parms3$r[1] <- 0.05
+out3 <- ode(y, times, LVmatrix, parms3)
+
+# plot all three outputs
+plot(out, out2, out3, type = "l", 
+  ylab = c("Prey 1", "Prey 2", "Pred 1", "Pred 2"),
+  xlab = "Time (d)", main = "Time Series", 
+  col = c("red", "blue", "darkred")) 
+
+
+## 'observed' data
+obs <- as.data.frame(out[out[,1] \%in\% seq(10, 500, by = 30), ])
+
+plot(out, which = "prey1", type = "l", obs = obs, 
+     obspar = list(pch = 18, cex = 2))
+
+plot(out, type = "l", obs = obs, col = "red")
+
+## second set of 'observed' data and two outputs
+obs2 <- as.data.frame(out2[out2[,1] \%in\% seq(10, 500, by = 50), ])
+
+## manual xlim, log
+plot(out, out2, type = "l", obs = list(obs, obs2), col = c("red", "blue"),
+      obspar = list(pch = 18:19, cex = 2, col = c("red", "blue")),
+      log = c("y",""), which = c("prey1","prey1"), 
+      xlim = list(c(100, 500), c(0, 400)))
+
+## data in 'long' format
+OBS <- data.frame(name = c(rep("prey1",3), rep("prey2",2)), 
+                  time = c(10, 100, 250, 10, 400), 
+                  value = c(0.05, 0.04, 0.7, 0.5, 1))
+OBS
+plot(out, obs = OBS, obspar = c(pch = 18, cex = 2))
+
+# Simple histogram
 hist(out, col = "darkblue", breaks = 50)
+
+# different parameters per plot
+hist(out, col = c("darkblue","red", "orange", "black"), 
+     breaks = c(10,50))
 
 ## =======================================================================
 ## The Aphid model from Soetaert and Herman, 2009.
@@ -141,7 +255,7 @@ Aphid <- function(t, APHIDS, parameters) {
   deltax  <- c (0.5, rep(1, numboxes - 1), 0.5)
   Flux    <- -D * diff(c(0, APHIDS, 0))/deltax
   dAPHIDS <- -diff(Flux)/delx + APHIDS * r
-  list(dAPHIDS)
+  list(dAPHIDS, Flux = Flux)
 }
   
 ## ==================
@@ -167,12 +281,16 @@ state         <- c(APHIDS = APHIDS)      # initialise state variables
 times <- seq(0, 200, by = 1)   # output wanted at these time intervals
 out   <- ode.1D(state, times, Aphid, parms = 0, nspec = 1)
 
-image(out, grid = Distance, main = "Aphid model", ylab = "distance, m")
+image(out, grid = Distance, main = "Aphid model", ylab = "distance, m", 
+  legend = TRUE)
 
 image(out, grid = Distance, main = "Aphid model", ylab = "distance, m", 
   method = "persp", border = NA, theta = 30)
+
+FluxAphid <- subset(out, select = "Flux", subset = time < 50)
+
 \dontrun{
-  plot(out,ask = FALSE, mfrow = c(1, 1))
+  plot(out, ask = FALSE, mfrow = c(1, 1))
   plot.1D(out, ask = FALSE, type = "l", lwd = 2, xyswap = TRUE)
 }
 }

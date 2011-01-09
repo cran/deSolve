@@ -59,6 +59,7 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
 
     ## the CALL to the integrator
     ## rk can be nested, so no "unlock_solver" needed
+    on.exit(.C("unlock_solver"))    
     out <- .Call("call_rk4", as.double(y), as.double(times),
         Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(vrb),
         as.double(rpar), as.integer(ipar), flist)

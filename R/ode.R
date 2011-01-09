@@ -13,9 +13,9 @@
 ### ============================================================================
 
 ode    <- function (y, times, func, parms,
-                    method= c("lsoda","lsode","lsodes","lsodar","vode","daspk",
-                              "euler", "rk4", "ode23", "ode45", "radau",
-                              "bdf", "bdf_d", "adams", "impAdams", "impAdams_d"),
+                    method = c("lsoda","lsode","lsodes","lsodar","vode","daspk",
+                               "euler", "rk4", "ode23", "ode45", "radau",
+                               "bdf", "bdf_d", "adams", "impAdams", "impAdams_d"),
                     ...)  {
   if (is.null(method)) method <- "lsoda"
   if (is.list(method)) {
@@ -61,7 +61,7 @@ ode    <- function (y, times, func, parms,
 ### ============================================================================
 
 ode.1D    <- function (y, times, func, parms, nspec = NULL,
-                       dimens = NULL, method= c("lsoda","lsode",
+                       dimens = NULL, method = c("lsoda","lsode",
                               "lsodes","lsodar","vode","daspk",
                               "euler", "rk4", "ode23", "ode45","radau",
                               "bdf", "adams", "impAdams"),
@@ -88,7 +88,7 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
   N     <- length(y)
   if (is.null(nspec)  )
     nspec = N/dimens
-  if (N%%nspec !=0    )
+  if (N %% nspec != 0    )
     stop ("cannot run ode.1D: nspec is not an integer fraction of number of state variables")
 
   if (! is.null(names) && length(names) != nspec)
@@ -98,8 +98,9 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
   if (is.character(method))
     if( nspec == 1 & method %in% c("lsoda","lsode","lsodar","vode","daspk","radau")) {
       out <- ode.band(y, times, func, parms, nspec = nspec,
-        method = method, bandup = nspec*bandwidth,
-        banddown = nspec*bandwidth, ...)
+        method = method, bandup = nspec * bandwidth,
+        banddown = nspec * bandwidth, ...)
+      attr(out,"ynames") <- names
       return(out)
     }
 
@@ -144,12 +145,12 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
 
 # an implicit method that needs restructuring...
   } else {
-    NL <-names(y)
+    NL <- names(y)
 
   # internal function #
     bmodel <- function (time,state,pars,model,...) {
       Modconc <-  model(time,state[ij],pars,...)   # ij: reorder state variables
-      list(c(Modconc[[1]][ii]),Modconc[-1])        # ii: reorder rate of change
+      c(list(Modconc[[1]][ii]), Modconc[-1])       # ii: reorder rate of change
     }
 
     if (is.character(func))
@@ -211,9 +212,9 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
       if (! is.null(NL)) colnames(out)[2:(N+1)]<- NL
   }
   if (is.null(dimens)) dimens <- N/nspec
-  attr (out,"dimens") <- dimens
-  attr (out,"nspec") <- nspec
-  attr(out,"ynames") <- names
+  attr (out, "dimens") <- dimens
+  attr (out, "nspec") <- nspec
+  attr(out, "ynames") <- names
 
   return(out)
 }
