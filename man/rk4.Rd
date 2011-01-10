@@ -1,6 +1,7 @@
 \name{rk4}
 \alias{rk4}
 \alias{euler}
+\alias{euler.1D}
 \title{Solve System of ODE (Ordinary Differential Equation)s by
   Euler's Method or Classical Runge-Kutta 4th Order Integration.
 }
@@ -13,9 +14,16 @@ euler(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   dllname = NULL, initfunc = dllname, initpar = parms,
   rpar = NULL, ipar = NULL, nout = 0, outnames = NULL,
   forcings = NULL, initforc = NULL, fcontrol = NULL, ...)
+
 rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   dllname = NULL, initfunc = dllname, initpar = parms,
   rpar = NULL, ipar = NULL, nout = 0, outnames = NULL,
+  forcings = NULL, initforc = NULL, fcontrol = NULL, ...)
+
+euler.1D(y, times, func, parms, nspec = NULL, dimens = NULL,
+  names = NULL, verbose = FALSE, ynames = TRUE,
+  dllname = NULL, initfunc = dllname, initpar = parms,
+  rpar = NULL,  ipar = NULL, nout = 0, outnames = NULL,
   forcings = NULL, initforc = NULL, fcontrol = NULL, ...)
 }
 \arguments{
@@ -51,6 +59,15 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     \code{"compiledCode"} for more details.
   }
   \item{parms }{vector or list of parameters used in \code{func}.
+  }
+  \item{nspec }{for 1D models only: the number of \bold{species} (components)
+    in the model. If \code{NULL}, then \code{dimens} should be specified.
+  }
+  \item{dimens}{for 1D models only: the number of \bold{boxes} in the
+    model. If \code{NULL}, then \code{nspec} should be specified.
+  }
+  \item{names }{for 1D models only: the names of the components; used
+    for plotting.
   }
   \item{verbose }{a logical value that, when \code{TRUE}, triggers more
     verbose output from the ODE solver.
@@ -128,6 +145,10 @@ rk4(y, times, func, parms, verbose = FALSE, ynames = TRUE,
 
   See help pages of \code{\link{rk}} and \code{\link{rkMethod}}
   for details.
+
+  Function \code{euler.1D} essentially calls function\code{euler} but
+  contains additional code to support plotting of 1D models, see
+  \code{\link{ode.1D}} and \code{\link{plot.1D}} for details.
 }
 \note{
   For most practical cases, solvers with flexible timestep

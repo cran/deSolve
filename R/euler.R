@@ -58,6 +58,7 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     }
 
     ## the CALL to the integrator
+    on.exit(.C("unlock_solver"))
     out <- .Call("call_euler", as.double(y), as.double(times),
                  Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(verbose),
                  as.double(rpar), as.integer(ipar), flist, PACKAGE = "deSolve")
@@ -65,7 +66,11 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     ## saving results
     out <- saveOutrk(out, y, n, Nglobal, Nmtot,
                      iin = c(1, 12, 13, 15), iout = c(1:3, 18))
-    ## testing code: 'call_euler_t' is a version with transposed data structure in memory
+    ## === testing code ===
+    ## 'call_euler_t' is a version with transposed data structure in memory
+    ##                for checking a potential influence of
+    ##                memory layout and memory locality
+    ##
     #    out <- .Call("call_euler_t", as.double(y), as.double(times),
     #                 Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(verbose),
     #                 as.double(rpar), as.integer(ipar), flist, PACKAGE = "deSolve")
@@ -75,3 +80,40 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     attr(out, "type") <- "rk"
     out
 }
+
+
+## 1D version that is compatible with ode.1D
+## possible inconsistencies and problems:
+##   - names, outnames, ynames
+##   - what happens if both nspec and dimens are specified ?
+euler.1D <- function(y, times, func, parms,
+  nspec = NULL, dimens = NULL, names = NULL, verbose = FALSE, ynames = TRUE,
+  dllname = NULL, initfunc = dllname, initpar = parms,
+  rpar = NULL,  ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
+  initforc = NULL, fcontrol = NULL, ...) {
+
+
+  if (is.null(nspec) && is.null(dimens))
+    stop ("cannot run euler.1D: nspec OR dimens should be specified")
+
+  N     <- length(y)
+  if (is.null(dimens)) dimens  <- N/nspec
+  if (is.null(nspec)  )
+    nspec = N/dimens
+  if (N %% nspec != 0    )
+    stop ("cannot run ode.1D: nspec is not an integer fraction of number of state variables")
+
+  if (! is.null(names) && length(names) != nspec)
+    stop("length of 'names' should equal 'nspec'")
+
+  out <- euler(y, times, func, parms, verbose, ynames,
+    dllname, initfunc, initpar, rpar, ipar, nout, outnames, forcings,
+    initforc, fcontrol)
+
+  attr (out, "dimens") <- dimens
+  attr (out, "nspec")  <- nspec
+  attr(out, "ynames")  <- names
+
+  return(out)
+}
+

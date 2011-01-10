@@ -139,6 +139,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     varstep <- method$varstep
     vrb <- FALSE # TRUE would force internal debugging output of the C code
     ## Implicit methods
+    on.exit(.C("unlock_solver"))
     implicit <- method$implicit
     if (is.null(implicit)) implicit <- 0
     if (implicit) {

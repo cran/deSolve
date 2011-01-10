@@ -65,23 +65,20 @@ PD <- matrix(nr = 3, nc = 3, 0)
 # ODE model solved with daspk - using res
 print("ODE solved with daspk - using res, no jac, in R")
 print(system.time(
-  ODE_R <- as.data.frame(daspk(y = y, dy = dy, times = times, res = Chemres_ODE,
-                           parms = pars, atol = 1e-10, rtol = 1e-10))
+  ODE_R <- daspk(y = y, dy = dy, times = times, res = Chemres_ODE,
+                           parms = pars, atol = 1e-10, rtol = 1e-10)
 ))
 print("ODE solved with daspk - using res, jacres, in R")
 print(system.time(
-  ODE_R2 <- as.data.frame(daspk(y = y, dy = dy, times = times, res = Chemres_ODE,
+  ODE_R2 <- daspk(y = y, dy = dy, times = times, res = Chemres_ODE,
                             jacres =  Chemjac_ODE, jactype = "fullusr",
-                            parms = pars, atol = 1e-10, rtol = 1e-10))
+                            parms = pars, atol = 1e-10, rtol = 1e-10)
 ))
 
 # plotting output
-opa <- par(mfrow = c(2, 2))
-for (i in 2:5) {
-  plot(ODE_R$time, ODE_R[, i], xlab = "time",
-     ylab = "conc", main = names(ODE_R)[i], type = "l")
-  points(ODE_R2$time, ODE_R2[, i], col = "red")
-}
+plot(ODE_R, ODE_R2, xlab = "time", ylab = "conc", type = c("l", "p"),
+     pch = c(NA, 1))
+
 legend("bottomright", lty = c(1, NA), pch = c(NA, 1),
   col = c("black", "red"), legend = c("ODE", "ODE+JAC"))
 
@@ -90,15 +87,15 @@ dyn.load(paste("daspkfor", .Platform$dynlib.ext, sep = ""))
 
 print("ODE solved with daspk - using res, no jac, DLL")
 print(system.time(
-  ODE_dll <- as.data.frame(daspk(y = y, dy = dy, times = times, res = "resfor",
-    dllname = "daspkfor", parms = pars, atol = 1e-10, rtol = 1e-10, nout = 1))
+  ODE_dll <- daspk(y = y, dy = dy, times = times, res = "resfor",
+    dllname = "daspkfor", parms = pars, atol = 1e-10, rtol = 1e-10, nout = 1)
 ))
 
 print("ODE solved with daspk - using res, jacres, DLL")
 print(system.time(
-  ODE_dll2<- as.data.frame(daspk(y = y, dy = dy, times = times, res = "resfor",
+  ODE_dll2<- daspk(y = y, dy = dy, times = times, res = "resfor",
     jacres = "resjacfor", dllname = "daspkfor", parms = pars, atol = 1e-10,
-    rtol = 1e-10, nout = 1))
+    rtol = 1e-10, nout = 1)
 ))
 
 max(abs(ODE_R-ODE_dll))

@@ -218,7 +218,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   int  i, j, k, nt, repcount, latol, lrtol, lrw, liw;
   int  maxit, solver, isForcing, isEvent, islag;
-  double *xytmp, tin, tout, *Atol, *Rtol, *dy=NULL, ss;
+  double *xytmp, tin, tout, *Atol, *Rtol, *dy=NULL, ss, pt;
   int itol, itask, istate, iopt, jt, mflag,  is;
   int nroot, *jroot=NULL, isroot,  isDll, type;
   
@@ -282,8 +282,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
      for (j=0; j<length(rWork); j++) rwork[j] = REAL(rWork)[j];
 
 /* a global variable*/  
-  timesteps = (double *) R_alloc(2, sizeof(double));
-     for (j=0; j<2; j++) timesteps[j] = 0.;
+  //timesteps = (double *) R_alloc(2, sizeof(double));
+  for (j=0; j<2; j++) timesteps[j] = 0.;
   
 /* if a 1-D, 2-D or 3-D special-purpose problem (lsodes)
    iwork will contain the sparsity structure */
@@ -464,11 +464,14 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       } else if (istate == 3 && (solver == 4 || solver == 6)){
        /* root found - take into account if an EVENT */
         if (isEvent && rootevent) {
+          pt = tEvent;
           tEvent = tin;
           /* function evaluations set to 0 again . */
           for (j=0; j<3; j++) evals[j] = evals[j] + iwork[10+j];
           
           updateevent(&tin, xytmp, &istate);
+          tEvent = pt;
+
           istate = 1;
           repcount = 0;
           if (mflag ==1) Rprintf("root found at time %g\n",tin);

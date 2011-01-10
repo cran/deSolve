@@ -31,8 +31,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.8\cr
-    Date:    \tab 2010-09-01\cr
+    Version: \tab 1.9\cr
+    Date:    \tab 2011-01-10\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
@@ -57,6 +57,10 @@
   Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010).  Solving
   Differential Equations in R: Package deSolve Journal of Statistical
   Software, 33(9), 1--25.  \url{http://www.jstatsoft.org/v33/i09/}
+
+  Karline Soetaert, Thomas Petzoldt, R Woodrow  Setzer, (2010): Solving
+  differential equations in R. The R Journal 2(2), 5-15.
+  \url{http://journal.r-project.org/archive/2010-2/RJournal_2010-2_Soetaert~et~al.pdf}
 
   Alan C. Hindmarsh, 1983. ODEPACK, A Systematized Collection of ODE
   Solvers, in Scientific Computing, R. S. Stepleman et al. (Eds.),

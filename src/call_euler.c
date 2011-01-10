@@ -41,15 +41,11 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   int verbose = INTEGER(Verbose)[0];
 
   /*------------------------------------------------------------------------*/
-  /* timesteps (for compatibility with lsoda)                               */
+  /* timesteps (for advection computation in ReacTran)                      */
   /*------------------------------------------------------------------------*/
-  double *saved_ts, *my_ts;
 
-  saved_ts  = timesteps;
-  my_ts     = (double *)R_alloc(2, sizeof(double));
-  timesteps = my_ts;
-  for (i = 0; i < 2; i++) timesteps[i] = 1;
-
+  for (i = 0; i < 2; i++) timesteps[i] = tt[1] - tt[0];
+    
   /*------------------------------------------------------------------------*/
   /* DLL, ipar, rpar (for compatibility with lsoda)                         */
   /*------------------------------------------------------------------------*/
@@ -82,15 +78,8 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   if (isDll == 1) {
     /* other elements of ipar are set in R-function lsodx via argument *ipar* */
     for (j = 0; j < LENGTH(Ipar); j++) ipar[j+3] = INTEGER(Ipar)[j];
-    /* 
-       rpar is passed via "out" which may be seen as a hack.
-       However, such an approach was required for the Livermore solvers.
-       It would have been unwise to re-implement these highly efficient
-       codes from scratch again.
-       
-       out:  first nout elements of out are reserved for output variables
-       other elements are set via argument *rpar* 
-    */
+    /* out:  first nout elements of out are reserved for output variables
+       other elements are set via argument *rpar*  */
     for (j = 0; j < nout; j++)         out[j] = 0.0;                
     for (j = 0; j < LENGTH(Rpar); j++) out[nout+j] = REAL(Rpar)[j];
   }
@@ -136,10 +125,9 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   for (it = 0; it < nt - 1; it++) {
     t = tt[it];
     dt = tt[it + 1] - t;
-    // Rprintf("%g\n", dt);
 
-    timesteps[0] = timesteps[1];     // experimental, check this
-    timesteps[1] = dt;               // experimental, check this  
+    timesteps[0] = timesteps[1];
+    timesteps[1] = dt;
   
     if (verbose)
       Rprintf("Time steps = %d / %d time = %e\n", it + 1, nt, t);
@@ -166,19 +154,11 @@ SEXP call_euler(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
       }
     }
   }
-  /*
-    attach essential internal information (codes are compatible to lsoda)
-  */
+  /* attach diagnostic information (codes are compatible to lsoda) */
   setIstate(R_yout, R_istate, istate, it, 1, 0, 1, 0);
 
-  // for testing; if setting the pointer works, then returned timestep
-  // should never be -99
-  for (i = 0; i < 2; i++) timesteps[i] = -99; 
-
-  // reset timesteps pointer to saved state
-  timesteps = saved_ts;
-  
-  /* release R resources */
+  timesteps[0] = 0;
+  timesteps[1] = 0;
   restore_N_Protected(old_N_Protect);
   return(R_yout);
 }

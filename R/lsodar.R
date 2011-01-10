@@ -1,5 +1,5 @@
 ### ============================================================================
-### lsodar -- solves ordinary differential equation systems
+### lsodar -- solves ordinary differential equation systems           
 ### Compared to the other integrators of odepack
 ### (a) lsodar switches automatically between stiff and nonstiff methods.
 ### This means that the user does not have to determine whether the

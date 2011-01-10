@@ -1,3 +1,6 @@
+## ========================================================================
+## General functions of deSolve
+## ========================================================================
 
 timestep <- function (prev = TRUE) {
   out <- .Call("getTimestep", PACKAGE = "deSolve")
@@ -79,8 +82,15 @@ checkFunc<- function (Func2, times, y, rho) {
                                    # use "unlist" here because some output variables are vectors/arrays
     Nglobal <- if (length(tmp) > 1)
       length(unlist(tmp[-1]))  else 0
-    Nmtot <- attr(unlist(tmp[-1]),"names")
-   return(list(Nglobal = Nglobal, Nmtot=Nmtot))
+    # Karline: changed this: Nmtot is now a list with names, dimensions,... for 1-D, 2-D vars
+    Nmtot <- list()  
+    Nmtot$colnames <- attr(unlist(tmp[-1]),"names")
+    
+    Nmtot$lengthvar <- unlist(lapply(tmp,length))
+    if (length(Nmtot$lengthvar) < Nglobal+1){
+      Nmtot$dimvar <- lapply(tmp[-1],dim)
+    }
+   return(list(Nglobal = Nglobal, Nmtot = Nmtot))
 
 }
 
@@ -120,7 +130,12 @@ checkFuncEuler<- function (Func, times, y, parms, rho, Nstates) {
       ## use "unlist" here because some output variables are vectors/arrays
       Nglobal <- if (length(tmp) > 1)
           length(unlist(tmp[-1]))  else 0
-      Nmtot <- attr(unlist(tmp[-1]),"names")
+      Nmtot <- list()
+      Nmtot$colnames <- attr(unlist(tmp[-1]),"names")
+      Nmtot$lengthvar <- unlist(lapply(tmp,length))
+      if (length(Nmtot$lengthvar) < Nglobal+1){
+        Nmtot$dimvar <- lapply(tmp[-1],dim)
+      }
    return(list(Nglobal = Nglobal, Nmtot = Nmtot))
 
 }
@@ -168,15 +183,23 @@ checkDLL <- function (func,jacfunc,dllname,
       } else stop(paste("cannot integrate: jac function not loaded ",jacfunc))
     } else JacFunc <- NULL
     Nglobal <- nout
+    Nmtot <- list()
     if (is.null(outnames))
-      { Nmtot   <- NULL} else
+      { Nmtot$colnames   <- NULL} else
     if (length(outnames) == nout)
-      { Nmtot   <- outnames} else
+      { Nmtot$colnames   <- outnames} else
     if (length(outnames) > nout)
-      Nmtot <- outnames[1:nout] else
-    Nmtot <- c(outnames,(length(outnames)+1):nout)
+      Nmtot$colnames <- outnames[1:nout] else
+    Nmtot$colnames <- c(outnames,(length(outnames)+1):nout)
+    
+    cnames <- outnames
+    unames <- unique(outnames)
+    if (length(cnames) > length(unames))
+      Nmtot$lengthvar <- c(NA,
+        sapply (unames, FUN = function(x) length(which(cnames == x))))
+
    return(list(ModelInit = ModelInit, Func = Func, JacFunc = JacFunc,
-     Nglobal = Nglobal, Nmtot=Nmtot))
+     Nglobal = Nglobal, Nmtot = Nmtot))
 }
 
 ## =============================================================================
@@ -231,12 +254,20 @@ saveOut <- function (out, y, n, Nglobal, Nmtot, func, Func2,
           if (!is.null(attr(y, "names"))) names(y) else as.character(1:n))
   if (Nglobal > 0) {
     nm <- c(nm,
-            if (!is.null(Nmtot)) Nmtot else
-            as.character((n+1) : (n + Nglobal)))
+            if (!is.null(Nmtot$colnames))
+              Nmtot$colnames else as.character((n+1) : (n + Nglobal)))
   }
   attr(out,"istate") <- istate
   attr(out, "rstate") <- rstate
-  class(out) <- c("deSolve","matrix")    # a differential equation
+  if (! is.null(Nmtot$lengthvar))
+    if (is.na(Nmtot$lengthvar[1]))Nmtot$lengthvar[1] <- length(y) 
+  attr(out, "lengthvar") <- Nmtot$lengthvar
+  
+  ii <- if (is.null(Nmtot$dimvar)) 
+    NULL else !(unlist(lapply(Nmtot$dimvar, is.null)))  # variables with dimension
+  if (sum(ii) >0) 
+    attr(out, "dimvar") <- Nmtot$dimvar[ii]     # dimensions that are not null
+  class(out) <- c("deSolve","matrix")           # a differential equation
   dimnames(out) <- list(nm,NULL)
   return (t(out))
 }
@@ -255,7 +286,8 @@ saveOutrk <- function(out, y, n, Nglobal, Nmtot, iin, iout, transpose=FALSE)  {
   ## Global outputs
   if (Nglobal > 0) {
     nm  <- c(nm,
-      if (!is.null(Nmtot)) Nmtot else as.character((n + 1) : (n + Nglobal))
+      if (!is.null(Nmtot$colnames)) 
+        Nmtot$colnames else as.character((n + 1) : (n + Nglobal))
     )
   }
 
@@ -264,7 +296,12 @@ saveOutrk <- function(out, y, n, Nglobal, Nmtot, iin, iout, transpose=FALSE)  {
   istate <- attr(out, "istate")
   istate <- setIstate(istate,iin, iout)
   attr(out,"istate") <- istate
-
+  attr(out, "lengthvar") <- Nmtot$lengthvar
+  
+  ii <- if (is.null(Nmtot$dimvar)) 
+    NULL else !(unlist(lapply(Nmtot$dimvar, is.null)))  # variables with dimension
+  if (sum(ii) >0) 
+    attr(out, "dimvar") <- Nmtot$dimvar[ii] # only those which are not null
   class(out) <- c("deSolve","matrix")    # a differential equation
   if (transpose)
     return(t(out))

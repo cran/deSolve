@@ -14,7 +14,7 @@ ballode<- function(t, y, parms) {
 #-----------------------------
 # the root and event function
 #-----------------------------
-# event triggered when the ball hits the ground (height =0)
+# event triggered when the ball hits the ground (height = 0)
 root <- function(t, y, parms) y[1]
 
 # bouncing
@@ -44,5 +44,5 @@ attributes(out2)$troot
 #-----------------------------
 # display, plot results
 #-----------------------------
-plot(out,which = "height", type = "l", lwd = 2,  main = "bouncing ball", ylab = "height")
+plot(out, which = "height", type = "l", lwd = 2, main = "bouncing ball", ylab = "height")
 

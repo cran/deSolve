@@ -1,4 +1,4 @@
-\name{lsode}
+\name{lsode}         
 \alias{lsode}
 
 \title{Solver for Ordinary Differential Equations (ODE)}

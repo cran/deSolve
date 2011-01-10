@@ -169,8 +169,8 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   for (j = 0; j < 20; j++) rwork[j] = REAL(rWork)[j];
 
   /* global variable */
-  timesteps = (double *) R_alloc(2, sizeof(double));
-     for (j=0; j<2; j++) timesteps[j] = 0.;
+  //timesteps = (double *) R_alloc(2, sizeof(double));
+  for (j=0; j<2; j++) timesteps[j] = 0.;
 
   lzw = INTEGER(lZw)[0];
   zwork = (Rcomplex *) R_alloc(lzw, sizeof(Rcomplex));

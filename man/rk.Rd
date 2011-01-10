@@ -93,9 +93,10 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{hini }{initial step size to be attempted; if 0, the initial step
     size is determined automatically by solvers with flexible time step.
-    Setting \code{hini = 0} for fixed step methods forces setting of
+    For fixed step methods, setting \code{hini = 0} forces 
     internal time steps identically to external time steps provided by
-    \code{times}.
+    \code{times}. Similarly, internal time steps of non-interpolating
+    solvers cannot be bigger than external time steps specified in \code{times}.
   }
   \item{ynames }{if \code{FALSE}: names of state variables are not passed
     to function \code{func} ; this may speed up the simulation especially
@@ -318,34 +319,23 @@ y <- xstart <- c(S = 1, P = 1, C = 1)
 
 system.time({
 ## Euler method
-out1  <- as.data.frame(rk(xstart, times, SPCmod, parms,
-                          hini = 0.1, method = "euler"))
+out1  <- rk(xstart, times, SPCmod, parms, hini = 0.1, method = "euler")
 
 ## classical Runge-Kutta 4th order
-out2 <- as.data.frame(rk(xstart, times, SPCmod, parms,
-                         hini = 1, method = "rk4"))
+out2 <- rk(xstart, times, SPCmod, parms, hini = 1, method = "rk4")
 
 ## Dormand-Prince method of order 5(4)
-out3 <- as.data.frame(rk(xstart, times, SPCmod, parms,
-                         hmax = 1, method = "rk45dp7"))
+out3 <- rk(xstart, times, SPCmod, parms, hmax = 1, method = "rk45dp7")
 })
 
-mf <- par(mfrow = c(2,2))
-plot (out1$time, out1$S, type = "l", ylab = "Substrate")
-lines(out2$time, out2$S, col = "red", lty = "dotted", lwd = 2)
-lines(out3$time, out3$S, col = "green", lty = "dotted")
-
-plot (out1$time, out1$P, type = "l", ylab = "Producer")
-lines(out2$time, out2$P, col = "red", lty = "dotted")
-lines(out3$time, out3$P, col = "green", lty = "dotted")
-
-plot (out1$time, out1$C, type = "l", ylab = "Consumer")
-lines(out2$time, out2$C, col = "red", lty = "dotted", lwd = 2)
-lines(out3$time, out3$C, col = "green", lty = "dotted")
-
-plot (out1$P, out1$C, type = "l", xlab = "Producer", ylab = "Consumer")
-lines(out2$P, out2$C, col = "red",   lty = "dotted", lwd = 2)
-lines(out3$P, out3$C, col = "green", lty = "dotted")
+mf <- par("mfrow")
+plot(out1, out2, out3, which = c("S","P","C"), 
+     main = c ("Substrate", "Producer", "Consumer"),
+     col =c("black", "red", "green"), 
+     lty = c("solid", "dotted", "dotted"), lwd = c(1, 2, 1))
+plot (out1[,"P"], out1[,"C"], type = "l", xlab = "Producer", ylab = "Consumer")
+lines(out2[,"P"], out2[,"C"], col = "red",   lty = "dotted", lwd = 2)
+lines(out3[,"P"], out3[,"C"], col = "green", lty = "dotted")
 
 legend("center", legend = c("euler", "rk4", "rk45dp7"),
   lty = c(1, 3, 3), lwd = c(1, 2, 1),

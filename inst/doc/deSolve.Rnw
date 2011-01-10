@@ -1,5 +1,5 @@
 \documentclass[article,nojss]{jss}
-\DeclareGraphicsExtensions{.pdf,.eps}
+\DeclareGraphicsExtensions{.pdf,.eps, .jpeg}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Add-on packages and fonts
 \usepackage{graphicx}
@@ -17,6 +17,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
 \newcommand{\R}{\proglang{R }}
 \newcommand{\ds}{\textbf{\textsf{deSolve }}}
+\newcommand{\bs}{\textbf{\textsf{bvpSolve }}}
+\newcommand{\rt}{\textbf{\textsf{ReacTran }}}
 \newcommand{\rb}[1]{\raisebox{1.5ex}{#1}}
 
 \title{Package \pkg{deSolve}: Solving Initial Value Differential
@@ -60,12 +62,12 @@ initial value problems, R}
 
   \begin{itemize}
     \item ordinary differential equations (ODE),
-    \item differential algebraic equations (DAE) and
-    \item partial differential equations (PDE).
+    \item differential algebraic equations (DAE),
+    \item partial differential equations (PDE) and
     \item delay differential equations (DeDE).
   \end{itemize}
 
-  The implementation includes stiff integration routines based on the
+  The implementation includes stiff and nonstiff integration routines based on the
   \pkg{ODEPACK} \proglang{FORTRAN} codes \citep{Hindmarsh83}.  It also includes fixed
   and adaptive time-step explicit Runge-Kutta solvers and the Euler method
   \citep{Press92}, and the implicit Runge-Kutta method RADAU \citep{Hairer2}.
@@ -75,7 +77,11 @@ initial value problems, R}
   \citep{compiledCode}, deals with differential equations implemented
   in lower-level languages such as \proglang{FORTRAN}, \proglang{C},
   or \proglang{C++}, which are compiled into a dynamically linked
-  library (DLL) and loaded into \proglang{R} \citep{Rcore}.}
+  library (DLL) and loaded into \proglang{R} \citep{Rcore}.
+
+  Note that another package, \bs provides methods to solve boundary
+  values problems \citep{bvpSolve}.
+}
 
 %% The address of (at least) one author should be given
 %% in the following format:
@@ -235,7 +241,7 @@ We run the model for 100 days, and give output at 0.01 daily
 intervals. R's function \code{seq()} creates the time sequence:
 
 <<>>=
-times     <-seq(0,100,by=0.01)
+times     <- seq(0, 100, by = 0.01)
 @
 
 \subsubsection{Model integration}
@@ -250,17 +256,8 @@ Function \code{ode} returns an object of class \code{deSolve} with a
 matrix that contains the values of the state variables (columns) at
 the requested output times.
 
-%% ThPe: you changed the example, so the following is no longer true:
-
-%The output is converted to a data frame
-%and stored in `\code{out}'.  Data frames have the advantage, that
-%their columns can be accessed by name, rather than by number. For
-%instance, \code{out$X} will take the outputted values of state
-%variable \code{X}, and so on.
-
-
 <<>>=
-require(deSolve)
+library(deSolve)
 out <- ode(y = state, times = times, func = Lorenz, parms = parameters)
 head(out)
 @
@@ -277,7 +274,7 @@ finally \code{Z} versus \code{X}:
 
 <<label=ode,include=FALSE>>=
 par(oma = c(0, 0, 3, 0))
-plot(out, type = "l", xlab = "time", ylab = "-")
+plot(out, xlab = "time", ylab = "-")
 plot(out[, "X"], out[, "Z"], pch = ".")
 
 mtext(outer = TRUE, side = 3, "Lorenz model", cex = 1.5)
@@ -305,25 +302,35 @@ Most functions are based on original (\proglang{FORTRAN}) implementations, e.g.
 the Backward Differentiation Formulae and Adams methods
 from \pkg{ODEPACK} \citep{Hindmarsh83}, or from \citep{Brown89,Petzold1983},
 the implicit Runge-Kutta method RADAU \citep{Hairer2}. The package contains also a de novo
-implementation of several explicit
-Runge-Kutta methods \citep{Butcher1987, Press92, Hairer1}.
+implementation of several Runge-Kutta methods \citep{Butcher1987, Press92, Hairer1}.
 
-All methods\footnote{except \code{zvode}, the solver used for systems
+All integration methods\footnote{except \code{zvode}, the solver used for systems
   containing complex numbers.} can be triggered from function
-\code{ode} (by setting the argument \code{method}), or can be run as
+\code{ode}, by setting \code{ode}'s argument \code{method}), or can be run as
 stand-alone functions.  Moreover, for each integration routine,
 several options are available to optimise performance.
 
+For instance, the next statements will use integration method \code{radau}
+to solve the model, and set the tolerances to a higher value than the default.
+Both statements are the same:
+<<>>=
+outb <- radau(state, times, Lorenz, parameters, atol = 1e-4, rtol = 1e-4)
+outc <- ode(state, times, Lorenz, parameters, method = "radau",
+             atol = 1e-4, rtol = 1e-4)
+@
+
+
 The default integration method, based on the \proglang{FORTRAN} code LSODA is one that
 switches automatically between stiff and non-stiff systems \citep{Petzold1983}.
-Thus it should be possible to find, for one particular problem, the
-most efficient solver.  See \citep{deSolve_jss} for more information about
+This is a very robust method, but not necessarily the most efficient solver for
+one particular problem.  See \citep{deSolve_jss} for more information about
 when to use which solver in \pkg{deSolve}. For most cases, the default
-solver, \code{ode} and using the default settings will do.  Table 1
+solver, \code{ode} and using the default settings will do.  Table \ref{tb:rs} also
 gives a short overview of the available methods.
 
-We solve the model with several integration routines, each time
-printing the time it took (in seconds) to find the solution:
+To show how to trigger the various methods, we solve the model with several
+integration routines, each time printing the time it took (in seconds) to
+find the solution:
 
 <<>>=
 print(system.time(out1 <- rk4   (state, times, Lorenz, parameters)))
@@ -334,11 +341,12 @@ print(system.time(out  <- daspk (state, times, Lorenz, parameters)))
 print(system.time(out  <- vode  (state, times, Lorenz, parameters)))
 @
 
-\subsection{Runge-Kutta methods}
+\subsection{Runge-Kutta methods and Euler}
 
 The explicit Runge-Kutta methods are de novo implementations in
 \proglang{C}, based on the Butcher tables \citep{Butcher1987}.  They
-comprise simple Runge-Kutta formulae (Heun's method \code{rk2}, the
+comprise simple Runge-Kutta formulae (Euler's method \code{euler},
+Heun's method \code{rk2}, the
 classical 4th order Runge-Kutta, \code{rk4}) and several Runge-Kutta
 pairs of order 3(2) to order 8(7).  The embedded, explicit methods are
 according to \citet{Fehlberg1967} (\code{rk..f}, \code{ode45}),
@@ -396,7 +404,33 @@ out <- ode(y = c(P = 2, C = 1), times = 0:100, func,
 head(out)
 @
 
-\subsection{Model diagnostics}
+\subsubsection{Fixed time-step methods}
+
+There are two explicit methods that do not adapt the time step: the \code{euler}
+method and the \code{rk4} method.
+
+They are implemented in two ways:
+\begin{itemize}
+\item as a \code{rkMethod} of the \textbf{general} \code{rk} solver. In this case the time step used can be
+  specified independently from the \code{times} argument, by setting argument
+  \code{hini}. Function \code{ode} uses this general code.
+\item as \textbf{special} solver codes \code{euler} and \code{rk4}. These implementations are
+  simplified and with less options to avoid overhead. The timestep used is determined by the time
+  increment in the \code{times} argument.
+
+\end{itemize}
+For example, the next two statements both trigger the Euler method, the former
+using the ``special'' code with a time step = 1, as imposed by the \code{times} argument, the latter
+using the generalized method with a time step set by \code{hini}. Unsurprisingly, the former solution method
+completely fails (the time step $= 1$ is much too large for this problem).
+
+\begin{verbatim}
+out  <- euler(y = state, times = 0:40, func = Lorenz, parms = parameters)
+outb <- ode(y = state, times = 0:40, func = Lorenz, parms = parameters,
+             method = "euler", hini = 0.01)
+\end{verbatim}
+
+\subsection{Model diagnostics and summaries}
 
 Function \code{diagnostics} prints several diagnostics of the simulation
 to the screen. For the Runge-Kutta and \code{lsode} routine they are:
@@ -405,14 +439,22 @@ to the screen. For the Runge-Kutta and \code{lsode} routine they are:
 diagnostics(out1)
 diagnostics(out2)
 @
+There is also a \code{summary} method for \code{deSolve} objects. This is
+especially handy for multi-dimensional problems (see below)
+<<>>=
+summary(out1)
+@
 \clearpage
 \section{Partial differential equations}
 
 As package \ds includes integrators that deal efficiently with
 arbitrarily sparse and banded Jacobians, it is especially well suited
 to solve initial value problems resulting from 1, 2 or 3-dimensional
-partial differential equations (PDE), using the method-of-lines approach. 
-The PDEs are first written as ODEs, using finite differences.
+partial differential equations (PDE), using the method-of-lines approach.
+The PDEs are first written as ODEs, using finite differences. This can be
+efficiently done with functions from R-package \rt \citep{ReacTran}.
+However, here we will
+create the finite differences in R-code.
 
 Several special-purpose solvers are included in \pkg{deSolve}:
 
@@ -523,21 +565,29 @@ densities (next columns).
 <<>>=
 head(out[,1:5])
 @
-
+The \code{summary} method gives the mean, min, max, ... of the entire 1-D
+variable:
+<<>>=
+summary(out)
+@
 Finally, the output is plotted.
 It is simplest to do this with \pkg{deSolve}'s \proglang{S3}-method \code{image}
-<<label=aphid, include=FALSE>>=
+%% Do this offline
+%%<<label=aphid, include=FALSE>>=
+\begin{verbatim}
 image(out, method = "filled.contour", grid = Distance,
       xlab = "time, days", ylab = "Distance on plant, m",
       main = "Aphid density on a row of plants")
-@
+\end{verbatim}
+%%@
 
 \setkeys{Gin}{width=0.8\textwidth}
 \begin{figure}
 \begin{center}
-<<label=aphidfig,fig=TRUE,echo=FALSE>>=
-<<aphid>>
-@
+%%<<label=aphidfig,fig=TRUE,echo=FALSE>>=
+%%<<aphid>>
+%%@
+\includegraphics{aphid.jpeg}
 \end{center}
 \caption{Solution of the 1-dimensional aphid model - see text for \R-code}
 \label{fig:aphid}
@@ -940,20 +990,19 @@ plot(out, which = "height", type = "l",lwd = 2,
 
 \section{Delay differential equations}
 
-As from deSolve version 1.7, time lags are supported, and a new
+As from \pkg{deSolve} version 1.7, time lags are supported, and a new
 general solver for delay differential equations, \code{dede} has been
 added.
-%% ThPe --> KS: Please add reference of Shampine & Thompson
-We implement the lemming model, example 6 from Shampine and Thompson,
-2000 solving delay differential equations with \code{dde23}.
+
+We implement the lemming model, example 6 from \citep{ST2000}.
 
 Function \code{lagvalue} calculates the value of the state variable at
-t-0.74.  As long a these lag values are not known, the value 19 is
+\code{t - 0.74}.  As long a these lag values are not known, the value 19 is
 assigned to the state variable. Note that the simulation starts at
-time = - 0.74.
+\code{time = - 0.74}.
 
 <<>>=
-require(deSolve)
+library(deSolve)
 
 #-----------------------------
 # the derivative function
@@ -1005,6 +1054,360 @@ plot(yout[,2], yout[,3], xlab = "y", ylab = "dy", type = "l", lwd = 2)
 \end{figure}
 
 \clearpage
+\section{Plotting deSolve Objects}
+
+There are S3 \code{plot} and \code{image} methods for plotting 0-D (plot), and
+1-D and 2-D model output (image) as
+generated with \code{ode}, \code{ode.1D}, \code{ode.2D}.
+
+How to use it and examples can be found by typing \code{?plot.deSolve}.
+
+\subsection{Plotting Multiple Scenario's}
+
+%% HERE SOME TEXT!
+%% thpe:
+The \code{plot} method for \code{deSolve} objects can also be used to compare
+different scenarios, e.g from the same model but with different sets of parameters
+or initial values, with one single call to \code{plot}.
+
+As an example we implement the simple combustion model, which can be found on
+\url{http://www.scholarpedia.org/article/Stiff_systems}:
+
+\[
+y' = y^2 * (1-y)
+\]
+
+The model is run with 4 different values of the initial conditions:
+$y = 0.01, 0.02, 0.03, 0.04$ and written to \code{deSolve} objects \code{out},
+\code{out2}, \code{out3}, \code{out4}.
+
+<<>>=
+library(deSolve)
+
+combustion <- function (t, y, parms)
+  list(y^2 * (1-y) )
+@
+<<>>=
+yini  <- 0.01
+times <- 0 : 200
+@
+<<>>=
+out  <- ode(times = times, y = yini,   parms = 0, func = combustion)
+out2 <- ode(times = times, y = yini*2, parms = 0, func = combustion)
+out3 <- ode(times = times, y = yini*3, parms = 0, func = combustion)
+out4 <- ode(times = times, y = yini*4, parms = 0, func = combustion)
+@
+
+The different scenarios are plotted at once, and a suitable legend is written.
+
+<<label=plotdeSolve,include=FALSE>>=
+plot(out, out2, out3, out4, main = "combustion")
+legend("bottomright", lty = 1:4, col = 1:4, legend = 1:4, title = "yini*i")
+@
+\setkeys{Gin}{width=\textwidth}
+\begin{figure}
+\begin{center}
+<<label=plotdeSolve,fig=TRUE,echo=FALSE,width=8,height=4>>=
+<<plotdeSolve>>
+@
+\end{center}
+\caption{Plotting 4 outputs in one figure}
+\label{fig:plotdeSolve}
+\end{figure}
+
+\subsection{Plotting Output with Observations}
+
+With the help of the optional argument \code{obs} it is possible to
+specify observed data that should be added to a \code{deSolve} plot.
+
+We exemplify this using the \code{ccl4model} in package \code{deSolve}.
+(see \code{?ccl4model} for what this is about). This model example has
+been implemented in compiled code. An observed data set is also available,
+called \code{ccl4data}. It contains toxicant concentrations in a chamber
+where rats were dosed with CCl4.
+<<>>=
+head(ccl4data)
+@
+We select the data from animal ``A'':
+<<>>=
+obs <- subset (ccl4data, animal == "A", c(time, ChamberConc))
+names(obs) <- c("time", "CP")
+head(obs)
+@
+After assigning values to the parameters and providing initial conditions,
+the \code{ccl4model} can be run. We run the model three times, each time with
+a different value for the first parameter. Output is written to matrices \code{out}
+\code{out2}, and \code{out3}.
+<<>>=
+parms <- c(0.182, 4.0, 4.0, 0.08, 0.04, 0.74, 0.05, 0.15, 0.32, 16.17,
+            281.48, 13.3, 16.17, 5.487, 153.8, 0.04321671,
+            0.40272550, 951.46, 0.02, 1.0,  3.80000000)
+yini <- c(AI = 21, AAM = 0, AT = 0, AF = 0, AL = 0, CLT = 0, AM = 0)
+
+out <- ccl4model(times = seq(0, 6, by = 0.05), y = yini, parms = parms)
+
+par2 <- parms
+par2[1] <- 0.1
+out2 <- ccl4model(times = seq(0, 6, by = 0.05), y = yini, parms = par2)
+
+par3 <- parms
+par3[1] <- 0.05
+out3 <- ccl4model(times = seq(0, 6, by = 0.05), y = yini, parms = par3)
+@
+We plot all these scenarios and the observed data at once:
+<<label=plotobs,include=FALSE>>=
+plot(out, out2, out3, which = c("AI", "MASS", "CP"),
+     col = c("black", "red", "green"), lwd = 2,
+     obs = obs, obspar = list(pch = 18, col = "blue", cex = 1.2))
+legend("topright", lty = c(1,2,3,NA), pch = c(NA, NA, NA, 18),
+  col = c("black", "red", "green", "blue"), lwd = 2,
+  legend = c("par1", "par2", "par3", "obs"))
+@
+\setkeys{Gin}{width=\textwidth}
+\begin{figure}
+\begin{center}
+<<label=plotobs,fig=TRUE,echo=FALSE>>=
+<<plotobs>>
+@
+\end{center}
+\caption{Plotting output and obs in one figure}
+\label{fig:plotobs}
+\end{figure}
+
+If we do not select specific variables, then only the ones for which
+there are observed data are plotted. Assume we have measured the total mass at
+the end of day 6. We put this in a second data set:
+
+<<>>=
+obs2 <- data.frame(time = 6, MASS = 12)
+obs2
+@
+then we plot the data together with the three model runs as follows:
+<<label=obs2,include=FALSE>>=
+plot(out, out2, out3, lwd = 2,
+     obs = list(obs, obs2),
+     obspar = list(pch = c(16, 18), col = c("blue", "black"),
+                   cex = c(1.2 , 2))
+     )
+@
+\setkeys{Gin}{width=1.0\textwidth}
+\begin{figure}
+\begin{center}
+<<label=plotobs2,fig=TRUE,echo=FALSE,width=8,height=4>>=
+<<obs2>>
+@
+\end{center}
+\caption{Plotting variables in common with observations}
+\label{fig:plotobs2}
+\end{figure}
+
+\subsection{Plotting Summary Histograms}
+
+The \code{hist} function plots the histogram for each variable; all plot
+parameters can be set individually (here for \code{col}).
+
+To generate the next plot, we overrule the default \code{mfrow} setting which
+would plot the figures in 3 rows and 3 columns (and hence plot one figure
+in isolation)
+
+<<label=hist,include=FALSE>>=
+hist(out, col = grey(seq(0, 1, by = 0.1)), mfrow = c(3, 4))
+@
+\setkeys{Gin}{width=1.0\textwidth}
+\begin{figure}
+\begin{center}
+<<label=plothist,fig=TRUE,echo=FALSE>>=
+<<hist>>
+@
+\end{center}
+\caption{Plotting histograms of all output variables}
+\label{fig:plothist}
+\end{figure}
+
+\subsection{Plotting multi-dimensional output}
+
+The \code{image} function plots time versus x images for models solved with
+\code{ode.1D}, or generates x-y plots for models solved with \code{ode.2D}.
+
+\subsubsection{1-D model output}
+
+We exemplify its use by means of a Lotka-Volterra model, implemented in 1-D.
+The model describes a predator and its prey diffusing on a flat surface
+and in concentric circles. This is a 1-D model, solved in the cylindrical
+coordinate system.
+
+Note that it is simpler to implement this model in R-package \code{ReacTran}
+\citep{ReacTran}.
+
+<<echo=FALSE,results=hide>>=
+options(prompt = " ")
+options(continue = " ")
+@
+We start by defining the derivative function
+<<>>=
+lvmod <- function (time, state, parms, N, rr, ri, dr, dri) {
+  with (as.list(parms), {
+    PREY <- state[1:N]
+    PRED <- state[(N+1):(2*N)]
+
+    ## Fluxes due to diffusion
+    ## at internal and external boundaries: zero gradient
+    FluxPrey <- -Da * diff(c(PREY[1], PREY, PREY[N]))/dri
+    FluxPred <- -Da * diff(c(PRED[1], PRED, PRED[N]))/dri
+
+    ## Biology: Lotka-Volterra model
+    Ingestion     <- rIng  * PREY * PRED
+    GrowthPrey    <- rGrow * PREY * (1-PREY/cap)
+    MortPredator  <- rMort * PRED
+
+    ## Rate of change = Flux gradient + Biology
+    dPREY    <- -diff(ri * FluxPrey)/rr/dr   +
+                GrowthPrey - Ingestion
+    dPRED    <- -diff(ri * FluxPred)/rr/dr   +
+                Ingestion * assEff - MortPredator
+
+    return (list(c(dPREY, dPRED)))
+  })
+}
+@
+<<echo=FALSE,results=hide>>=
+options(prompt = " ")
+options(continue = " ")
+@
+Then we define the parameters, which we put in a list
+<<>>=
+R  <- 20                        # total radius of surface, m
+N  <- 100                       # 100 concentric circles
+dr <- R/N                       # thickness of each layer
+r  <- seq(dr/2,by = dr,len = N) # distance of center to mid-layer
+ri <- seq(0,by = dr,len = N+1)  # distance to layer interface
+dri <- dr                       # dispersion distances
+
+parms <- c(Da     = 0.05,       # m2/d, dispersion coefficient
+           rIng   = 0.2,        # /day, rate of ingestion
+           rGrow  = 1.0,        # /day, growth rate of prey
+           rMort  = 0.2 ,       # /day, mortality rate of pred
+           assEff = 0.5,        # -, assimilation efficiency
+           cap    = 10)         # density, carrying capacity
+
+@
+After defining initial conditions, the model is solved with routine \code{ode.1D}
+<<>>=
+state    <- rep(0, 2 * N)
+state[1] <- state[N + 1] <- 10
+
+times  <- seq(0, 200, by = 1)   # output wanted at these time intervals
+
+print(system.time(
+  out <- ode.1D(y = state, times = times, func = lvmod, parms = parms,
+                nspec = 2, names = c("PREY", "PRED"),
+                N = N, rr = r, ri = ri, dr = dr, dri = dri)
+))
+@
+The \code{summary} method provides summaries for both 1-Dimensional state variables:
+<<>>=
+summary(out)
+@
+while the S3-method \code{subset} can be used to extract only specific values
+of the variables:
+<<>>=
+p10 <- subset(out, select = "PREY", subset = time == 10)
+head(p10)
+@
+
+We first plot both 1-Dimensional state variables at once; we specify that
+the figures are arranged in two rows, and 2 columns; when we call \code{image},
+we overrule the default mfrow setting (\code{mfrow = NULL}).
+Next we plot "PREY" again, once with the default xlim and ylim, and next
+zooming in. Note that xlim and ylim are a list here.
+When we call \code{image} for the second time,
+we overrule the default \code{mfrow} setting by specifying (\code{mfrow = NULL}).
+
+%% This is done offline.
+%%<<label=img,include=FALSE>>=
+\begin{verbatim}
+image(out, grid = r, mfrow = c(2, 2), method = "persp", border = NA,
+      ticktype = "detailed", legend = TRUE)
+image(out, grid = r, which = c("PREY", "PREY"), mfrow = NULL,
+      xlim = list(NULL, c(0, 10)), ylim = list(NULL, c(0, 5)),
+      add.contour = c(FALSE, TRUE))
+\end{verbatim}
+%%@
+
+\setkeys{Gin}{width=1.0\textwidth}
+\begin{figure}
+\begin{center}
+%%<<label=plotimg,fig=TRUE,echo=FALSE>>=
+%%<<img>>
+%%@
+\includegraphics{image1D.jpeg}
+\end{center}
+\caption{image plots}
+\label{fig:plotimg}
+\end{figure}
+
+\subsubsection{2-D model output}
+
+When using  \code{image} with a 2-D model, then the 2-D values at all output
+times will be plotted.
+
+Sometimes we want only output at a specific time value. We then use \proglang{S3}-method
+\code{subset} to extract 2-D variables at suitable time-values and use \proglang{R}'s
+\code{image}, \code{filled.contour} or \code{contour} method to depict them.
+
+Consider the very simple 2-D model (100*100), containing just 1-st order
+consumption, at a rate \code{r_x2y2}, where \code{r_x2y2} depends on the
+position along the grid. First the derivative function is defined:
+<<>>=
+Simple2D <- function(t, Y, par) {
+  y    <- matrix(nrow = nx, ncol = ny, data = Y)  # vector to 2-D matrix
+  dY   <- - r_x2y2 * y   # consumption
+  return(list(dY))
+}
+@
+Then the grid is created, and the consumption rate made a function of grid
+position (\code{outer}).
+<<>>=
+dy <- dx <- 1  # grid size
+nx <- ny <- 100
+x  <- seq (dx/2, by = dx, len = nx)
+y  <- seq (dy/2, by = dy, len = ny)
+
+# in each grid cell: consumption depending on position
+r_x2y2 <- outer(x, y, FUN=function(x,y) ((x-50)^2 + (y-50)^2)*1e-4)
+@
+After defining the initial values, the model is solved using solver
+\code{ode.2D}. We use Runge-Kutta method \code{ode45}.
+<<>>=
+C <- matrix(nrow = nx, ncol = ny, 1)
+ODE3 <- ode.2D(y = C, times = 1:100, func = Simple2D, parms = NULL,
+               dimens = c(nx, ny), names = "C", method = "ode45")
+@
+We print a summary, and extract the 2-D variable at \code{time = 50}
+<<>>=
+summary(ODE3)
+t50 <-  matrix(nrow = nx, ncol = ny,
+     data = subset(ODE3, select = "C", subset = (time == 50)))
+@
+We use function \code{contour} to plot both the consumption rate and the
+values of the state variables at \code{time = 50}.
+<<label=twoD,include=FALSE>>=
+par(mfrow = c(1, 2))
+contour(x, y,  r_x2y2, main = "consumption")
+contour(x, y, t50, main = "Y(t = 50)")
+@
+\setkeys{Gin}{width=1.0\textwidth}
+\begin{figure}
+\begin{center}
+<<label=twoD,fig=TRUE,echo=FALSE, width = 10, height = 5>>=
+<<twoD>>
+@
+\end{center}
+\caption{Contour plot of 2-D variables}
+\label{fig:twoD}
+\end{figure}
+
+\clearpage
 \section{Troubleshooting}
 
 \subsection{Avoiding numerical errors}
@@ -1015,7 +1418,7 @@ practical problems. However, there are cases where they may give
 dubious results.  Consider the following Lotka-Volterra type of model:
 
 <<>>=
-SPCmod <- function(t, x, parms)  {
+PCmod <- function(t, x, parms)  {
   with(as.list(c(parms, x)), {
     dP <- c*P   - d*C*P      # producer
     dC <- e*P*C - f*C        # consumer
@@ -1041,7 +1444,7 @@ xstart <- c(P = 0.5, C = 1)
 times  <- seq(0, 190, 0.1)
 
 out <- ode(y = xstart, times = times,
-  func = SPCmod, parms = parms)
+  func = PCmod, parms = parms)
 tail(out)
 @
 
@@ -1063,9 +1466,9 @@ absolute values. Therefore, it helps here to reduce \code{atol} to a
 very small number or even to zero:
 
 <<>>=
-out <- ode(y = xstart,times = times, func = SPCmod,
+out <- ode(y = xstart,times = times, func = PCmod,
                          parms = parms, atol = 0)
-matplot(out[,1], out[,2:3], type = "l")
+matplot(out[,1], out[,2:3], type = "l", ylab="Producer, Consumer", xlab="time")
 @
 
 It is, of course, not possible to set both, \code{atol} and

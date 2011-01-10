@@ -1,6 +1,6 @@
 ### ============================================================================
 ### lsode -- solves ordinary differential equation systems
-### The user has to specify whether or not
+### The user has to specify whether or not                    
 ### the problem is stiff and choose the appropriate method.
 ### It is very similar to vode, except for some implementation details.
 ### More specifically, in vode it is possible to choose whether or not a copy

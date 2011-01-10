@@ -151,16 +151,16 @@ lines(Out2[,"time"], Out2[,"O2"], col = "red", lwd = 2)
 
 out<- SCOC(times, parms = parms, Flux = Flux)
 
-plot(out$time, out$Depo, type = "l", col = "red")
-lines(out$time, out$Mineralisation, col = "blue")
+plot(out[,"time"], out[,"Depo"], type = "l", col = "red")
+lines(out[,"time"], out[,"Mineralisation"], col = "blue")
 
 ## Constant interpolation of forcing function - left side of interval
 fcontrol <- list(method = "constant")
 
 out2 <- SCOC(times, parms = parms, Flux = Flux, fcontrol = fcontrol)
 
-plot(out2$time, out2$Depo, type = "l", col = "red")
-lines(out2$time, out2$Mineralisation, col = "blue")
+plot(out2[,"time"], out2[,"Depo"], type = "l", col = "red")
+lines(out2[,"time"], out2[,"Mineralisation"], col = "blue")
 
 
 \dontrun{

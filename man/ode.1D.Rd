@@ -187,9 +187,12 @@ filled.contour(x = times, y = r, PREY, color = topo.colors,
                main = "Prey density")
 # similar:
 image(out, which = "PREY", grid = r, xlab = "time, days", 
-      ylab = "Distance, m", main = "Prey density")
+      legend = TRUE, ylab = "Distance, m", main = "Prey density")
 
 image(out2, grid = r)
+
+# summaries of 1-D variables
+summary(out)
 
 ## =======================================================================
 ## Example 2.

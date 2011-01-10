@@ -1,5 +1,5 @@
 \name{lsodar}
-\alias{lsodar}
+\alias{lsodar}                          
 \title{Solver for Ordinary Differential Equations (ODE),
   Switching Automatically Between Stiff and Non-stiff Methods and With
   Root Finding

@@ -11,11 +11,11 @@ SCOC <- function(times, y=NULL, parms, Flux, ...) {
 
   names(y) <- c("C")
 
-  out <- as.data.frame( vode(y, times, func = "scocder",
+  out <- vode(y, times, func = "scocder",
     parms = parms, dllname = "deSolve",
     initforc="scocforc",  forcings=Flux,
     initfunc = "scocpar", nout = 2,
-    outnames = c("Mineralisation","Depo"),...))
+    outnames = c("Mineralisation","Depo"),...)
   out
 }
 

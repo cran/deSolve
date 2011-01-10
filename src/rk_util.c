@@ -2,7 +2,6 @@
 /* Runge-Kutta Solvers, (C) Th. Petzoldt, License: GPL >=2                  */
 /* Definitions and Utilities needed by Runge-Kutta Solvers                  */
 /*==========================================================================*/
-/* karline: added number of rejected steps in setIstate */
 
 /* Load headers needed by the R interface */
 #include <R.h>
@@ -61,7 +60,7 @@ SEXP getInputs(SEXP symbol, SEXP Rho) {
 /*============================================================================*/
 
 /*----------------------------------------------------------------------------*/
-/* Matrix Multiplication                                                      */
+/* Matrix Multiplication using the BLAS routine                               */
 /* a reduced version without NA checking, this is ensured otherwise           */
 /*----------------------------------------------------------------------------*/
 
@@ -80,7 +79,7 @@ void blas_matprod1(double *x, int nrx, int ncx,
 }
 
 
-/* -- Simple Matrix Multiplication ------------------------------------------ */
+/* -- Simple Matrix Multiplication without BLAS ------------------------------ */
 void matprod(int m, int n, int o, double* a, double* b, double* c) {
   int i, j, k;
   for (i = 0; i < m; i++) {
@@ -202,7 +201,7 @@ void densout(double *r, double t0, double t, double dt, double* res, int neq) {
 }
 
 /*----------------------------------------------------------------------------*/
-/* "dense output for the Cash-Karp method  - does not work (yet)              */
+/* dense output for the Cash-Karp method  - does not work (yet)              */
 /*----------------------------------------------------------------------------*/
 
 void densoutck(double t0, double t, double dt, double* y0,  
@@ -241,9 +240,8 @@ void neville(double *xx, double *y, double tnew, double *ynew, int n, int ksig) 
   double yy[n * ksig]; /* temporary workspace */
   double tscal = xx[n-1] - xx[0];
   double t = tnew / tscal;
-  for (i = 0; i < n; i++) x[i] = xx[i]/tscal;
-
-  for (i=0; i < n * ksig; i++) yy[i] = y[i];
+  for (i = 0; i < n; i++) x[i] = xx[i] / tscal;
+  for (i = 0; i < n * ksig; i++) yy[i] = y[i];
 
   for (k = 0; k < ksig; k++) {
     for (j = 1; j < n; j++)
@@ -266,9 +264,10 @@ void shiftBuffer (double *x, int n, int k) {
       x[i + j * n] = x[i + 1 + j * n];
 }
 
-/* karline: nsteps+1 for "initial condition evaluation" */
+
 void setIstate(SEXP R_yout, SEXP R_istate, int *istate,
   int it_tot, int stage, int fsal, int qerr, int nrej) {
+  /* karline: nsteps + 1 for "initial condition evaluation" */
   /* note that indices are 1 smaller in C than in R  */
   istate[11] = it_tot;                      /* number of steps */
   istate[12] = it_tot * (stage - fsal) + 1; /* number of function evaluations */

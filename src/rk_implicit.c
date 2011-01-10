@@ -37,7 +37,7 @@ void kfunc(int stage, int neq, double t, double dt,
    /******  Prepare Coefficients from Butcher table ******/
    for (j = 0; j < stage; j++) {
      for (i = 0; i < neq; i++) Fj[i] = 0.;
-     for (k =0; k < stage; k++) { // implicit part
+     for (k =0; k < stage; k++) { /* implicit part */
        for(i = 0; i < neq; i++)
          Fj[i] = Fj[i] + A[j + stage * k] * FF[i + neq * k] * dt;
      }
@@ -50,7 +50,7 @@ void kfunc(int stage, int neq, double t, double dt,
               ipar, isDll, isForcing);
    }
    for (i = 0; i< neq*stage;i++)
-     tmp[i] = FF[i] - tmp2[i];       // tmp should be = 0 at root
+     tmp[i] = FF[i] - tmp2[i];       /* tmp should be = 0 at root */
 }
 
 /* function that returns the Jacobian of kfunc; df[i,j] should contain:
@@ -70,20 +70,20 @@ void dkfunc(int stage, int neq, double t, double dt,
          tmp2, tmp3, out, ipar, isDll, isForcing);
      
    for (i = 0; i < nroot; i++) {
-     d1 = FF[i];                      // copy
-     d2 = fmax(1e-8, FF[i] * 1e-8);     // perturb
+     d1 = FF[i];                      /* copy */
+     d2 = fmax(1e-8, FF[i] * 1e-8);     /* perturb */
      FF[i] = FF[i] + d2;
      kfunc(stage, neq, t, dt, FF, Fj, A, cc, y0, Func, Parms, Rho, 
         tmp, tmp3, out, ipar, isDll, isForcing);
      for (j = 0; j < nroot; j++) 
        df[nroot * i + j] = (tmp[j] - tmp2[j])/d2;   //df[j,i] j,i=1:nroot
-     FF[i] = d1;                      // restore
+     FF[i] = d1;                      /* restore */
    }
 }
 
 /* ks: check if tmp3 necessary ... */
-void rk_implicit( double * alfa,  // neq*stage * neq*stage
-       int *index,                // neq*stage 
+void rk_implicit( double * alfa,  /* neq*stage * neq*stage */
+       int *index,                /* neq*stage */
        /* integers */
        int fsal, int neq, int stage,
        int isDll, int isForcing, int verbose,
@@ -127,7 +127,7 @@ void rk_implicit( double * alfa,  // neq*stage * neq*stage
     timesteps[0] = timesteps[1];
     timesteps[1] = dt;
    
-    // Newton-Raphson steps
+    /* Newton-Raphson steps */
     for (iter = 0; iter < maxit; iter++) {
       /* function value and Jacobian*/ 
       kfunc(stage, neq, t, dt, FF, Fj, A, cc, y0, Func, Parms, Rho, 
@@ -201,15 +201,17 @@ void rk_implicit( double * alfa,  // neq*stage * neq*stage
     it++;
     for (i = 0; i < neq; i++) y0[i] = y1[i];
     if (it_ext > nt) {
-      Rprintf("error in rk_implicit.c - call_rkImpicit: output buffer overflow\n");
+      Rprintf("error in RK solver rk_implicit.c: output buffer overflow\n");
       break;
     }
     if (it_tot > maxsteps) {
       if (verbose) Rprintf("Max. number of steps exceeded\n");
       break;
     }
-  } while (t < tmax); /* end of rk main loop */
+    /* tolerance to avoid rounding errors */
+  } while (t < (tmax - 100.0 * DBL_EPSILON * dt)); /* end of rk main loop */
   
   /* return reference values */
   *_iknots = iknots; *_it = it; *_it_ext = it_ext; *_it_tot = it_tot;
 }
+ 

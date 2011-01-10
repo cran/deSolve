@@ -4,7 +4,7 @@
 ## Standard test problem for nonstiff solvers.
 ##
 ## closed trajectory for 3-body problem; two of mass mu and (1-mu)
-## and a third body of negigible mass, moving in the same plane
+## and a third body of negligible mass, moving in the same plane
 ## Hairer et al., 2000
 ##
 ## compared with DOPRI.f
