@@ -72,26 +72,23 @@ checkFunc<- function (Func2, times, y, rho) {
     tmp <- eval(Func2(times[1], y), rho)
     if (!is.list(tmp))
       stop("Model function must return a list\n")
-
     if (length(tmp[[1]]) != length(y))
       stop(paste("The number of derivatives returned by func() (",
                  length(tmp[[1]]),
                  ") must equal the length of the initial conditions vector (",
-                 length(y),")",sep=""))
-
-                                   # use "unlist" here because some output variables are vectors/arrays
+                 length(y), ")", sep = ""))
+    # use "unlist" here because some output variables are vectors/arrays
     Nglobal <- if (length(tmp) > 1)
       length(unlist(tmp[-1]))  else 0
     # Karline: changed this: Nmtot is now a list with names, dimensions,... for 1-D, 2-D vars
     Nmtot <- list()  
-    Nmtot$colnames <- attr(unlist(tmp[-1]),"names")
+    Nmtot$colnames <- attr(unlist(tmp[-1]), "names")
     
-    Nmtot$lengthvar <- unlist(lapply(tmp,length))
+    Nmtot$lengthvar <- unlist(lapply(tmp, length))
     if (length(Nmtot$lengthvar) < Nglobal+1){
-      Nmtot$dimvar <- lapply(tmp[-1],dim)
+      Nmtot$dimvar <- lapply(tmp[-1], dim)
     }
    return(list(Nglobal = Nglobal, Nmtot = Nmtot))
-
 }
 
 ## ========================================================================
@@ -101,12 +98,11 @@ checkFunc<- function (Func2, times, y, rho) {
 checkEventFunc<- function (Func, times, y, rho) {
     ## Call func once
     tmp <- eval(Func(times[1], y), rho)
-
     if (length(tmp) != length(y))
       stop(paste("The number of values returned by events$func() (",
                  length(tmp),
                  ") must equal the length of the initial conditions vector (",
-                 length(y),")",sep=""))
+                 length(y), ")", sep = ""))
     if (!is.vector(tmp))
       stop("The event function 'events$func' must return a vector\n")
 }
@@ -119,22 +115,20 @@ checkFuncEuler<- function (Func, times, y, parms, rho, Nstates) {
       ## Call func once to figure out whether and how many "global"
       ## results it wants to return and some other safety checks
       tmp <- eval(Func(times[1], y, parms), rho)
-
       if (!is.list(tmp)) stop("Model function must return a list\n")
       if (length(tmp[[1]]) != Nstates)
         stop(paste("The number of derivatives returned by func() (",
                    length(tmp[[1]]),
                    "must equal the length of the initial conditions vector (",
-                   Nstates,")", sep=""))
-
+                   Nstates, ")", sep=""))
       ## use "unlist" here because some output variables are vectors/arrays
       Nglobal <- if (length(tmp) > 1)
-          length(unlist(tmp[-1]))  else 0
+        length(unlist(tmp[-1])) else 0
       Nmtot <- list()
-      Nmtot$colnames <- attr(unlist(tmp[-1]),"names")
-      Nmtot$lengthvar <- unlist(lapply(tmp,length))
+      Nmtot$colnames <- attr(unlist(tmp[-1]), "names")
+      Nmtot$lengthvar <- unlist(lapply(tmp, length))
       if (length(Nmtot$lengthvar) < Nglobal+1){
-        Nmtot$dimvar <- lapply(tmp[-1],dim)
+        Nmtot$dimvar <- lapply(tmp[-1], dim)
       }
    return(list(Nglobal = Nglobal, Nmtot = Nmtot))
 
@@ -144,10 +138,10 @@ checkFuncEuler<- function (Func, times, y, parms, rho, Nstates) {
 ## check ode DLL input
 ## ========================================================================
 
-checkDLL <- function (func,jacfunc,dllname,
-                      initfunc,verbose,nout, outnames, JT=1) {
+checkDLL <- function (func, jacfunc, dllname,
+                      initfunc, verbose, nout, outnames, JT = 1) {
 
-    if (sum(duplicated (c(func,initfunc,jacfunc))) >0)
+    if (sum(duplicated (c(func, initfunc, jacfunc))) > 0)
       stop("func, initfunc, or jacfunc cannot be the same")
     ModelInit <- NA
     if (! is.null(initfunc))  # to allow absence of initfunc
@@ -155,7 +149,7 @@ checkDLL <- function (func,jacfunc,dllname,
         is.loaded(initfunc, PACKAGE = dllname, type = "Fortran"))  {
         ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
       } else if (initfunc != dllname && ! is.null(initfunc))
-        stop(paste("'initfunc' not loaded ",initfunc))
+        stop(paste("'initfunc' not loaded ", initfunc))
 
     # Easier to deal with NA in C-code
     if (is.null(initfunc)) ModelInit <- NA
@@ -168,7 +162,7 @@ checkDLL <- function (func,jacfunc,dllname,
 
     if(is.loaded(funcname, PACKAGE = dllname)) {
       Func <- getNativeSymbolInfo(funcname, PACKAGE = dllname)$address
-    } else stop(paste("dyn function 'func' not loaded",funcname))
+    } else stop(paste("dyn function 'func' not loaded", funcname))
 
     ## Finally, is there a Jacobian?
     if (!is.null(jacfunc)) {
@@ -180,7 +174,7 @@ checkDLL <- function (func,jacfunc,dllname,
       jacfuncname <- jacfunc
       if(is.loaded(jacfuncname, PACKAGE = dllname))  {
         JacFunc <- getNativeSymbolInfo(jacfuncname, PACKAGE = dllname)$address
-      } else stop(paste("cannot integrate: jac function not loaded ",jacfunc))
+      } else stop(paste("cannot integrate: jac function not loaded ", jacfunc))
     } else JacFunc <- NULL
     Nglobal <- nout
     Nmtot <- list()
@@ -205,21 +199,21 @@ checkDLL <- function (func,jacfunc,dllname,
 ## =============================================================================
 ## print integration task
 ## =============================================================================
-printtask <- function(itask,func,jacfunc) {
+printtask <- function(itask, func, jacfunc) {
     printM("\n--------------------")
     printM("Time settings")
     printM("--------------------\n")
-    if (itask==1)printM("  Normal computation of output values of y(t) at t = TOUT") else
-    if (itask==2)printM("  Take one step only and return.")                          else
-    if (itask==3)printM("  istop at the first internal mesh point at or beyond t = TOUT and return. ")  else
-    if (itask==4)printM("  Normal computation of output values of y(t) at t = TOUT but without overshooting t = TCRIT.") else
-    if (itask==5)printM("  Take one step, without passing TCRIT, and return.")
+    if (itask==1) printM("  Normal computation of output values of y(t) at t = TOUT") else
+    if (itask==2) printM("  Take one step only and return.")                          else
+    if (itask==3) printM("  istop at the first internal mesh point at or beyond t = TOUT and return. ")  else
+    if (itask==4) printM("  Normal computation of output values of y(t) at t = TOUT but without overshooting t = TCRIT.") else
+    if (itask==5) printM("  Take one step, without passing TCRIT, and return.")
     printM("\n--------------------")
     printM("Integration settings")
     printM("--------------------\n")
-    if (is.character(func)) printM(paste("  Model function a DLL: ",func)) else
+    if (is.character(func)) printM(paste("  Model function a DLL: ", func)) else
     printM("  Model function an R-function: ")
-    if (is.character(jacfunc)) printM(paste ("  Jacobian specified as a DLL: ",jacfunc)) else
+    if (is.character(jacfunc)) printM(paste ("  Jacobian specified as a DLL: ", jacfunc)) else
     if (!is.null(jacfunc))     printM("  Jacobian specified as an R-function: ") else
     printM("  Jacobian not specified")
     cat("\n")
@@ -231,7 +225,7 @@ printtask <- function(itask,func,jacfunc) {
 
 setIstate <- function(istate, iin, iout)
 {
-  IstateOut <- rep(NA,21)
+  IstateOut <- rep(NA, 21)
   IstateOut[iout] <- istate[iin]
   IstateOut
 }
@@ -243,8 +237,12 @@ setIstate <- function(istate, iin, iout)
 
 saveOut <- function (out, y, n, Nglobal, Nmtot, func, Func2,
   iin, iout, nr = 4) {
-  istate <- attr(out,"istate")
+  troot  <- attr(out, "troot")
+  istate <- attr(out, "istate")
   istate <- setIstate(istate,iin,iout)
+
+  valroot  <- attr(out, "valroot")
+  indroot <- attr(out, "indroot")
 
   Rstate <- attr(out, "rstate")
   rstate <- rep(NA,5)
@@ -262,13 +260,16 @@ saveOut <- function (out, y, n, Nglobal, Nmtot, func, Func2,
   if (! is.null(Nmtot$lengthvar))
     if (is.na(Nmtot$lengthvar[1]))Nmtot$lengthvar[1] <- length(y) 
   attr(out, "lengthvar") <- Nmtot$lengthvar
-  
+  if (! is.null(troot)) attr(out, "troot") <-  troot
+  if (! is.null(valroot)) attr(out, "valroot") <- matrix(nr = n, valroot)
+  if (! is.null(indroot)) attr(out, "indroot") <- indroot
+
   ii <- if (is.null(Nmtot$dimvar)) 
-    NULL else !(unlist(lapply(Nmtot$dimvar, is.null)))  # variables with dimension
+    NULL else !(unlist(lapply(Nmtot$dimvar, is.null))) # variables with dimension
   if (sum(ii) >0) 
     attr(out, "dimvar") <- Nmtot$dimvar[ii]     # dimensions that are not null
-  class(out) <- c("deSolve","matrix")           # a differential equation
-  dimnames(out) <- list(nm,NULL)
+  class(out) <- c("deSolve", "matrix")          # a differential equation
+  dimnames(out) <- list(nm, NULL)
   return (t(out))
 }
 
@@ -276,13 +277,11 @@ saveOut <- function (out, y, n, Nglobal, Nmtot, func, Func2,
 ## Output cleanup  - for the Runge-Kutta solvers
 ## =============================================================================
 
-saveOutrk <- function(out, y, n, Nglobal, Nmtot, iin, iout, transpose=FALSE)  {
-
+saveOutrk <- function(out, y, n, Nglobal, Nmtot, iin, iout, transpose = FALSE)  {
   ## Names for the outputs
   nm <- c("time",
     if (!is.null(attr(y, "names"))) names(y) else as.character(1:n)
    )
-
   ## Global outputs
   if (Nglobal > 0) {
     nm  <- c(nm,
@@ -290,19 +289,20 @@ saveOutrk <- function(out, y, n, Nglobal, Nmtot, iin, iout, transpose=FALSE)  {
         Nmtot$colnames else as.character((n + 1) : (n + Nglobal))
     )
   }
-
   ## Column names and state information
   dimnames(out) <- list(NULL, nm)
   istate <- attr(out, "istate")
-  istate <- setIstate(istate,iin, iout)
+  istate <- setIstate(istate, iin, iout)
   attr(out,"istate") <- istate
+  if (! is.null(Nmtot$lengthvar))
+    if (is.na(Nmtot$lengthvar[1])) Nmtot$lengthvar[1] <- length(y)
   attr(out, "lengthvar") <- Nmtot$lengthvar
   
   ii <- if (is.null(Nmtot$dimvar)) 
-    NULL else !(unlist(lapply(Nmtot$dimvar, is.null)))  # variables with dimension
+    NULL else !(unlist(lapply(Nmtot$dimvar, is.null))) # variables with dimension
   if (sum(ii) >0) 
     attr(out, "dimvar") <- Nmtot$dimvar[ii] # only those which are not null
-  class(out) <- c("deSolve","matrix")    # a differential equation
+  class(out) <- c("deSolve", "matrix")      # output of a differential equation
   if (transpose)
     return(t(out))
   else

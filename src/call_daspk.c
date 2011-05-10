@@ -10,7 +10,7 @@
         C_out        : interface with R-code "res", passes output variables  
         C_daejac_func: interface with R-code "jacres", passes jacobian
   
-   C_forc_dae provides the interface between the residual function specified in
+   DLL_forc_dae provides the interface between the residual function specified in
    a DLL and daspk, in case there are forcing functions.
    
   
@@ -19,9 +19,23 @@
    karline: version 1.6: added events
    karline: version 1.7: added time lags -> delay differential equations
             improving names
+   karline: version 2.0: func in compiled code (was only res)
 
    to do: implement psolfunc
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
+/* globals for when mass matrix is used with func in a DLL with mass matrix   */
+int isMass;
+double * mass, *dytmp;
+
+/* -----------------  Matrix-Vector Multiplication A*x=c -------------------- */
+void matvecmult (int nr, int nc, double* A, double* x, double* c) {
+  int i, j;
+  for (i = 0; i < nr; i++) {
+    c[i] = 0.;
+    for (j = 0; j < nc; j++)
+      c[i] += A[i + nr * j] * x[j];
+  }
+}
 
 /* definition of the call to the FORTRAN function ddaspk - in file ddaspk.f*/
 void F77_NAME(ddaspk)(void (*)(double *, double *, double *, double*,
@@ -34,22 +48,49 @@ void F77_NAME(ddaspk)(void (*)(double *, double *, double *, double*,
                   double *, double *, double *, int *, double *, double *, 
                         int *, double *, int *));   
 
-static void C_forc_dae (double *t, double *y, double *yprime, double *cj,
+/* func is in a DLL,                                                         */
+static void DLL_res_ode (double *t, double *y, double *yprime, double *cj,
+                       double *delta, int *ires, double *yout, int *iout)
+{
+   int i;
+   DLL_deriv_func (&n_eq, t, y, delta, yout, iout);
+
+   if (isMass) {
+     matvecmult(n_eq, n_eq, mass, yprime, dytmp);
+     for ( i = 0; i < n_eq; i++)
+       delta[i] = dytmp[i] - delta[i];
+   } else {
+   for ( i = 0; i < n_eq; i++)
+     delta[i] = yprime[i] - delta[i];
+   }
+}
+
+/* res is in a DLL, with forcing functions                                   */
+static void DLL_forc_dae (double *t, double *y, double *yprime, double *cj,
                        double *delta, int *ires, double *yout, int *iout)
 {
   updatedeforc(t);
   DLL_res_func(t, y, yprime, cj, delta, ires, yout, iout);
 }
 
-static void C_psol_func (int *neq, double *t, double *y, double *yprime, 
+/* func is in a DLL, with forcing function                                   */
+static void DLL_forc_dae2 (double *t, double *y, double *yprime, double *cj,
+                       double *delta, int *ires, double *yout, int *iout)
+{
+  updatedeforc(t);
+  DLL_res_ode(t, y, yprime, cj, delta, ires, yout, iout);
+}
+
+
+/* not yet implemented                                                       */
+static void C_psol_func (int *neq, double *t, double *y, double *yprime,
                         double *savr, double *wk, double *cj, double* wght,
                         double *wp, int *iwp, double *b, double *eplin, 
                         int *ierr, double *RPAR, int *IPAR)
 {
-/* not yet implemented */
 }
 
-/* interface between FORTRAN residual function call and R function  */
+/* interface between FORTRAN function calls and R functions                 */
 
 static void C_res_func (double *t, double *y, double *yprime, double *cj, 
                        double *delta, int *ires, double *yout, int *iout)
@@ -134,26 +175,26 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
 		SEXP rtol, SEXP atol, SEXP rho, SEXP tcrit, SEXP jacfunc, SEXP initfunc, 
 		SEXP psolfunc, SEXP verbose, SEXP info, SEXP iWork, SEXP rWork,  
     SEXP nOut, SEXP maxIt, SEXP bu, SEXP bd, SEXP nRowpd, SEXP Rpar,
-    SEXP Ipar, SEXP flist, SEXP elag)
+    SEXP Ipar, SEXP flist, SEXP elag, SEXP eventfunc, SEXP elist, SEXP Mass)
 {
 /******************************************************************************/
 /******                   DECLARATION SECTION                            ******/
 /******************************************************************************/
 
   int    j, nt, ny, repcount, latol, lrtol, lrw, liw, isDll;
-  int    maxit, isForcing, islag;
+  int    maxit, isForcing, isEvent, islag, istate;
   double *xytmp,  *xdytmp, tin, tout, *Atol, *Rtol;
   double *delta=NULL, cj;
   int    *Info,  ninfo, idid, mflag, ires;
-  int    *iwork, it, ntot= 0, nout;   
+  int    *iwork, it, ntot= 0, nout, funtype;
   double *rwork;
   
 
   /* pointers to functions passed to FORTRAN */
-  C_res_func_type     *res_func;
-  C_daejac_func_type  *daejac_func=NULL;
-  C_psol_func_type    *psol_func=NULL;
-  C_kryljac_func_type *kryljac_func=NULL;
+  C_res_func_type     *res_func = NULL;
+  C_daejac_func_type  *daejac_func = NULL;
+  C_psol_func_type    *psol_func = NULL;
+  C_kryljac_func_type *kryljac_func = NULL;
 
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
@@ -187,6 +228,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   /* copies of all variables that will be changed in the FORTRAN subroutine */
   Info  = (int *) R_alloc(ninfo,sizeof(int));
    for (j = 0; j < ninfo; j++) Info[j] = INTEGER(info)[j];  
+  if (mflag == 1) Info[17] = 1;
   
   xytmp = (double *) R_alloc(n_eq, sizeof(double));
    for (j = 0; j < n_eq; j++) xytmp[j] = REAL(y)[j];
@@ -219,21 +261,39 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   initdaeglobals(nt, ntot);
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
+  isEvent = initEvents(elist, eventfunc);
   islag = initLags(elag, 0, 0);
  
  /* pointers to functions res_func, psol_func and daejac_func, 
     passed to the FORTRAN subroutine */
-
+  isMass = 0;
   if (isDll == 1)  {       /* DLL address passed to FORTRAN */
-      res_func = (C_res_func_type *) R_ExternalPtrAddr(resfunc);
-      /* no need to communicate with R - but output variables set here */            
+      funtype = Info[19];
+      if (funtype == 1) {   /* res is in DLL */
+        res_func = (C_res_func_type *) R_ExternalPtrAddr(resfunc);
+        if(isForcing==1) {
+          DLL_res_func = (C_res_func_type *) R_ExternalPtrAddr(resfunc);
+          res_func = (C_res_func_type *) DLL_forc_dae;
+        }
+      } else if (funtype <= 3){ /* func is in DLL, +- mass matrix */
+        res_func = DLL_res_ode;
+        DLL_deriv_func = (C_deriv_func_type *) R_ExternalPtrAddr(resfunc);
+        if(isForcing==1) {
+          res_func = (C_res_func_type *) DLL_forc_dae2;
+        }
+        if (funtype == 3) {    /* mass matrix */
+          isMass = 1;
+          mass = (double *)R_alloc(n_eq * n_eq, sizeof(double));
+          for (j = 0; j < n_eq * n_eq; j++) mass[j] = REAL(Mass)[j];
+          dytmp = (double *) R_alloc(n_eq, sizeof(double));
+        }
+        
+      } else
+       error("DLL function type not yet implemented");
+
       delta = (double *) R_alloc(n_eq, sizeof(double));
       for (j = 0; j < n_eq; j++) delta[j] = 0.;
 
-      if(isForcing==1) {
-        DLL_res_func = (C_res_func_type *) R_ExternalPtrAddr(resfunc);
-        res_func = (C_res_func_type *) C_forc_dae;
-      }
 
     } else {
       /* interface function between FORTRAN and R passed to FORTRAN */
@@ -275,7 +335,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   REAL(YOUT)[0] = REAL(times)[0];
   for (j = 0; j < n_eq; j++)
       REAL(YOUT)[j+1] = REAL(y)[j];
-      
+
   if (islag == 1) updatehistini(REAL(times)[0], xytmp, xdytmp, rwork, iwork);
     
   if (nout>0)
@@ -294,6 +354,13 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   {
       tin = REAL(times)[it];
       tout = REAL(times)[it+1];
+    if (isEvent) {
+      istate =  2;
+      updateevent(&tin, xytmp, &istate);
+      if (istate  == 1) Info[0] = 0;
+      Info[3] = 1;
+      rwork[0] = tout;
+    }
 
      repcount = 0;
      do  /* iterations in case maxsteps>500* or in case islag */

@@ -26,7 +26,7 @@ lagderiv <- function (t, nr=NULL) {
 ### ============================================================================
 
 dede <- function(y, times, func=NULL, parms, method = c( "lsoda", "lsode", 
-    "lsodes", "lsodar", "vode", "daspk", "bdf", "adams", "impAdams"), 
+    "lsodes", "lsodar", "vode", "daspk", "bdf", "adams", "impAdams", "radau"),
     control=NULL,  ...) {
     if (is.null(control)) control <- list(mxhist = 1e4)
 
@@ -46,6 +46,7 @@ dede <- function(y, times, func=NULL, parms, method = c( "lsoda", "lsode",
        daspk = daspk(y, times, func, parms, lags = control, ...),
        bdf  = lsode(y, times, func, parms, mf = 22, lags = control, ...),
        adams = lsode(y, times, func, parms, mf = 10, lags = control, ...), 
+       radau = radau(y, times, func, parms, lags = control, ...),
        impAdams = lsode(y, times, func, parms, mf = 12, lags = control, ...)
     )
     return(res)

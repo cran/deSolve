@@ -31,8 +31,9 @@
 }
 \usage{
 lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
-  jacfunc = NULL, jactype = "fullint", verbose = FALSE,
-  tcrit = NULL, hmin = 0, hmax = NULL, hini = 0, ynames = TRUE,
+  jacfunc = NULL, jactype = "fullint", rootfunc = NULL,
+  verbose = FALSE, nroot = 0, tcrit = NULL,
+  hmin = 0, hmax = NULL, hini = 0, ynames = TRUE,
   maxordn = 12, maxords = 5, bandup = NULL, banddown = NULL,
   maxsteps = 5000, dllname = NULL, initfunc = dllname,
   initpar = parms, rpar = NULL, ipar = NULL, nout = 0,
@@ -106,8 +107,21 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     \code{"fullusr"}, \code{"bandusr"} or \code{"bandint"} - either
     full or banded and estimated internally or by user.
   }
-  \item{verbose }{a logical value that, when \code{TRUE}, will
+  \item{rootfunc }{if not \code{NULL}, an \R function that computes the
+    function whose root has to be estimated or a string giving the name
+    of a function or subroutine in \file{dllname} that computes the root
+    function.  The \R calling sequence for \code{rootfunc} is identical
+    to that of \code{func}.  \code{rootfunc} should return a vector with
+    the function values whose root is sought.  When \code{rootfunc} is
+    provided, then \code{lsodar} will be called.
+  }
+  \item{verbose }{if \code{TRUE}: full output to the screen, e.g. will
     print the \code{diagnostiscs} of the integration - see details.
+  }
+  \item{nroot }{only used if \file{dllname}  is specified: the number of
+    constraint functions whose roots are desired during the integration;
+    if \code{rootfunc} is an R-function, the solver estimates the number
+    of roots.
   }
   \item{tcrit }{if not \code{NULL}, then \code{lsoda} cannot integrate
     past \code{tcrit}. The FORTRAN routine \code{lsoda} overshoots its

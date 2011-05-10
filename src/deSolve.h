@@ -36,7 +36,8 @@ double *forcings;
 /* events */
 double tEvent;
 int iEvent, nEvent, typeevent, rootevent, Rootsave;
-double *troot;
+double *troot, *valroot;
+int *nrroot;
 
 double *timeevent, *valueevent;
 int *svarevent, *methodevent;
@@ -156,7 +157,8 @@ double interpolate(int i, int k, double t0, double t1, double t,
 ==========================================*/
 
 int indexhist, indexlag, endreached, starthist;
-double *histvar, *histdvar, *histtime, *histhh;
+double *histvar, *histdvar, *histtime, *histhh, *histsave;
 int    *histord;
 int    histsize, offset;
 int    initialisehist, lyh, lhh, lo;
+

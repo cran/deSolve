@@ -144,7 +144,8 @@ diagnostics.deSolve <- function(obj, Full = FALSE, ...) {
         signif(Attr$troot, digits = 5), "\n")
   }
        
-  if (name == "lsodar" || (name =="lsode" && !is.null(Attr$iroot))) {
+  if (name == "lsodar" ||
+      (name %in% c("lsode","lsodes","radau") && !is.null(Attr$iroot))) {
     cat("--------------------\n")
     cat("ROOT\n")
     cat("--------------------\n")
@@ -153,7 +154,7 @@ diagnostics.deSolve <- function(obj, Full = FALSE, ...) {
       cat("\n root found for root equation:",
         signif(iroot, digits = 0), "\n")
       cat("\n at time :",
-        signif(rstate[3], digits = 5), "\n")
+        signif(Attr$troot, digits = 5), "\n")
         
       }  
     else

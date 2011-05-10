@@ -37,8 +37,7 @@
   if interpolMethod ==2
   =========================================================================== */
 
-/* definition of the calls to the FORTRAN function INTERPOLY,
-as derived from dintdy */
+/* definition of call to FORTRAN function INTERPOLY, as derived from dintdy   */
 
 void F77_NAME(interpoly)(double *, int *, int *, double *, int *, double *, 
    int *, double *, double *);
@@ -59,6 +58,11 @@ double interpolate(int i, int k, double t0, double hh, double t,
   F77_CALL(interpoly) (&t, &k, &i, Yh, &n_eq, &res, &nq, &t0, &hh); 
   return(res);
 }  
+
+/* continuous output formula for radau                                        */
+void F77_NAME (contr5alone) (int *, int *, double *, double *, int *, double *,
+                             double *, int *);
+void F77_NAME (getconra) (double *);
 
 /*=========================================================================== 
   Hermitian interpolation of y to x (interpolMethod==1)
@@ -114,15 +118,16 @@ void inithist(int max, int maxlags, int solver, int nroot) {
   
   histsize = max;
   initialisehist = 1;
-  indexhist  = -1; // indexhist+1 = next time in circular buffer.
-  starthist  = 0;  // start time in circular buffer.
-  endreached = 0;  // if end of buffer reached and new values added at start
+  indexhist  = -1; /* indexhist+1 = next time in circular buffer.  */
+  starthist  = 0;  /* start time in circular buffer.               */
+  endreached = 0;  /* if end of buffer reached and new values added at start  */
   
-  /* interpolMethod = Hermite, higherOrder */
-  if (interpolMethod ==1) {
+  /* interpolMethod = Hermite */
+  if (interpolMethod == 1) {
     offset   = n_eq; /* size needed for saving one time-step in histvar*/
-  
-  } else {
+
+  /* interpolMethod = HigherOrder, Livermore solvers */
+  } else if (interpolMethod == 2) {
     if (solver == 0) 
       error("illegal input in lags - cannot combine interpol=2 with chosen solver");
     maxord  = 12;   /* 5(bdf) or 12 (adams) */
@@ -133,19 +138,23 @@ void inithist(int max, int maxlags, int solver, int nroot) {
     if (solver == 5) {  /* different for vode!  uses current time step*/  
       lhh = 10;        
       lo = 13;             
-    }                      
-    if (solver == 4 || solver == 6)  /* lsodar or lsoder */
+    }
+    if (solver == 4 || solver == 6 || solver == 7)  /* lsodar or lsoder */
       lyh = 20+3*nroot;
 
     offset  = n_eq*(maxord+1);       
     histord = (int *) R_alloc (histsize, sizeof(int));
     histhh  = (double *) R_alloc (histsize, sizeof(double));
+
+  /* interpolMethod = 3; HigherOrder, radau */
+  } else {
+    offset  = n_eq * 4 + 2;
+    histsave = (double *) R_alloc (2, sizeof(double));
   }
 
   histtime = (double *) R_alloc (histsize, sizeof(double));
   histvar  = (double *) R_alloc (offset * histsize, sizeof(double));
   histdvar = (double *) R_alloc (n_eq * histsize, sizeof(double));
-
 }
 
 /*=========================================================================== 
@@ -165,46 +174,54 @@ int nexthist(int i) {
   update history arrays each time step
   =========================================================================== */
 
-/* first time: just store y, dy and t */
+/* first time: just store y, (dy) and t */
 void updatehistini(double t, double *y, double *dY, double *rwork, int *iwork){
   int intpol;
 
   intpol = interpolMethod;
   interpolMethod = 1; 
-  updatehist(t,y,dY, rwork, iwork);
+  updatehist(t, y, dY, rwork, iwork);
   interpolMethod = intpol; 
-  if (interpolMethod ==2){ 
+  if (interpolMethod == 2){
     histord[0] = 0;
     histhh[0] = timesteps[0];    
   }  
 }
 
-
 void updatehist(double t, double *y, double *dY, double *rwork, int *iwork) {
   int j, ii;
+  double ss[2];
 
   indexhist = nexthist(indexhist);
   ii = indexhist * offset;     
 
   /* interpolMethod = Hermite */
-  if (interpolMethod ==1) {
+  if (interpolMethod == 1) {
     for (j = 0; j < n_eq; j++)  
       histvar [ii  + j ] = y[j];
- 
-  } else {       /* higherOrder */
+
+  /* higherOrder, livermores */
+  } else if (interpolMethod == 2) {
     histord[indexhist] = iwork[lo];    
 
     for (j = 0; j < offset; j++)
       histvar[ii + j] = rwork[lyh + j];
     histhh [indexhist] = rwork[lhh];   
- 
+
+  /* higherOrder, radau */
+  }  else if (interpolMethod == 3) {
+    for (j = 0; j < 4 * n_eq; j++)
+      histvar[ii + j] = rwork[j];
+    F77_CALL(getconra) (ss);
+    for (j = 0; j < 2; j++)
+      histvar[ii + 4*n_eq + j] = ss[j];
   }
 
   ii = indexhist * n_eq;     
  
   for (j = 0; j < n_eq; j++)
-    histdvar[ii + j] = dY[j];
- 
+      histdvar[ii + j] = dY[j];
+
   histtime [indexhist] = t;
 
   if (endreached == 1)       /* starthist stays 0 until end reached... */
@@ -212,14 +229,14 @@ void updatehist(double t, double *y, double *dY, double *rwork, int *iwork) {
 }
 
 /*=========================================================================== 
-  find a past value (val==1) or a past derivative (val == 0) 
+  find a past value (val=1) or a past derivative (val = 2)
   =========================================================================== */
 
 double past(int i, int interval, double t, int val)
 
 	/* finds past values (val=1) or past derivatives (val=2)*/
 
-{ int j, jn, nq;
+{ int j, jn, nq, ip;
   double t0, t1, y0, y1, dy0, dy1, res, hh;
   double *Yh;
 
@@ -234,17 +251,7 @@ double past(int i, int interval, double t, int val)
     else 
       res = histdvar [interval * offset  + i ];   
   
-  /* within last interval - for now: just extrapolate  */ 
-  } else if ( interval == indexhist && interpolMethod == 1) {
-    if (val == 1) {
-      t0  = histtime[interval];
-      y0  = histvar [interval * offset  + i ];
-      dy0 = histdvar [interval * n_eq  + i ];
-      res = y0 + dy0*(t-t0);
-    }
-    else 
-      res = histdvar [interval * n_eq  + i ];
-
+  /* within last interval - for now: just extrapolate last value */
   } else if ( interval == indexhist && interpolMethod == 1) {
     if (val == 1) {
       t0  = histtime[interval];
@@ -271,15 +278,15 @@ double past(int i, int interval, double t, int val)
     else
       res = dHermite (t0, t1, y0, y1, dy0, dy1, t);
   
-  /* dense interpolation */
-  } else { 
+  /* dense interpolation - livermore solvers */
+  } else if (interpolMethod == 2) {
     j  = interval;
     jn = nexthist(j);
 
     t0  = histtime[j];
     t1  = histtime[jn];
     nq  = histord [j];
-    if (nq ==0) {
+    if (nq == 0) {
       y0  = histvar [j  * offset  + i ];
       y1  = histvar [jn * offset  + i ];
       dy0 = histdvar [j  * n_eq  + i ];
@@ -293,6 +300,15 @@ double past(int i, int interval, double t, int val)
       hh = histhh[j];
       res = interpolate(i+1, val-1, t0, hh, t, Yh, nq); 
     }  
+  /* dense interpolation - radau - gets all values (i not used) */
+  } else {
+ //   if (val == 2)
+ //     error("radau interpol = 2 does not work for lagderiv");
+    j  = interval;
+    Yh  = &histvar [j * offset];
+    histsave  = &histvar [j * offset + 4*n_eq];
+    ip = i+1;
+    F77_CALL(contr5alone) (&ip, &n_eq, &t, Yh, &offset, histsave, &res, &val);
   }
   return(res);
 }
@@ -383,7 +399,7 @@ SEXP getLagValue(SEXP T, SEXP nr)
   	PROTECT(value=NEW_NUMERIC(n_eq));
   	for(i=0; i<n_eq; i++) {
 	  	NUMERIC_POINTER(value)[i] = past(i, interval, t, 1);
-  }
+    }
   } else {
 	  PROTECT(value=NEW_NUMERIC(ilen));
   	for(i=0; i<ilen; i++) {
@@ -439,14 +455,16 @@ int initLags(SEXP elag, int solver, int nroot) {
   Islag = getListElement(elag, "islag");
   islag = INTEGER(Islag)[0];
     
-  if (islag ==1) { 
+  if (islag == 1) {
    Mxhist = getListElement(elag, "mxhist");
    mxhist = INTEGER(Mxhist)[0];
    Interpol = getListElement(elag, "interpol");
    interpolMethod = INTEGER(Interpol)[0];
    if (interpolMethod < 1) interpolMethod = 1;
-   inithist(mxhist,1, solver, nroot);
-
+   if ((interpolMethod == 2) && (solver == 10)) interpolMethod = 3; /* radau */
+//   if((solver == 7 || solver == 3) && interpolMethod == 2)
+//     error("cannot combine lags in lsodes, with interpol=2");
+   inithist(mxhist, 1, solver, nroot);
   } else {
     mxhist = 0;
     interpolMethod = 1;

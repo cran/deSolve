@@ -74,6 +74,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   ModelInit <- NULL
   Eventfunc <- NULL
   events <- checkevents(events, times, Ynames, dllname,TRUE)
+  if (! is.null(events$newTimes)) times <- events$newTimes  
 
   ## if (miter == 4) Jacobian should have banddown empty rows
   if (miter == 4 && banddown>0)

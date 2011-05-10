@@ -8,6 +8,15 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   rpar = NULL,  ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
   initforc = NULL, fcontrol = NULL, ...) {
 
+    ## check for unsupported solver options
+    dots   <- list(...); nmdots <- names(dots)
+    if(any(c("hmin", "hmax") %in% nmdots))
+      cat("hmin and hmax cannot be used in 'euler' (fixed steps).")
+    if("hini" %in% nmdots) {
+      cat("'hini' is not supported by this version of 'euler',\n")
+      cat("but you can use ode(......, method = 'euler', hini= .....)\n")
+      cat("to set internal time steps smaller than external steps.\n")
+    }    
     ## check input
     checkInputEuler(y, times, func, dllname)
     n <- length(y)
@@ -48,13 +57,11 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
         Func   <- function(time, state, parms)
           func   (time, state, parms, ...)
       }
-
       ## Call func once to figure out whether and how many "global"
       ## results it wants to return and some other safety checks
       FF <- checkFuncEuler(Func, times, y, parms, rho, Nstates)
       Nglobal <- FF$Nglobal
       Nmtot   <- FF$Nmtot
-
     }
 
     ## the CALL to the integrator
@@ -68,14 +75,14 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
                      iin = c(1, 12, 13, 15), iout = c(1:3, 18))
     ## === testing code ===
     ## 'call_euler_t' is a version with transposed data structure in memory
-    ##                for checking a potential influence of
-    ##                memory layout and memory locality
+    ## for checking a potential influence of memory layout and memory locality
     ##
     #    out <- .Call("call_euler_t", as.double(y), as.double(times),
     #                 Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(verbose),
     #                 as.double(rpar), as.integer(ipar), flist, PACKAGE = "deSolve")
     #    out <- saveOutrk(out, y, n, Nglobal, Nmtot,
     #                 iin = c(1, 12, 13, 15), iout = c(1:3, 18), transpose = TRUE)
+    ## === end testing code ===
     if (verbose) diagnostics(out)
     attr(out, "type") <- "rk"
     out

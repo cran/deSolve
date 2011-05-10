@@ -873,7 +873,7 @@ C --- JACOBIAN IS BANDED
                   LBEG=LEND+1
                   IF (J.LE.MM*M2) GOTO 14
                END DO
-  	        NFCN=NFCN+MD
+              NFCN=NFCN+MD
             END DO
          ELSE
 C --- JACOBIAN IS FULL
@@ -1174,8 +1174,9 @@ C --- FAIL EXIT
       RETURN
 C --- EXIT CAUSED BY SOLOUT
  179  CONTINUE
-      WRITE(MSG,979)X
-      CALL rprint(MSG)
+C karline: toggled this off
+C      WRITE(MSG,979)X
+C      CALL rprint(MSG)
  979  FORMAT(' EXIT OF RADAU5 AT X=',E18.4) 
       IDID=2
       RETURN
@@ -1188,23 +1189,43 @@ C
       SUBROUTINE CONTR5(NEQ,X,CONT,LRC, RES) 
 C ----------------------------------------------------------
 C     THIS FUNCTION CAN BE USED FOR CONINUOUS OUTPUT. IT PROVIDES AN
-C     APPROXIMATION TO THE I-TH COMPONENT OF THE SOLUTION AT X.
+C     APPROXIMATION TO THE SOLUTION AT X.
 C     IT GIVES THE VALUE OF THE COLLOCATION POLYNOMIAL, DEFINED FOR
 C     THE LAST SUCCESSFULLY COMPUTED STEP (BY RADAU5).
 C ----------------------------------------------------------
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DIMENSION CONT(LRC)
-	DOUBLE PRECISION RES(NEQ)
-	INTEGER I
+      DOUBLE PRECISION RES(NEQ)
+      INTEGER I
 
       COMMON /CONRA5/NN,NN2,NN3,NN4,XSOL,HSOL,C2M1,C1M1
       
-	S=(X-XSOL)/HSOL
+      S=(X-XSOL)/HSOL
       
       DO I = 1,NEQ
-	 RES(I)=CONT(I)+S*(CONT(I+NN)+(S-C2M1)*(CONT(I+NN2)
+       RES(I)=CONT(I)+S*(CONT(I+NN)+(S-C2M1)*(CONT(I+NN2)
      &     +(S-C1M1)*CONT(I+NN3)))
-      ENDDO	 
+      ENDDO    
+      RETURN
+      END
+C
+C     END OF FUNCTION CONTR5 -KARLINE changed to SUBROUTINE THAT RETURNS ALL
+C
+C ***********************************************************
+C
+      SUBROUTINE GETCONRA(RCONRA) 
+C ----------------------------------------------------------
+C     THIS FUNCTION CAN BE USED FOR STANDALONE CONINUOUS OUTPUT. 
+C     IT RETURNS THE VALUES OF COMMON CONRA as used in CONTR5
+C ----------------------------------------------------------
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+      DOUBLE PRECISION RCONRA(2)
+      INTEGER I
+
+      COMMON /CONRA5/NN,NN2,NN3,NN4,XSOL,HSOL,C2M1,C1M1
+      
+      RCONRA(1) = XSOL
+      RCONRA(2) = HSOL
       RETURN
       END
 C
@@ -1212,3 +1233,42 @@ C     END OF FUNCTION CONTR5 -KARLINE changed to SUBROUTINE
 C
 C ***********************************************************
 
+      SUBROUTINE CONTR5ALONE(I, NEQ,X,CONT,LRC, RCONRA, RES, Itype) 
+C ----------------------------------------------------------
+C     THIS FUNCTION CAN BE USED FOR STANDALONE CONINUOUS OUTPUT. 
+C     IT PROVIDES AN APPROXIMATION TO THE Ith SOLUTION AT X.
+C     IT GIVES THE VALUE OF THE COLLOCATION POLYNOMIAL, DEFINED FOR
+C     THE LAST SUCCESSFULLY COMPUTED STEP (BY RADAU5).
+C ----------------------------------------------------------
+      IMPLICIT NONE
+      INTEGER LRC, NEQ, Itype
+      DOUBLE PRECISION RCONRA(2),CONT(LRC), RES,X
+      DOUBLE PRECISION XSOL,HSOL,C2M1,C1M1,SQ6,C1,C2,S
+      INTEGER I, NN, NN2, NN3, NN4
+
+      NN  = NEQ 
+      NN2 = NEQ*2 
+      NN3 = NEQ*3
+      NN4 = NEQ*4
+      XSOL = RCONRA(1)
+      HSOL = RCONRA(2)
+
+      SQ6=DSQRT(6.D0)
+      C1=(4.D0-SQ6)/10.D0
+      C2=(4.D0+SQ6)/10.D0
+      C1M1=C1-1.D0
+      C2M1=C2-1.D0
+
+      S=(X-XSOL)/HSOL
+      
+      IF(IType .eq. 1) THEN   ! value
+        RES=CONT(I)+S*(CONT(I+NN)+(S-C2M1)*(CONT(I+NN2)
+     &     +(S-C1M1)*CONT(I+NN3)))
+      ELSE                    ! derivative....
+       RES=1.d0/HSOL*(CONT(I+NN)-C2M1*CONT(I+NN2)+C2M1*C1M1*CONT(I+NN3)  
+     &      + 2*S*(CONT(I+NN2)-CONT(I+NN3)*C2M1-CONT(I+NN3)*C1M1) 
+     &      + 3*S*S*CONT(I+NN3) )
+      ENDIF
+
+      RETURN
+      END

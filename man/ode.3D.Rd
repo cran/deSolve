@@ -10,7 +10,7 @@
 }
 
 \usage{ode.3D(y, times, func, parms, nspec = NULL, dimens, 
-  method = c("lsodes", "euler", "rk4", "ode23", "ode45", "adams"),
+  method = c("lsodes", "euler", "rk4", "ode23", "ode45", "adams", "iteration"),
   names = NULL, cyclicBnd = NULL, ...)}
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
@@ -58,6 +58,12 @@
      \code{function}. Use one of the other Runge-Kutta methods via 
      \code{rkMethod}. For instance, \code{method = rkMethod("ode45ck")} will
      trigger the Cash-Karp method of order 4(5).
+     
+    Method \code{"iteration"} is special in that here the function \code{func} should
+  return the new value of the state variables rather than the rate of change.
+  This can be used for individual based models, for difference equations,
+  or in those cases where the integration is performed within \code{func})
+
   }
   \item{... }{additional arguments passed to \code{lsodes}.}
 }
@@ -107,9 +113,9 @@ diffusion3D <- function(t, Y, par) {
         data = c(Mat1, aperm(Array, c(1, 3, 2)), Mat2)), c(1, 3, 2))
   }
 
-  yy    <- array(dim=c(n,n,n),data=Y)  # vector to 3-D array
-  dY   <- -r*yy        # consumption
-  BND   <- matrix(nr=n,nc=n,data=1)   # boundary concentration
+  yy  <- array(dim=c(n, n, n), data = Y)      # vector to 3-D array
+  dY  <- -r*yy                                # consumption
+  BND <- matrix(nrow = n, ncol = n, data = 1) # boundary concentration
 
   ## diffusion in x-direction
   ## new array including boundary concentrations in X-direction

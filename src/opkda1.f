@@ -8107,7 +8107,7 @@ C----------------------- End of Subroutine DSETPK ----------------------
       EXTERNAL RES, ADDA
       INTEGER NEQ, MITER, ML, MU, IPVT, IER
       INTEGER I, LENPW, MLP1, NROWPW ,ipar(*)
-      DOUBLE PRECISION T, Y, YDOT, PW ,rpar(*)
+      DOUBLE PRECISION T, Y, YDOT, PW ,rpar(*), cj
       DIMENSION Y(*), YDOT(*), PW(*), IPVT(*)
 C-----------------------------------------------------------------------
 C This subroutine computes the initial value
@@ -8130,7 +8130,7 @@ C
    10    PW(I) = 0.0D0
 C
       IER = 1
-      CALL RES ( NEQ, T, Y, PW, YDOT, IER , rpar, ipar)
+      CALL RES ( NEQ, T, Y, PW, cj, YDOT, IER , rpar, ipar)
       IF (IER .GT. 1) RETURN
 C
       CALL ADDA ( NEQ, T, Y, 0, 0, PW, NEQ )
@@ -8150,7 +8150,7 @@ C
   110    PW(I) = 0.0D0
 C
       IER = 1
-      CALL RES ( NEQ, T, Y, PW, YDOT, IER , rpar, ipar)
+      CALL RES ( NEQ, T, Y, PW, cj, YDOT, IER , rpar, ipar)
       IF (IER .GT. 1) RETURN
 C
       MLP1 = ML + 1
@@ -8189,7 +8189,7 @@ CKS: added rpar,ipar
      5   MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
       INTEGER I, I1, IREDO, IRES, IRET, J, JB, KGO, M, NCF, NEWQ
       DOUBLE PRECISION DCON, DDN, DEL, DELP, DSM, DUP,
-     1   ELJH, EL1H, EXDN, EXSM, EXUP,
+     1   ELJH, EL1H, EXDN, EXSM, EXUP,cj,
      2   R, RH, RHDN, RHSM, RHUP, TOLD, DVNORM
 C-----------------------------------------------------------------------
 C DSTODI performs one step of the integration of an initial value
@@ -8426,7 +8426,7 @@ CKS
       GO TO (430, 435, 430), IRES
 C Get residual at predicted values, if not already done in PJAC. -------
  240  IRES = 1
-      CALL RES ( NEQ, TN, Y, SAVF, SAVR, IRES , rpar, ipar)
+      CALL RES ( NEQ, TN, Y, SAVF, cj, SAVR, IRES , rpar, ipar)
       NFE = NFE + 1
       KGO = ABS(IRES)
       GO TO ( 250, 435, 430 ) , KGO
@@ -8458,7 +8458,7 @@ C-----------------------------------------------------------------------
       IF (M .GE. 2 .AND. DEL .GT. 2.0D0*DELP) GO TO 410
       DELP = DEL
       IRES = 1
-      CALL RES ( NEQ, TN, Y, SAVF, SAVR, IRES , rpar, ipar)
+      CALL RES ( NEQ, TN, Y, SAVF, cj, SAVR, IRES , rpar, ipar)
       NFE = NFE + 1
       KGO = ABS(IRES)
       GO TO ( 270, 435, 410 ) , KGO
@@ -8654,7 +8654,7 @@ CKS: added rpar,ipar
      5   MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
       INTEGER I, I1, I2, IER, II, IRES, J, J1, JJ, LENP,
      1   MBA, MBAND, MEB1, MEBAND, ML, ML3, MU
-      DOUBLE PRECISION CON, FAC, HL0, R, SRUR, YI, YJ, YJJ
+      DOUBLE PRECISION CON, FAC, HL0, R, SRUR, YI, YJ, YJJ, cj
 C-----------------------------------------------------------------------
 C DPREPJI is called by DSTODI to compute and process the matrix
 C P = A - H*EL(1)*J , where J is an approximation to the Jacobian dr/dy,
@@ -8698,7 +8698,7 @@ C-----------------------------------------------------------------------
       GO TO (100, 200, 300, 400, 500), MITER
 C If MITER = 1, call RES, then JAC, and multiply by scalar. ------------
  100  IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       LENP = N*N
@@ -8712,7 +8712,7 @@ C If MITER = 1, call RES, then JAC, and multiply by scalar. ------------
 C If MITER = 2, make N + 1 calls to RES to approximate J. --------------
  200  CONTINUE
       IRES = -1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       SRUR = WM(1)
@@ -8722,7 +8722,7 @@ C If MITER = 2, make N + 1 calls to RES to approximate J. --------------
         R = MAX(SRUR*ABS(YJ),0.01D0/EWT(J))
         Y(J) = Y(J) + R
         FAC = -HL0/R
-        CALL RES ( NEQ, TN, Y, S, RTEM, IRES , rpar, ipar)
+        CALL RES ( NEQ, TN, Y, S, cj, RTEM, IRES , rpar, ipar)
         NFE = NFE + 1
         IF (IRES .GT. 1) GO TO 600
         DO 220 I = 1,N
@@ -8731,7 +8731,7 @@ C If MITER = 2, make N + 1 calls to RES to approximate J. --------------
         J1 = J1 + N
  230    CONTINUE
       IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
 C Add matrix A. --------------------------------------------------------
@@ -8745,7 +8745,7 @@ C Dummy section for MITER = 3
  300  RETURN
 C If MITER = 4, call RES, then JAC, and multiply by scalar. ------------
  400  IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       ML = IWM(1)
@@ -8764,7 +8764,7 @@ C If MITER = 4, call RES, then JAC, and multiply by scalar. ------------
 C If MITER = 5, make ML + MU + 2 calls to RES to approximate J. --------
  500  CONTINUE
       IRES = -1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       ML = IWM(1)
@@ -8780,7 +8780,7 @@ C If MITER = 5, make ML + MU + 2 calls to RES to approximate J. --------
           YI = Y(I)
           R = MAX(SRUR*ABS(YI),0.01D0/EWT(I))
  530      Y(I) = Y(I) + R
-        CALL RES ( NEQ, TN, Y, S, RTEM, IRES, rpar, ipar)
+        CALL RES ( NEQ, TN, Y, S, cj, RTEM, IRES, rpar, ipar)
         NFE = NFE + 1
         IF (IRES .GT. 1) GO TO 600
         DO 550 JJ = J,N,MBAND
@@ -8796,7 +8796,7 @@ C If MITER = 5, make ML + MU + 2 calls to RES to approximate J. --------
  550      CONTINUE
  560    CONTINUE
       IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
 C Add matrix A. --------------------------------------------------------
@@ -8817,7 +8817,7 @@ C----------------------- End of Subroutine DPREPJI ---------------------
       EXTERNAL RES, ADDA
       INTEGER NEQ, MB, NB, IPVT, IER
       INTEGER I, LENPW, LBLOX, LPB, LPC ,ipar(*)
-      DOUBLE PRECISION T, Y, YDOT, PW, rpar(*)
+      DOUBLE PRECISION T, Y, YDOT, PW, rpar(*), cj
       DIMENSION Y(*), YDOT(*), PW(*), IPVT(*), NEQ(*)
 C-----------------------------------------------------------------------
 C This subroutine computes the initial value
@@ -8838,7 +8838,7 @@ C-----------------------------------------------------------------------
       DO 10 I = 1,LENPW
  10     PW(I) = 0.0D0
       IER = 1
-      CALL RES (NEQ, T, Y, PW, YDOT, IER, rpar, ipar)
+      CALL RES (NEQ, T, Y, PW, cj, YDOT, IER, rpar, ipar)
       IF (IER .GT. 1) RETURN
       CALL ADDA (NEQ, T, Y, MB, NB, PW(1), PW(LPB), PW(LPC) )
       CALL DDECBT (MB, NB, PW, PW(LPB), PW(LPC), IPVT, IER)
@@ -8923,7 +8923,7 @@ C-----------------------------------------------------------------------
       GO TO (100, 200), MITER
 C If MITER = 1, call RES, then JAC, and multiply by scalar. ------------
  100  IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       DO 110 I = 1,LENP
@@ -8937,7 +8937,7 @@ C
 C If MITER = 2, make 3*MB + 1 calls to RES to approximate J. -----------
  200  CONTINUE
       IRES = -1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       MWID = 3*MB
@@ -8952,7 +8952,7 @@ C         Increment Y(I) for group of column indices, and call RES. ----
             R = MAX(SRUR*ABS(Y(I)),0.01D0/EWT(I))
             Y(I) = Y(I) + R
  210      CONTINUE
-          CALL RES (NEQ, TN, Y, S, RTEM, IRES, rpar, ipar)
+          CALL RES (NEQ, TN, Y, S, cj, RTEM, IRES, rpar, ipar)
           NFE = NFE + 1
           IF (IRES .GT. 1) GO TO 600
           DO 215 I = 1,N
@@ -9000,7 +9000,7 @@ C           Compute and load elements PB(*,J,NB). ----------------------
  250  CONTINUE
 C RES call for first corrector iteration. ------------------------------
       IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES, rpar, ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES, rpar, ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
 C Add matrix A. --------------------------------------------------------
@@ -9427,7 +9427,7 @@ C MOSS = 1. Compute structure from user-supplied Jacobian routine JAC. -
  70   CONTINUE
 C A dummy call to RES allows user to create temporaries for use in JAC.
       IER = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IER, rpar,ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IER, rpar,ipar)
       IF (IER .GT. 1) GO TO 370
       DO 75 I = 1,N
         SAVR(I) = 0.0D0
@@ -9461,14 +9461,14 @@ C MOSS = 2. Compute structure from results of N + 1 calls to RES. ------
       IWK(IPIAN) = 1
       IER = -1
       IF (MITER .EQ. 1) IER = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IER,rpar,ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IER,rpar,ipar)
       IF (IER .GT. 1) GO TO 370
       DO 130 J = 1,N
         CALL ADDA (NEQ, TN, Y, J, IWK(IPIAN), IWK(IPJAN), WK(LENWK1+1))
         YJ = Y(J)
         ERWT = 1.0D0/EWT(J)
         Y(J) = YJ + SIGN(ERWT,YJ)
-        CALL RES (NEQ, TN, Y, S, RTEM, IER,rpar,ipar)
+        CALL RES (NEQ, TN, Y, S, cj, RTEM, IER,rpar,ipar)
         IF (IER .GT. 1) RETURN
         Y(J) = YJ
         DO 120 I = 1,N
@@ -9489,7 +9489,7 @@ C MOSS = 3. Compute structure from the user's IA/JA and JAC routine. ---
  150  CONTINUE
 C A dummy call to RES allows user to create temporaries for use in JAC.
       IER = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IER,rpar,ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IER,rpar,ipar)
       IF (IER .GT. 1) GO TO 370
       DO 155 I = 1,N
  155    SAVR(I) = 0.0D0
@@ -9526,13 +9526,13 @@ C MOSS = 4. Compute structure from user's IA/JA and N + 1 RES calls. ---
       IWK(IPIAN) = 1
       IER = -1
       IF (MITER .EQ. 1) IER = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IER,rpar,ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IER,rpar,ipar)
       IF (IER .GT. 1) GO TO 370
       DO 235 J = 1,N
         YJ = Y(J)
         ERWT = 1.0D0/EWT(J)
         Y(J) = YJ + SIGN(ERWT,YJ)
-        CALL RES (NEQ, TN, Y, S, RTEM, IER,rpar,ipar)
+        CALL RES (NEQ, TN, Y, S, cj, RTEM, IER,rpar,ipar)
         IF (IER .GT. 1) RETURN
         Y(J) = YJ
         KAMAX = IA(J+1) - 1
@@ -9668,7 +9668,7 @@ C----------------------- End of Subroutine DPREPI ----------------------
      3   NSLJ, NGP, NLU, NNZ, NSP, NZL, NZU
       INTEGER I, IMUL, J, K, KMIN, KMAX ,ipar(*)
       DOUBLE PRECISION T, Y, WK, TEM, YDOT ,rpar(*)
-      DOUBLE PRECISION RLSS
+      DOUBLE PRECISION RLSS, cj
       DIMENSION Y(*), WK(*), IWK(*), TEM(*), YDOT(*)
       COMMON /DLSS01/ RLSS(6),
      1   IPLOST, IESP, ISTATC, IYS, IBA, IBIAN, IBJAN, IBJGP,
@@ -9711,7 +9711,7 @@ C
  10     WK(IBA+I) = 0.0D0
 C
       IER = 1
-      CALL RES (NEQ, T, Y, WK(IPA), YDOT, IER,rpar,ipar)
+      CALL RES (NEQ, T, Y, WK(IPA), cj, YDOT, IER,rpar,ipar)
       IF (IER .GT. 1) RETURN
 C
       KMIN = IWK(IPIAN)
@@ -9826,7 +9826,7 @@ C-----------------------------------------------------------------------
 C
 C If MITER = 1, call RES, then call JAC and ADDA for each column. ------
  100  IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES,rpar,ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES,rpar,ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       KMIN = IWK(IPIAN)
@@ -9850,7 +9850,7 @@ C
 C If MITER = 2, make NGP + 1 calls to RES to approximate J and P. ------
  200  CONTINUE
       IRES = -1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES,rpar,ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES,rpar,ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
       SRUR = WK(1)
@@ -9861,7 +9861,7 @@ C If MITER = 2, make NGP + 1 calls to RES to approximate J and P. ------
           JJ = IWK(IBJGP+J)
           R = MAX(SRUR*ABS(Y(JJ)),0.01D0/EWT(JJ))
  210      Y(JJ) = Y(JJ) + R
-        CALL RES (NEQ,TN,Y,S,RTEM,IRES,rpar,ipar)
+        CALL RES (NEQ,TN,Y,S,cj,RTEM,IRES,rpar,ipar)
         NFE = NFE + 1
         IF (IRES .GT. 1) GO TO 600
         DO 230 J = JMIN,JMAX
@@ -9884,7 +9884,7 @@ C If MITER = 2, make NGP + 1 calls to RES to approximate J and P. ------
         JMIN = JMAX + 1
  240    CONTINUE
       IRES = 1
-      CALL RES (NEQ, TN, Y, S, SAVR, IRES,rpar,ipar)
+      CALL RES (NEQ, TN, Y, S, cj, SAVR, IRES,rpar,ipar)
       NFE = NFE + 1
       IF (IRES .GT. 1) GO TO 600
 C

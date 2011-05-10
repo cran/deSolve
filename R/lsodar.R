@@ -66,6 +66,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   ModelInit <- NULL
   Eventfunc <- NULL
   events <- checkevents(events, times, Ynames, dllname, TRUE)
+  if (! is.null(events$newTimes)) times <- events$newTimes  
 
   if (jt == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL

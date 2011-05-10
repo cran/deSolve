@@ -96,7 +96,8 @@
     that of \code{func}.
 
     If the Jacobian is a full matrix, \code{jacfunc} should return a
-    matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row contains the derivative of
+    matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row
+    contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
     matrix elements by columns (the way \R and FORTRAN store matrices).
     
@@ -360,12 +361,17 @@ plot(out, type = "l", lwd = 2, main = "lsodar with event")
   will automatically choose the appropriate method.  It always starts
   with the nonstiff method.
   
-  It finds the root of at least one of a set of constraint functions
-  g(i) of the independent and dependent variables.  It then returns the
+  \code{lsodar} can find the root of at least one of a set of constraint functions
+  \code{rootfunc} of the independent and dependent variables.  It then returns the
   solution at the root if that occurs sooner than the specified stop
   condition, and otherwise returns the solution according the specified
   stop condition.
   
+  Caution:  Because of numerical errors in the function
+  \code{rootfun} due to roundoff and integration error, \code{lsodar} may
+  return false roots, or return the same root at two or more
+  nearly equal values of \code{time}.
+
   The form of the \bold{Jacobian} can be specified by \code{jactype}
   which can take the following values:
   \describe{
