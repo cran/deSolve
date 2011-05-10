@@ -19,7 +19,8 @@
 \usage{
 lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6, 
   jacvec = NULL, sparsetype = "sparseint", nnz = NULL,
-  inz = NULL, verbose = FALSE, tcrit = NULL, hmin = 0,
+  inz = NULL,  rootfunc = NULL,
+  verbose = FALSE, nroot = 0, tcrit = NULL, hmin = 0,
   hmax = NULL, hini = 0, ynames = TRUE, maxord = NULL,
   maxsteps = 5000, lrw = NULL, liw = NULL, dllname = NULL,
   initfunc = dllname, initpar = parms, rpar = NULL,
@@ -83,12 +84,13 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     number.  Thus, \code{jacvec} should be called as: \code{jacvec =
     func(t, y, j, parms)} and \code{jacvec} should return a vector
     containing column \code{j} of the Jacobian, i.e.  its i-th value is
-    \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}. If this function is absent, \code{lsodes} will
+    \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}.
+    If this function is absent, \code{lsodes} will
     generate the Jacobian by differences.
   }
   \item{sparsetype }{the sparsity structure of the Jacobian, one of
     "sparseint" or "sparseusr", sparsity estimated internally by lsodes
-    or givenby user.
+    or given by the user.
   }
   \item{nnz }{the number of nonzero elements in the sparse Jacobian (if
     this is unknown, use an estimate).
@@ -97,8 +99,20 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     Jacobian. Necessary if \code{sparsetype} = "sparseusr"; else
     ignored.
   }
+  \item{rootfunc }{if not \code{NULL}, an \R function that computes the
+    function whose root has to be estimated or a string giving the name
+    of a function or subroutine in \file{dllname} that computes the root
+    function.  The \R calling sequence for \code{rootfunc} is identical
+    to that of \code{func}.  \code{rootfunc} should return a vector with
+    the function values whose root is sought.
+  }
   \item{verbose }{if \code{TRUE}: full output to the screen, e.g. will
     print the \code{diagnostiscs} of the integration - see details.
+  }
+  \item{nroot }{only used if \file{dllname}  is specified: the number of
+    constraint functions whose roots are desired during the integration;
+    if \code{rootfunc} is an R-function, the solver estimates the number
+    of roots.
   }
   \item{tcrit }{if not \code{NULL}, then \code{lsodes} cannot integrate
     past \code{tcrit}. The FORTRAN routine \code{lsodes} overshoots its
@@ -456,6 +470,18 @@ out4 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
 
   Examples in both C and FORTRAN are in the \file{doc/examples/dynload} subdirectory
   of the \code{deSolve} package directory.
+
+  \code{lsodes} can find the root of at least one of a set of constraint functions
+  \code{rootfunc} of the independent and dependent variables.  It then returns the
+  solution at the root if that occurs sooner than the specified stop
+  condition, and otherwise returns the solution according the specified
+  stop condition.
+
+  Caution:  Because of numerical errors in the function
+  \code{rootfun} due to roundoff and integration error, \code{lsodes} may
+  return false roots, or return the same root at two or more
+  nearly equal values of \code{time}.
+
 }
 \seealso{
   \itemize{

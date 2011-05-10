@@ -3,13 +3,14 @@
 ### radau, implicit runge-kutta
 ### ============================================================================
 
-radau <- function(y, times, func, parms, nind=c(length(y),0,0),
-  rtol=1e-6, atol=1e-6, jacfunc=NULL, jactype = "fullint",
-  mass = NULL, massup=NULL, massdown=NULL,verbose=FALSE, hmax = NULL,
+radau <- function(y, times, func, parms, nind = c(length(y),0,0),
+  rtol = 1e-6, atol = 1e-6, jacfunc = NULL, jactype = "fullint",
+  mass = NULL, massup = NULL, massdown = NULL, rootfunc = NULL,
+  verbose = FALSE, nroot = 0, hmax = NULL,
   hini = 0, ynames=TRUE, bandup=NULL, banddown=NULL, maxsteps=5000,
   dllname=NULL, initfunc=dllname, initpar=parms,
   rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, ...)
+  initforc = NULL, fcontrol=NULL, events = NULL, lags = NULL,...)
 {
 
 ### check input
@@ -69,10 +70,27 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
   Ynames    <- attr(y,"names")
   flist     <- list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
-
+  RootFunc <- NULL
+  Eventfunc <- NULL
+  events <- checkevents(events, times, Ynames, dllname, TRUE)
+  if (! is.null(events$newTimes)) times <- events$newTimes
+  
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
+
+    ## Is there a root function?
+    if (!is.null(rootfunc)) {
+      if (!is.character(rootfunc))
+        stop("If 'func' is dynloaded, so must 'rootfunc' be")
+      rootfuncname <- rootfunc
+      if (is.loaded(rootfuncname, PACKAGE = dllname))  {
+        RootFunc <- getNativeSymbolInfo(rootfuncname, PACKAGE = dllname)$address
+      } else
+        stop(paste("root function not loaded in DLL",rootfunc))
+      if (nroot == 0)
+        stop("if 'rootfunc' is specified in a DLL, then 'nroot' should be > 0")
+    }
 
     ModelInit <- DLL$ModelInit
     Func    <- DLL$Func
@@ -86,6 +104,8 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
     rho <- NULL
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
+    Eventfunc <- events$func
+
   } else {
 
     if (is.null(initfunc))
@@ -110,6 +130,16 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
         attr(state,"names") <- Ynames
         jacfunc(time,state,parms,...)
       }
+      RootFunc <- function(time,state) {
+        attr(state,"names") <- Ynames
+        rootfunc(time,state,parms,...)
+      }
+      if (! is.null(events$Type))
+        if (events$Type == 2)
+          Eventfunc <- function(time,state) {
+             attr(state,"names") <- Ynames
+             events$func(time,state,parms,...)
+          }
 
     } else {                          # no ynames...
       Func    <- function(time,state)
@@ -120,12 +150,25 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
 
       JacFunc <- function(time,state)
         jacfunc(time,state,parms,...)
+
+      RootFunc <- function(time,state)
+        rootfunc(time,state,parms,...)
+
+      if (! is.null(events$Type))
+        if (events$Type == 2)
+           Eventfunc <- function(time,state)
+             events$func(time,state,parms,...)
     }
 
     ## Check function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
+
+    ## Check event function
+    if (! is.null(events$Type))
+      if (events$Type == 2)
+        checkEventFunc(Eventfunc,times,y,rho)
 
     ## Check jacobian function
     if (ijac == 1) {
@@ -137,6 +180,14 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
           ( full && dd != c(n,n)))
          stop("Jacobian dimension not ok")
      }
+    ## and for rootfunc
+    if (! is.null(rootfunc))  {
+      tmp2 <- eval(rootfunc(times[1],y,parms,...), rho)
+      if (!is.vector(tmp2))
+        stop("root function 'rootfunc' must return a vector\n")
+      nroot <- length(tmp2)
+    } else nroot = 0
+
   }
 
 ### Not yet implemented
@@ -215,17 +266,21 @@ radau <- function(y, times, func, parms, nind=c(length(y),0,0),
     printM( "radau5")
   }
 
+###
+  lags <- checklags(lags,dllname)
+
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
   tcrit <- NULL
   on.exit(.C("unlock_solver"))
   out <- .Call("call_radau",y,times,Func,MassFunc,JacFunc,initpar,
                rtol, atol, nrjac, nrmas, rho, ModelInit,
-               as.integer(verbose), as.double(rwork),
+               as.double(rwork),
                as.integer(iwork), as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),
                as.double (rpar), as.integer(ipar), as.double(hini),
-               flist, as.integer(1), PACKAGE="deSolve")
+               flist, lags, RootFunc, as.integer(nroot),
+               Eventfunc, events, PACKAGE="deSolve")
 
 ### saving results
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,

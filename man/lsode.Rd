@@ -307,7 +307,7 @@ out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
 ## =======================================================================
 
 diffusion2D <- function(t, Y, par) {
-   y <- matrix(nr = n, nc = n, data = Y)
+   y <- matrix(nrow = n, ncol = n, data = Y)
    dY   <- r*y     # production
 
    ## diffusion in X-direction; boundaries = 0-concentration
@@ -328,7 +328,7 @@ r     <- 0.025     # production rate
 times <- c(0, 1)
 
 n  <- 50
-y  <- matrix(nr = n, nc = n, 0)
+y  <- matrix(nrow = n, ncol = n, 0)
 
 pa <- par(ask = FALSE)
 
@@ -354,7 +354,7 @@ print(system.time(
     out  <-  lsode(func = diffusion2D, y = as.vector(y), times = times,
               parms = NULL, jactype = "bandint", bandup = 1, banddown = 1)
 
-    filled.contour(matrix(nr = n, nc = n, out[2,-1]), zlim = c(0,1),
+    filled.contour(matrix(nrow = n, ncol = n, out[2,-1]), zlim = c(0,1),
                   color.palette = terrain.colors, main = i)
 
     y <- out[2, -1]
@@ -451,6 +451,19 @@ par(ask = pa)
 
   Examples in both C and FORTRAN are in the \file{dynload} subdirectory
   of the \code{deSolve} package directory.
+
+  \code{lsode} can find the root of at least one of a set of constraint functions
+  \code{rootfunc} of the independent and dependent variables.  It then returns the
+  solution at the root if that occurs sooner than the specified stop
+  condition, and otherwise returns the solution according the specified
+  stop condition.
+
+  Caution:  Because of numerical errors in the function
+  \code{rootfun} due to roundoff and integration error, \code{lsode} may
+  return false roots, or return the same root at two or more
+  nearly equal values of \code{time}.
+
+
 }
 \seealso{
   \itemize{

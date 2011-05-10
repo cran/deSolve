@@ -372,6 +372,17 @@ rkMethod <- function(method = NULL, ...) {
     if (!is.null(out[["d"]])) # exact argument matching!
       if (sl[["d"]] != stage)
         stop("Wrong rkMethod, length of d must be empty or equal to stage")
+    
+    ## check densetype
+    if (!is.null(out$densetype)) {
+      if (out$densetype == 1)
+        if (!(out$ID %in% c("rk45dp7", "ode45")))
+          stop("densetype = 1 not implemented for this method")
+  
+      if (out$densetype == 2)
+        if (!(out$ID %in% c("rk45ck")))
+          stop("densetype = 2 not implemented for this method")
+    }    
     class(out) <- c("list", "rkMethod")
   }
 

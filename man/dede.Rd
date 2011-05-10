@@ -11,7 +11,7 @@
 \usage{
 dede(y, times, func=NULL, parms, 
     method = c( "lsoda", "lsode", "lsodes", "lsodar", "vode", 
-       "daspk", "bdf", "adams", "impAdams"), control = NULL, ...)
+       "daspk", "bdf", "adams", "impAdams", "radau"), control = NULL, ...)
 }    
 \arguments{
   \item{y }{the initial (state) values for the DE system, a vector. If
@@ -45,8 +45,8 @@ dede(y, times, func=NULL, parms,
   }
   \item{method }{the integrator to use, either a string (\code{"lsoda"},
     \code{"lsode"}, \code{"lsodes"}, \code{"lsodar"}, \code{"vode"},
-    \code{"daspk"}, \code{"bdf"}, \code{"adams"}, \code{"impAdams"}) 
-    or a function that performs integration.
+    \code{"daspk"}, \code{"bdf"}, \code{"adams"}, \code{"impAdams"}, \code{"radau"})
+    or a function that performs the integration.
     The default integrator used is \link{lsoda}. 
   }
   \item{control }{a list that can supply (1) the size of the history array, as 
@@ -79,8 +79,10 @@ dede(y, times, func=NULL, parms,
   are to be stored in a history matrix, can be specified in \code{control\$mxhist}.
   The default value (if unspecified) is 1e4. 
   
-  Cubic Hermite interpolation is used to obtain an accurate interpolant at the 
-  requested lagged time.
+  Cubic Hermite interpolation is used by default to obtain an accurate
+  interpolant at the requested lagged time. For methods \code{adams, impAdams},
+  a more accurate interpolation method can be triggered by setting
+  \code{control$interpol = 2}.
     
 \code{dede} does not deal explicitly with propagated derivative discontinuities,
 but relies on the integrator to control the stepsize in the region of a 
@@ -91,9 +93,8 @@ stepsize, although in some cases it may be possible to solve such models.
 
 For these reasons, it can only solve rather simple delay differential equations.
 
-When used together with integrator \code{lsodar}, or \code{lsode} \code{dde} 
+When used together with integrator \code{lsodar}, or \code{lsode}, \code{dde}
 can simultaneously locate a root, and trigger an event. See last example.
-
 
 }
 \seealso{
@@ -215,11 +216,10 @@ times <- seq(0, 12, len = 1000)
 ##-----------------------------
 ## solve the model  
 ##-----------------------------
-## use lsodar because of root and event function
-## Note: NOT adding method = "lsodar" or method = "lsode" will give a 
-## strange warning ...
+## Note: use a solver that supports both root finding and events, 
+##       e.g. lsodar, lsode, lsoda, adams, bdf
 yout <- dede(y = yinit, times = times, func = derivs, parms = NULL,  
-  method = "lsodar", rootfun = root, events = list(func = event,root = TRUE))
+  method = "lsodar", rootfun = root, events = list(func = event, root = TRUE))
 
 ##-----------------------------
 ## display, plot results

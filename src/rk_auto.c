@@ -123,7 +123,7 @@ void rk_auto(
     if (accept) {
       if (interpolate) {
       /*--------------------------------------------------------------------*/
-      /* case A1) "dense output type 1": built-in polynomial interpolation          */
+      /* case A1) "dense output type 1": built-in polynomial interpolation  */
       /* available for certain rk formulae, e.g. for rk45dp7                */
       /*--------------------------------------------------------------------*/
       if (densetype == 1) {
@@ -141,7 +141,7 @@ void rk_auto(
         }
 
         /*--------------------------------------------------------------------*/
-        /* case A2) dense output type 2: the Cash-Karp method                */
+        /* case A2) dense output type 2: the Cash-Karp method                 */
         /*--------------------------------------------------------------------*/
       } else if (densetype == 2)  {   /* dense output method 2 = Cash-Karp */
         derivs(Func, t + dt, y2, Parms, Rho, dy2, out, 0, neq, 

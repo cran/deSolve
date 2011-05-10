@@ -8,39 +8,55 @@
    
    The C-wrappers that provide the interface between FORTRAN codes and R-code 
    are: C_deriv_func_rad: interface with R-code "func", passes derivatives  
-        C_deriv_out_rad : interface with R-code "func", passes derivatives + output variables  
+        C_deriv_out_rad : interface with R-code "func", passes derivatives +
+                                                               output variables
   
    C_deriv_func_forc_rad provides the interface between the function specified in
    a DLL and the integrator, in case there are forcing functions.
-   
+
+   version 1.9.1: added time lags -> delay differential equations
+                  added root function
+                  added events
+   version 1.10: mass matrix for func in a DLL
    karline soetaert
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
-  int maxt, it, nout, isDll, ntot;   
-  C_deriv_func_type *deriv_func;
-  double *xdytmp, *ytmp, *tt;
-  
-/* definition of the calls to the FORTRAN subroutines in file radau.f */
+
+/* globals for radau */
+
+  int    maxt, it, nout, isDll, ntot;
+  double *xdytmp, *ytmp, *tt, *rwork, *root, *oldroot;
+  int    *iwork, *jroot;
+  int    iroot, nroot, nr_root, islag, isroot, isEvent, endsim;
+  double tin, tprevroot;
+
+  typedef void C_root_func_type (int *, double *, double *,int *, double *);
+  C_root_func_type      *root_func = NULL;
+  C_deriv_func_type     *deriv_func;
+
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ definition of the calls to the FORTRAN subroutines in file radau.f           */
 
 void F77_NAME(radau5)( int *,
-         void (*)(int *, double *, double *, double *,
-                              double *, int *),           // func
+         void (*)(int *, double *, double *, double *, double *, int *), // func
 		     double *, double *, double *, double *,
 		     double *, double *, int *,  
  	       void (*)(int *, double *, double *, int *, int *, 
-                    double *, int *, double *, int *),    // jac
+                    double *, int *, double *, int *),                   // jac
 		     int *, int *, int *,
- 	       void (*)(int *, double *, int *,
-                              double *, int *),           // mas
+ 	       void (*)(int *, double *, int *, double *, int *),              // mas
 		     int *, int *, int *,
          void (*)(int *, double *, double *, double *, double *,  
 			            int *, int *, double *, int *, int *, double *),   // soloutrad
 		     int *, double *, int *, int *, int*, double *, int*, int*);
 
-/* continuous output formula */
+/* continuous output formula for radau (used in radau.c and lags.c) */
 void F77_NAME (contr5) (int *, double *, double *, int *, double *);
 
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   interface R with FORTRAN functions                                         */
+
 /* wrapper above the derivate function in a dll that first estimates the
-values of the forcing functions */
+values of the forcing functions                                               */
 
 static void C_deriv_func_forc_rad (int *neq, double *t, double *y,
                          double *ydot, double *yout, int *iout)
@@ -49,9 +65,8 @@ static void C_deriv_func_forc_rad (int *neq, double *t, double *y,
   DLL_deriv_func(neq, t, y, ydot, yout, iout);
 }
 
-/* interface between FORTRAN function call and R function
-   Fortran code calls C_deriv_func_rad(N, t, y, ydot, yout, iout) 
-   R code called as R_deriv_func(time, y) and returns ydot */
+/* Fortran code calls C_deriv_func_rad(N, t, y, ydot, yout, iout)
+   R code called as R_deriv_func(time, y) and returns ydot                    */
 
 static void C_deriv_func_rad (int *neq, double *t, double *y,
                           double *ydot, double *yout, int *iout)
@@ -70,6 +85,8 @@ static void C_deriv_func_rad (int *neq, double *t, double *y,
   my_unprotect(2);
 }
 
+/* mass matrix function                                                       */
+
 static void C_mas_func_rad (int *neq, double *am, int *lmas,
                              double *yout, int *iout)
 {
@@ -82,14 +99,14 @@ static void C_mas_func_rad (int *neq, double *am, int *lmas,
                               INTEGER(NEQ)[0] = *neq;
                               INTEGER(LM) [0] = *lmas;
   PROTECT(R_fcall = lang3(R_mas_func,NEQ,LM));   incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, R_envir));           incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_envir));         incr_N_Protect();
 
   for (i = 0; i <*lmas * *neq; i++)   am[i] = REAL(ans)[i];
 
   my_unprotect(4);
 }
 
-/* deriv output function - for ordinary output variables */
+/* deriv output function - for ordinary output variables                      */
 
 static void C_deriv_out_rad (int *nOut, double *t, double *y, 
                        double *ydot, double *yout)
@@ -109,7 +126,7 @@ static void C_deriv_out_rad (int *nOut, double *t, double *y,
   my_unprotect(2);                                  
 }      
 
-/* save output in R-variables */
+/* save output in R-variables                                                 */
 
 static void saveOut (double t, double *y) {
   int j;
@@ -123,29 +140,141 @@ static void saveOut (double t, double *y) {
       if (isDll == 1)   /* output function in DLL */
         deriv_func (&n_eq, &t, y, xdytmp, out, ipar) ;
       else
-        C_deriv_out_rad(&nout, &t, y, xdytmp, out);  
+        C_deriv_out_rad(&nout, &t, y, xdytmp, out);
       for (j = 0; j < nout; j++) 
         REAL(YOUT)[(it)*(ntot + 1) + j + n_eq + 1] = out[j];
     }                
 }
 
-/* function called by Fortran to check for output */
+/* save lagged variables                                                      */
 
-static void C_soloutrad(int * nr, double * told, double *t, double * y, 
-  double * con, int *lrc, int * neq, double * rpar, int * ipar, int * irtrn, double *xout)
+static void C_saveLag(int ini, double *t, double *y, double *con, int *lrc,
+                      double *rpar, int *ipar) {
+   /* estimate dy (xdytmp) */
+   if (isDll == 1)
+      deriv_func (&n_eq, t, y, xdytmp, rpar, ipar) ;
+   else
+      C_deriv_func_rad (&n_eq, t, y, xdytmp, rpar, ipar) ;
+
+   if (ini == 1)
+    updatehistini(*t, y, xdytmp, rpar, ipar);
+   else
+    updatehist(*t, y, xdytmp, con, lrc);
+}
+
+/* root function                                                              */
+
+static void C_root_radau (int *neq, double *t, double *y, int *ng, double *gout)
 {
+  int i;
+  SEXP R_fcall, ans;
+                              REAL(Time)[0] = *t;
+  for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
+
+  PROTECT(R_fcall = lang3(R_root_func,Time,Y));   incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_envir));          incr_N_Protect();
+
+  for (i = 0; i < *ng; i++)   gout[i] = REAL(ans)[i];
+
+  my_unprotect(2);
+}
+/* function for brent's root finding algorithm                                */
+
+double f (double t, double *Con, int *Lrc) {
+   F77_CALL(contr5) (&n_eq, &t, Con, Lrc, ytmp);    /* ytmp = value of y at t */
+   if (isDll == 1)
+     root_func (&n_eq, &t, ytmp, &nroot, root);    /* root at t, ytmp */
+   else
+     C_root_radau (&n_eq, &t, ytmp, &nroot, root);
+   return root[iroot] ;
+}
+
+/* function called by Fortran to check for output, lags, events, roots        */
+
+static void C_soloutrad(int * nr, double * told, double * t, double * y,
+  double * con, int * lrc, int * neq, double * rpar, int * ipar,
+  int * irtrn, double * xout)
+
+{
+  int i, j;
+  int istate;
+  double tr, tmin;
+  double tol = 1e-9;			/* Acceptable tolerance		*/
+  int maxit = 100;				/* Max # of iterations */
+  extern double brent(double, double,	double, double,
+                      double (double, double *, int *), double *, int *,
+                      double, int);
+
+  if (*told == *t) return;
   timesteps[0] = *told-*t;
   timesteps[1] = *told-*t;
 
-  while (*told <= tt[it] && tt[it] < *t) {
+  if (islag == 1) C_saveLag(0, t, y, con, lrc, rpar, ipar);
+
+  if (isEvent && ! rootevent) {
+    if (*told <= tEvent && tEvent < *t) {
+      tin = tEvent;
+      F77_CALL(contr5) (&n_eq, &tEvent, con, lrc, y);
+      updateevent(&tin, y, &istate);
+      *irtrn = -1;
+    }
+  }
+  tmin = *t;
+  iroot = -1;
+  if (isroot & (fabs(*t - tprevroot) > tol)) {
+    if (isDll == 1)
+     root_func (&n_eq, t, y, &nroot, root);    /* root at t, ytmp */
+    else
+     C_root_radau (&n_eq, t, y, &nroot, root);
+
+    for (i = 0; i < nroot; i++)
+     if (fabs(root[i]) <  tol) {
+       iroot = i;
+       jroot[i] = 1;
+       *irtrn = -1;
+       endsim = 1;
+       tprevroot = *t;
+     } else if (fabs(oldroot[i]) >= tol && root[i] * oldroot[i] < 0) {
+       iroot = i;
+       jroot[i] = 1;
+       tr = brent(*told, *t, oldroot[i], root[i], f, con, lrc, tol, maxit);
+       F77_CALL(contr5) (&n_eq, &tr, con, lrc, ytmp);
+       *irtrn = -1;
+        endsim = 1;
+        if (tr < tmin) {
+          tmin = tr;
+          tprevroot = tmin;
+          for (j = 0; j < n_eq; j++) y[j] = ytmp[j];
+        }
+     } else jroot[i] = 0;
+    for (i = 0; i < nroot; i++) oldroot[i] = root[i];
+  }
+
+  while (*told <= tt[it] && tt[it] < tmin) {
     F77_CALL(contr5) (neq, &tt[it], con, lrc, ytmp);
-    saveOut(tt[it], ytmp);	     
+    saveOut(tt[it], ytmp);
     it++;
     if ( it >= maxt) break;
   }
+   if ((*irtrn == -1) && rootevent) {
+     *t = tmin;
+     tin = *t;
+     tEvent = tin;
+     if (nr_root < Rootsave) {
+       troot[nr_root] = tin;
+       for (j = 0; j < nroot; j++)
+         if (jroot[j] == 1) nrroot[nr_root] = j+1;
+       for (j = 0; j < n_eq; j++)
+         valroot[nr_root* n_eq + j] = y[j];
+     }
+     nr_root++;
+     updateevent(&tin, y, &istate);
+     endsim = 0;
+   }
 }
 
-/* interface to jacobian function */
+/* interface to jacobian function                                             */
+
 static void C_jac_func_rad(int *neq, double *t, double *y, int *ml,
 		    int *mu, double *pd, int *nrowpd, double *yout, int *iout)
 {
@@ -163,7 +292,8 @@ static void C_jac_func_rad(int *neq, double *t, double *y, int *ml,
   my_unprotect(2);
 }
 
-/* give name to data types */
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ give name to data types                                                    */
 typedef void C_solout_type (int *, double *, double *, double *,
   double *, int *, int *, double *, int *, int *, double *) ;
 
@@ -173,53 +303,55 @@ typedef void C_mas_type (int *, double *, int *, double *, int *);
 typedef void C_jac_func_type_rad(int *, double *, double *, int *, 
                      int *, double *, int*, double *, int *);
 
-/* MAIN C-FUNCTION, CALLED FROM R-code */
+
+/* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                  MAIN C-FUNCTION, CALLED FROM R-code                       */
 
 SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
     SEXP parms, SEXP rtol, SEXP atol, 
     SEXP Nrjac, SEXP Nrmas,
-		SEXP rho, SEXP initfunc, SEXP verbose, SEXP rWork, SEXP iWork, 
+		SEXP rho, SEXP initfunc, SEXP rWork, SEXP iWork,
     SEXP nOut, SEXP lRw, SEXP lIw, 
-    SEXP Rpar, SEXP Ipar, SEXP Hini, SEXP flist, SEXP Type)
+    SEXP Rpar, SEXP Ipar, SEXP Hini, SEXP flist, SEXP elag,
+    SEXP rootfunc, SEXP nRoot, SEXP eventfunc, SEXP elist )
 
 {
 /******************************************************************************/
 /******                   DECLARATION SECTION                            ******/
 /******************************************************************************/
 
-  int  j, nt, latol, lrtol, lrw, liw, type, 
+  int  j, nt, latol, lrtol, lrw, liw,
        ijac, mljac, mujac, imas, mlmas, mumas;
   int  isForcing;
-  double *xytmp, tin, tout, *Atol, *Rtol, hini=0;
-  int itol, iout, idid, mflag;
-  int    *iwork;   
-  double *rwork;
-  
+  double *xytmp, tout, *Atol, *Rtol, hini=0;
+  int itol, iout, idid;
+
+  SEXP TROOT, NROOT, VROOT, IROOT;
 
   /* pointers to functions passed to FORTRAN */
   C_solout_type         *solout = NULL;
   C_jac_func_type_rad   *jac_func = NULL;
   C_mas_type            *mas_func = NULL;
-    
+
 /******************************************************************************/
 /******                         STATEMENTS                               ******/
 /******************************************************************************/
+/*                      #### initialisation ####                              */
+
   lock_solver(); /* prevent nested call of solvers that have global variables */
-/*                      #### initialisation ####                              */    
-  //init_N_Protect();
-  long int old_N_Protect = save_N_Protected();  
+  long int old_N_Protect = save_N_Protected();
 
   n_eq = LENGTH(y);             /* number of equations */ 
   nt   = LENGTH(times);         /* number of output times */
   maxt = nt; 
+  nroot  = INTEGER(nRoot)[0];   /* number of roots  */
+  isroot = 0; nr_root = 0;
+  if (nroot > 0) isroot = 1;
   
   tt = (double *) R_alloc(nt, sizeof(double));
   for (j = 0; j < nt; j++) tt[j] = REAL(times)[j];
   
-  mflag = INTEGER(verbose)[0];
-  type  = INTEGER(Type)[0];     /* 1 = dopri 8, 2 = dopri5 */
-
-  ijac  = INTEGER(Nrjac)[0]; 
+  ijac  = INTEGER(Nrjac)[0];
   mljac = INTEGER(Nrjac)[1]; 
   mujac = INTEGER(Nrjac)[2]; 
   imas  = INTEGER(Nrmas)[0];
@@ -267,11 +399,13 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
   //timesteps = (double *) R_alloc(2, sizeof(double));
   for (j=0; j<2; j++) timesteps[j] = 0.;
   
-  /* Initialization of Parameters, Forcings (DLL) */
+  /* Initialization of Parameters, Forcings (DLL), lags */
   initParms (initfunc, parms);
   isForcing = initForcings(flist);
-  
-  if (nout > 0 ) {
+  isEvent = initEvents(elist, eventfunc);
+  islag = initLags(elag, 10, nroot);
+
+  if (nout > 0 || islag) {
      xdytmp= (double *) R_alloc(n_eq, sizeof(double));
      for (j = 0; j < n_eq; j++) xdytmp[j] = 0.; 
   }
@@ -306,8 +440,7 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
 	      mas_func= C_mas_func_rad;
     }
 
-
- 	solout = C_soloutrad;              
+ 	solout = C_soloutrad;
  
   iout = 2;                           /* solout called after each step OR 1???*/
   idid = 0;
@@ -317,12 +450,41 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
   tin  = REAL(times)[0];
   tout = REAL(times)[nt-1];
   saveOut (tin, xytmp);               /* save initial condition */ 
+  it++;
   
+  if (nroot > 0)  {      /* also must find a root */
+    jroot = (int *) R_alloc(nroot, sizeof(int));
+    for (j = 0; j < nroot; j++) jroot[j] = 0;
+
+    root = (double *) R_alloc(nroot, sizeof(double));
+    oldroot = (double *) R_alloc(nroot, sizeof(double));
+
+    if (isDll) {
+      root_func = (C_root_func_type *) R_ExternalPtrAddr(rootfunc);
+    } else {
+      root_func = (C_root_func_type *) C_root_radau;
+      R_root_func = rootfunc;
+    }
+
+    /* value of oldroot */
+    if (isDll == 1)
+      root_func (&n_eq, &tin, xytmp, &nroot, oldroot);    /* root at t, ytmp */
+    else
+      C_root_radau (&n_eq, &tin, xytmp, &nroot, oldroot);
+
+    tprevroot = tin; /* to make sure that roots are not too close */
+  }
+  endsim = 0;
+  do {
+    if (islag == 1) C_saveLag(1, &tin, xytmp, out, ipar, out, ipar);
+
     F77_CALL(radau5) ( &n_eq, deriv_func, &tin, xytmp, &tout, &hini, 
 		     Rtol, Atol, &itol, jac_func, &ijac, &mljac, &mujac, 
          mas_func, &imas, &mlmas, &mumas, solout, &iout,
 		     rwork, &lrw, iwork, &liw, out, ipar, &idid);
-  if (idid == -1)  
+	} while (tin < tout && idid >= 0 && endsim == 0);
+
+  if (idid == -1)
      warning("input is not consistent");
   else if (idid == -2)   
      warning("larger maxsteps needed");
@@ -330,19 +492,62 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
      warning("step size becomes too small");
   else if (idid == -4)   
      warning("problem is probably stiff - interrupted");
-	  
+
 /*                   ####  an error occurred   ####                           */    
   if(it <= nt-1) saveOut (tin, xytmp);              /* save final condition */
-  if (idid < 0 ) {
+  if (idid < 0) {
     it = it-1;
     returnearly (1, it, ntot);
-  }  
-
+  } else if (idid == 2) {
+    it = it-1;
+    returnearly (0, it, ntot);
+    idid = -2;
+  }
 /*                   ####   returning output   ####                           */    
   rwork[0] = hini;
   rwork[1] = tin ; 
   terminate(idid,iwork,7,13,rwork,5,0);       
-  
+
+  if (iroot >= 0 || nr_root > 0)  {
+    PROTECT(IROOT = allocVector(INTSXP, nroot));incr_N_Protect();
+    for (j = 0; j < nroot; j++) INTEGER(IROOT)[j] = jroot[j];
+    PROTECT(NROOT = allocVector(INTSXP, 1));incr_N_Protect();
+    INTEGER(NROOT)[0] = nr_root;
+
+    if (nr_root == 0) {
+      PROTECT(TROOT = allocVector(REALSXP, 1)); incr_N_Protect();
+      REAL(TROOT)[0] = tin;
+    } else {
+      if (nr_root > Rootsave) nr_root = Rootsave;
+
+      PROTECT(TROOT = allocVector(REALSXP, nr_root)); incr_N_Protect();
+      for (j = 0; j < nr_root; j++) REAL(TROOT)[j] = troot[j];
+
+      PROTECT(VROOT = allocVector(REALSXP, nr_root*n_eq)); incr_N_Protect();
+      for (j = 0; j < nr_root*n_eq; j++) REAL(VROOT)[j] = valroot[j];
+
+      PROTECT(IROOT = allocVector(INTSXP, nr_root)); incr_N_Protect();
+      for (j = 0; j < nr_root; j++) INTEGER(IROOT)[j] = nrroot[j];
+
+      if (idid == 1) {
+        setAttrib(YOUT, install("valroot"), VROOT);
+        setAttrib(YOUT, install("indroot"), IROOT);
+      }
+      else  {
+        setAttrib(YOUT2, install("valroot"), VROOT);
+        setAttrib(YOUT2, install("indroot"), IROOT);
+      }
+    }
+
+    if (idid == 1 ) {
+      setAttrib(YOUT, install("troot"), TROOT);
+      setAttrib(YOUT, install("nroot"), NROOT);
+    } else  {
+      setAttrib(YOUT2, install("iroot"), IROOT);
+      setAttrib(YOUT2, install("troot"), TROOT);
+      setAttrib(YOUT2, install("nroot"), NROOT);
+    }
+  }
 /*                   ####     termination      ####                           */    
   unlock_solver();
   restore_N_Protected(old_N_Protect);                           

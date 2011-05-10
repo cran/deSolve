@@ -3,7 +3,7 @@
 ### daspk -- solves differential algebraic and ordinary differential equation
 ###          systems defined in res (DAE) or func (ODE)
 ###          and outputs values for the times in `times'
-###          on input, y and dy contains the initial values of the state 
+###          on input, y and dy contains the initial values of the state
 ###          variables and rates of changes for times[1]
 ###          parms is a vector of parameters for func.  They should not
 ###          change during the integration.
@@ -15,9 +15,10 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord =5, bandup=NULL,
     banddown=NULL, maxsteps=5000, dllname=NULL, initfunc=dllname,
     initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL,
-    forcings=NULL, initforc = NULL, fcontrol=NULL, lags = NULL, ...) {
+    forcings=NULL, initforc = NULL, fcontrol=NULL, events = NULL,
+    lags = NULL, ...) {
 
-### check input 
+### check input
   if (!is.numeric(y))
     stop("`y' must be numeric")
   n <- length(y)
@@ -29,8 +30,8 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     stop("either `func' OR 'res' must be specified, not both")
   if (!is.null(jacres) && !is.null(jacfunc))
     stop("either `jacfunc' OR 'jacres' must be specified, not both")
-  if (!is.null(func) && !is.function(func))
-    stop("`func' must be a function or NULL")
+  if (!is.null(func) && !is.function(func) && !is.character(func))
+    stop("`func' must be a function, a character vector or NULL")
   if (!is.null(res) && !is.function(res) && !is.character(res))
     stop("`res' must be NULL, a function or character vector")
   if (is.character(res) && (is.null(dllname) || !is.character(dllname)))
@@ -72,7 +73,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   ## max number of iterations ~ maxstep; a multiple of 500
   maxIt <- max(1,(maxsteps+499)%/%500)
 
-                        
+
 ### Jacobian, method flag
   if (jactype == "fullint" )
     imp <- 22 # full, calculated internally
@@ -93,7 +94,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   if (imp == 24)
     erow<-matrix(data=0,ncol=n,nrow=banddown)
   else erow<-NULL
-    
+
   if (is.null(banddown))
     banddown <-1
   if (is.null(bandup  ))
@@ -105,14 +106,17 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     stop("`dy' must be numeric")
 
 ### model and Jacobian function
-  Ynames  <- attr(y,"names")
-  dYnames <- attr(dy,"names")
-  Res     <- NULL
-  JacRes  <- NULL
-  PsolFunc<- NULL
-    
+  Ynames    <- attr(y,"names")
+  dYnames   <- attr(dy,"names")
+  Res       <- NULL
+  JacRes    <- NULL
+  PsolFunc  <- NULL
+  funtype  <- 1
   ModelInit <- NULL
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
+  Eventfunc <- NULL
+  events <- checkevents(events, times, Ynames, dllname)
+  if (! is.null(events$newTimes)) times <- events$newTimes
 
   if (!is.null(dllname))  {
    if (! is.null(initfunc))  # to allow absence of initfunc
@@ -127,16 +131,25 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     if (is.null(initfunc)) ModelInit <- NA
   }
 
-  ## If res is a character vector, then
-  ## check to make sure it describes
-  ## a function in a loaded dll
   psolfunc <- NULL  # not yet supported
-  if (is.character(res)) {
-     resname <- res
-     if (is.loaded(resname, PACKAGE = dllname)) {
-       Res <- getNativeSymbolInfo(resname, PACKAGE = dllname)$address
-     } else stop(paste("cannot integrate: res function not loaded",resname))
 
+  ## If res or func is a character vector,  make sure it describes
+  ## a function in a loaded dll
+  if (is.character(res) || is.character(func)) {
+    if (is.character(res)){
+      resname <- res
+      if (is.loaded(resname, PACKAGE = dllname)) {
+        Res <- getNativeSymbolInfo(resname, PACKAGE = dllname)$address
+      } else stop(paste("cannot integrate: res function not loaded",resname))
+
+    } else if (is.character(func)) {
+      funtype <- 2
+      resname <- func
+      if (is.loaded(resname, PACKAGE = dllname)) {
+        Res <- getNativeSymbolInfo(resname, PACKAGE = dllname)$address
+      } else stop(paste("cannot integrate: derivs function not loaded",resname))
+      if (!is.null(mass)) funtype <- 3
+    }
 #        if (is.null(kryltype))
 #        {
      if (!is.null(jacres))   {
@@ -158,7 +171,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
           stop(paste("cannot integrate: psolfunc not loaded ",psolfunc))
      }
 #        } else if (kryltype =="banded")      ###  NOT YET IMPLEMENTED
-#        {                        
+#        {
 #        lenpd    <- (2*banddown + bandup +1) * n
 #        mband    <-  banddown + bandup +1
 #        msave    <- (n/mband) + 1
@@ -186,13 +199,14 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
        ipar<-0
      if (is.null(rpar))
        rpar<-0
-  
+     Eventfunc <- events$func
+
 
   } else {
 
     if (is.null(initfunc))
       initpar <- NULL # parameter initialisation not needed if function is not a DLL
-    
+
     ## func or res and jac are overruled, either including ynames, or not
     ## This allows to pass the "..." arguments and the parameters
 
@@ -244,7 +258,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
       tmp <- eval(jacfunc(times[1], y, parms, ...), rho)
       if (! is.matrix(tmp))
         stop("jacfunc must return a matrix\n")
-      if (is.null(mass)) 
+      if (is.null(mass))
        JacRes <- function(Rin,y,dy) {
         if(ynames) {
           attr(y,"names")  <- Ynames
@@ -256,7 +270,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
           JF <- rbind(erow,JF )
           }
         else
-          JF           <-JF + diag(nc=n,nr=n,x=Rin[2])
+          JF           <-JF + diag(ncol=n,nrow=n,x=Rin[2])
         return(JF)
       }
       else
@@ -290,7 +304,19 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
          rbind(erow,jacres(Rin[1],y,dy,parms,Rin[2],...))
        }
     } else JacRes <- NULL
-         
+
+       if (! is.null(events$Type)) {
+         if (events$Type == 2)
+           Eventfunc <- function(time,state) {
+             if (ynames) {
+               attr(state,"names")  <- Ynames
+               attr(dy,"names") <- dYnames
+           }
+             events$func(time,state,parms,...)
+           }
+         if (events$Type == 2)
+           checkEventFunc(Eventfunc,times,y,rho)
+       }
     ## Call res once to figure out whether and how many "global"
     ## results it wants to return and some other safety checks
     tmp <- eval(Res2(times[1], y, dy), rho)
@@ -304,20 +330,21 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     Nglobal <- if (length(tmp) > 1)
           length(unlist(tmp[-1]))  else 0
     ## check for NULL? stop("Problem interpreting model output - check for NULL values")
-    
+
     Nmtot <- attr(unlist(tmp[-1]),"names")
-        
+
   }  # is.character(res)
-    
+
 ### work arrays INFO, iwork, rwork
 
 ## the INFO vector
   info   <- vector("integer",20)
   info[] <- 0
+  info[20] <- funtype   # 1 for a res in DLL, 2 for func in DLL
   if (length(atol)==n) {
     if (length(rtol) != n)    rtol <- rep(rtol,len=n)
   } else if (length(rtol)==n) atol <- rep(atol,len=n)
-     
+
   info[2] <- length(atol)==n
   if (is.null(times)) {
     info[3]<-1
@@ -325,11 +352,11 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   }
 #    if (krylov == TRUE)      # NOT YET IMPLEMENTED
 #    {if (is.null(kryltype) && is.null(psolfunc))
-#        stop ("daspk: cannot perform integration: *psolfunc* NOT specified and krylov method chosen..")        
-#     if (is.null(kryltype) && ! is.character (psolfunc)) 
-#        stop ("daspk: krylov method in R-functions not yet implemented") 
-#     if (is.null(kryltype) && is.null(lwp)) stop("daspk: krylov method chosen, but lwp not defined") 
-#     if (is.null(kryltype) && is.null(lip)) stop("daspk: krylov method chosen, but lip not defined") 
+#        stop ("daspk: cannot perform integration: *psolfunc* NOT specified and krylov method chosen..")
+#     if (is.null(kryltype) && ! is.character (psolfunc))
+#        stop ("daspk: krylov method in R-functions not yet implemented")
+#     if (is.null(kryltype) && is.null(lwp)) stop("daspk: krylov method chosen, but lwp not defined")
+#     if (is.null(kryltype) && is.null(lip)) stop("daspk: krylov method chosen, but lip not defined")
 #      info[12] <- 1
 #      if (is.null(krylpar ))  {
 #      krylpar <- c(min(5,n),min(5,n),5,0.05)
@@ -339,7 +366,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
 #      if (krylpar[1] <1 || krylpar[1]>n) stop("daspk: krylpar[1] MAXL not valid")
 #      if (krylpar[2] <1 || krylpar[2]>krylpar[1]) stop("daspk: krylpar[2] KMP not valid")
 #      if (krylpar[3] <0 ) stop("daspk: krylpar[3] NRMAX not valid")
-#      if (krylpar[4] <0 || krylpar[4]>1) stop("daspk: krylpar[4] EPLI not valid")     
+#      if (krylpar[4] <0 || krylpar[4]>1) stop("daspk: krylpar[4] EPLI not valid")
 #      info[13] =1
 #     }
 #    if (! is.null(JacRes)) info[15] <- 1
@@ -357,24 +384,24 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     stop ("daspk: cannot perform integration: *jacfunc* or *jacres* NOT specified; either specify *jacfunc* or *jacres* or change *jactype*")
 
   info[9] <- maxord!=5
- 
+
   if (! is.null (estini)) info[11] <- estini # daspk will estimate dy and algebraic equ.
   if (info[11] > 2 || info[11]< 0 ) stop("daspk: illegal value for estini")
-    
-# length of rwork and iwork 
+
+# length of rwork and iwork
 #    if (info[12]==0) {
   lrw <- 50+max(maxord+4,7)*n
   if (info[6]==0) {lrw <- lrw+ n*n} else {
   if (info[5]==0) lrw <- lrw+ (2*banddown+bandup+1)*n + 2*(n/(bandup+banddown+1)+1) else
                   lrw <- lrw+ (2*banddown+bandup+1)*n  }
   liw <- 40+n
-       
+
 #    } else {
-#     maxl <- krylpar[1] 
+#     maxl <- krylpar[1]
 #     kmp  <- krylpar[2]
 #     lrw <- 50+(maxord+5)*n+max(maxl+3+min(1,maxl-kmp))*n + (maxl+3)*maxl+1+lwp
-#     liw <- 40+lip 
-#    }    
+#     liw <- 40+lip
+#    }
 
   if (info[10] %in% c(1,3)) liw <- liw+n
   if (info[11] ==1)         liw <- liw+n
@@ -382,10 +409,10 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
   if (info[16] ==1)         lrw <- lrw+n
   iwork <- vector("integer",liw)
   rwork <- vector("double",lrw)
-    
+
   if(! is.null(tcrit)) {info[4]<-1;rwork[1] <- tcrit}
-    
-  if(info[6] == 1) {iwork[1]<-banddown;iwork[2]<-bandup}
+
+  if(info[6] == 1) {iwork[1]<-banddown; iwork[2]<-bandup}
   if(info[7] == 1) rwork[2] <- hmax
   if(info[8] == 1) rwork[3] <- hini
   if(info[9] == 1) iwork[3] <- maxord
@@ -395,7 +422,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
     iwork[lid+(1:n)       ]<- - 1
     iwork[lid+(1:(n-nalg))]<-    1
   }
-#    if (info[12]==1) 
+#    if (info[12]==1)
 #     {iwork[27]<-lwp
 #     iwork[28]<-lip}
 #    if (info[13]==1)
@@ -405,12 +432,12 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
 # print to screen...
 #    if (verbose)
 #    {
-#       if (info[12] == 0) 
-#       {print("uses standard direct method") 
+#       if (info[12] == 0)
+#       {print("uses standard direct method")
 #       }else print("uses Krylov iterative method")
 #    }
 
-  lags <- checklags(lags,dllname) 
+  lags <- checklags(lags,dllname)
   if (lags$islag == 1) {
     info[3] = 1        # one step and return
     maxIt <- maxsteps  # maxsteps per iteration...
@@ -426,10 +453,11 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
       JacRes, ModelInit, PsolFunc, as.integer(verbose),as.integer(info),
       as.integer(iwork),as.double(rwork), as.integer(Nglobal),as.integer(maxIt),
       as.integer(bandup),as.integer(banddown),as.integer(nrowpd),
-      as.double (rpar), as.integer(ipar), flist, lags, PACKAGE = "deSolve")
+      as.double (rpar), as.integer(ipar), flist, lags,
+      Eventfunc, events, as.double(mass), PACKAGE = "deSolve")
 
 
-### saving results    
+### saving results
 
   out [1,1] <- times[1]
   istate <- attr(out, "istate")

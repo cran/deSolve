@@ -8,6 +8,15 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
   rpar = NULL,  ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
   initforc = NULL, fcontrol = NULL, ...) {
 
+    ## check for unsupported solver options
+    dots   <- list(...); nmdots <- names(dots)
+    if(any(c("hmin", "hmax") %in% nmdots))
+      warning("hmin and hmax cannot be used in 'rk4' (fixed steps).")
+    if("hini" %in% nmdots) {
+      cat("'hini' is not supported by this version of rk4,\n")
+      cat("but you can use ode(......, method = 'rk4', hini= .....)\n")
+      cat("to set internal time steps smaller than external steps.\n")
+    }    
     ## check input
     checkInputEuler(y, times, func, dllname)
     n <- length(y)

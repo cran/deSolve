@@ -5,11 +5,20 @@
 ### by the user, estimated internally (default), or of a special type.
 ### To date, "1D", "2D", "3D" are supported as special types.
 ### These are the sparsity associated with 1- 2- and 3-Dimensional PDE models
+###
+### as from deSolve 1.9.1, lsode1 finds the root of at least one of a set
+### of constraint functions g(i) of the independent and dependent variables.
+### It finds only those roots for which some g(i), as a function
+### of t, changes sign in the interval of integration.
+### It then returns the solution at the root, if that occurs
+### sooner than the specified stop condition, and otherwise returns
+### the solution according the specified stop condition.
 ### ============================================================================
 
 lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   jacvec=NULL, sparsetype="sparseint", nnz = NULL, inz = NULL,
-  verbose=FALSE, tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE,
+  rootfunc=NULL, verbose=FALSE, nroot = 0,
+  tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE,
   maxord=NULL, maxsteps=5000, lrw=NULL, liw=NULL,
   dllname=NULL, initfunc=dllname,
   initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
@@ -107,15 +116,30 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 ### model and Jacobian function
   JacFunc   <- NULL
   Ynames    <- attr(y,"names")
+  RootFunc <- NULL
   flist     <- list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
   Eventfunc <- NULL
 
-  events <- checkevents(events, times, Ynames, dllname)
+  events <- checkevents(events, times, Ynames, dllname,TRUE)
+  if (! is.null(events$newTimes)) times <- events$newTimes  
 
   if (is.character(func)) {   # function specified in a DLL
     DLL <- checkDLL(func,jacvec,dllname,
                     initfunc,verbose,nout, outnames, JT=2)
+
+    ## Is there a root function?
+    if (!is.null(rootfunc)) {
+      if (!is.character(rootfunc))
+        stop("If 'func' is dynloaded, so must 'rootfunc' be")
+      rootfuncname <- rootfunc
+      if (is.loaded(rootfuncname, PACKAGE = dllname))  {
+        RootFunc <- getNativeSymbolInfo(rootfuncname, PACKAGE = dllname)$address
+      } else
+        stop(paste("root function not loaded in DLL",rootfunc))
+      if (nroot == 0)
+        stop("if 'rootfunc' is specified in a DLL, then 'nroot' should be > 0")
+    }
 
     ModelInit <- DLL$ModelInit
     Func    <- DLL$Func
@@ -153,7 +177,11 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
         attr(state,"names") <- Ynames
         jacvec(time,state,J,parms,...)
       }
-       if (! is.null(events$Type))
+      RootFunc <- function(time,state) {
+        attr(state,"names") <- Ynames
+        rootfunc(time,state,parms,...)
+      }
+      if (! is.null(events$Type))
        if (events$Type == 2)
          Eventfunc <- function(time,state) {
            attr(state,"names") <- Ynames
@@ -169,8 +197,11 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       JacFunc <- function(time,state,J)
         jacvec(time,state,J,parms,...)
 
+      RootFunc <- function(time,state)
+        rootfunc(time,state,parms,...)
+
       if (! is.null(events$Type))
-      if (events$Type == 2)
+       if (events$Type == 2)
          Eventfunc <- function(time,state)
            events$func(time,state,parms,...)
     }
@@ -180,9 +211,18 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
 
+    ## Check event function
     if (! is.null(events$Type))
       if (events$Type == 2)
         checkEventFunc(Eventfunc,times,y,rho)
+
+    ## and for rootfunc
+    if (! is.null(rootfunc))  {
+      tmp2 <- eval(rootfunc(times[1],y,parms,...), rho)
+      if (!is.vector(tmp2))
+        stop("root function 'rootfunc' must return a vector\n")
+      nroot <- length(tmp2)
+    } else nroot = 0
 
   }
 
@@ -207,7 +247,7 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (moss == 0 && miter %in% c(1,2)) liw <- 31+n+nnz +30 else  # extra 30
                                         liw <- 30
   }
-
+  lrw <- lrw + 3*nroot
   # 2. Allocate and set values
   # only first 20 elements of rwork passed to solver;
   # other elements will be allocated in C-code
@@ -295,7 +335,8 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
 ### calling solver
   storage.mode(y) <- storage.mode(times) <- "double"
-  IN <-3
+  IN <- 3
+  if (!is.null(rootfunc)) IN <- 7
 
   lags <- checklags(lags, dllname)
   on.exit(.C("unlock_solver"))
@@ -304,12 +345,16 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(imp),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(IN),
-               NULL, as.integer(0), as.double (rpar), as.integer(ipar),
+               RootFunc, as.integer(nroot), as.double (rpar), as.integer(ipar),
                as.integer(Type),flist, events, lags, PACKAGE="deSolve")
 
 ### saving results
+  if (nroot>0) iroot  <- attr(out, "iroot")
+
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,
                  iin=c(1,12:20), iout=c(1:3,14,5:9,17))
+
+  if (nroot>0) attr(out, "iroot") <- iroot
 
   attr(out, "type") <- "lsodes"
   if (verbose) diagnostics(out)

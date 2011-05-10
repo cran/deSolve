@@ -1556,6 +1556,86 @@ the consumer removed every 10 days - see text for R-code}
 \label{fig:lv2}
 \end{figure}
 
+\section{Difference equations in compiled code}
+There is one special-purpose solver, triggered with \code{method = "iteration"}
+which can be used in cases where the new values of the state variables are
+estimated by the user, and need not be found by integration.
+
+This is for instance useful when the model consists of difference equations,
+or for 1-D models when transport is implemented by an implicit or a
+semi-implicit method.
+
+An example of a discrete time model, represented by a difference
+equation is given in the help file of solver \code{ode}. It consists of the
+host-parasitoid model described as from \citet[p283]{Soetaert08}.
+
+We first give the R-code, and how it is solved:
+\begin{verbatim}
+Parasite <- function (t, y, ks) {
+  P <- y[1]
+  H <- y[2]
+  f    <- A * P / (ks +H)
+  Pnew <- H* (1-exp(-f))
+  Hnew <- H * exp(rH*(1.-H) - f)
+
+  list (c(Pnew, Hnew))
+}
+rH <- 2.82  # rate of increase
+A  <- 100   # attack rate
+ks <- 15.   # half-saturation density
+
+out <- ode (func = Parasite, y = c(P = 0.5, H = 0.5), times = 0:50,
+            parms = ks, method = "iteration")
+\end{verbatim}
+Note that the function returns the updated value of the state variables rather
+than the rate of change (derivative). The method ``iteration'' does not perform
+any integration.
+
+The implementation in \proglang{FORTRAN} consists of an initialisation
+function to pass the parameter values (\code{initparms}) and the "update"
+function that returns the new values of the state variables (\code{parasite}):
+\begin{verbatim}
+      subroutine initparms(odeparms)
+        external odeparms
+        double precision parms(3)
+        common /myparms/parms
+        call odeparms(3, parms)
+        return
+      end
+
+      subroutine parasite (neq, t, y, ynew, out, iout)
+        integer          neq, iout(*)
+        double precision t, y(neq), ynew(neq), out(*), rH, A, ks
+        common /myparms/ rH, A, ks
+	      double precision P, H, f
+
+    	  P = y(1)
+    	  H = y(2)
+        f = A * P / (ks + H)
+
+        ynew(1) = H * (1.d0 - exp(-f))
+        ynew(2) = H * exp (rH * (1.d0 - H) - f)
+        return
+
+      end
+\end{verbatim}
+
+The model is compiled, loaded and executed in R as:
+\begin{verbatim}
+system("R CMD SHLIB difference.f")
+dyn.load(paste("difference", .Platform$dynlib.ext, sep = ""))
+
+require(deSolve)
+rH <- 2.82 # rate of increase
+A  <- 100  # attack rate
+ks <- 15.  # half-saturation density
+
+parms <- c(rH = rH, A = A, ks = ks)
+out <- ode (func = "parasite", y = c(P = 0.5, H = 0.5), times = 0:50,
+            initfunc = "initparms", dllname = "difference", parms = parms,
+            method = "iteration")
+\end{verbatim}
+
 \section{Final remark}
 
 Detailed information about communication between \proglang{C},

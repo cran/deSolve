@@ -1,5 +1,5 @@
 \documentclass[article,nojss]{jss}
-\DeclareGraphicsExtensions{.pdf,.eps, .jpeg}
+\DeclareGraphicsExtensions{.pdf, .eps, .png, .jpeg}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Add-on packages and fonts
 \usepackage{graphicx}
@@ -208,7 +208,7 @@ be called by the \R routine that solves the differential equations
 The code is most readable if we can address the parameters and state
 variables by their names.  As both parameters and state variables are
 `vectors', they are converted into a list. The statement
-\code{with(as.list(c(state,parameters)), {...})}  then makes available
+\code{with(as.list(c(state, parameters)), {...})}  then makes available
 the names of this list.
 
 The main part of the model calculates the rate of change of the state
@@ -241,7 +241,7 @@ We run the model for 100 days, and give output at 0.01 daily
 intervals. R's function \code{seq()} creates the time sequence:
 
 <<>>=
-times     <- seq(0, 100, by = 0.01)
+times <- seq(0, 100, by = 0.01)
 @
 
 \subsubsection{Model integration}
@@ -374,7 +374,7 @@ Here \code{varstep} informs whether the method uses a variable time-step;
 \code{FSAL} whether the first same as last strategy is used, while
 \code{stage} and \code{Qerr} give the number of function evaluations needed
 for one step, and the order of the local truncation error.
-\code{A,b1,b2,c} are the coefficients of the Butcher table. Two formulae
+\code{A, b1, b2, c} are the coefficients of the Butcher table. Two formulae
 (\code{rk45dp7, rk45ck}) support dense output.
 
 It is also possible to modify the parameters of a method (be very
@@ -587,7 +587,7 @@ image(out, method = "filled.contour", grid = Distance,
 %%<<label=aphidfig,fig=TRUE,echo=FALSE>>=
 %%<<aphid>>
 %%@
-\includegraphics{aphid.jpeg}
+\includegraphics{aphid.png}
 \end{center}
 \caption{Solution of the 1-dimensional aphid model - see text for \R-code}
 \label{fig:aphid}
@@ -655,8 +655,8 @@ dyini <- c(1, 0)
 times <- seq(0, 10, 0.1)
 
 ## solver
-print(system.time(out <- daspk(y = yini, dy = dyini,
-                           times = times, res = daefun, parms = 0)))
+system.time(out <- daspk(y = yini, dy = dyini,
+                         times = times, res = daefun, parms = 0))
 @
 <<label=dae,include=FALSE>>=
 matplot(out[,1], out[,2:3], type = "l", lwd = 2,
@@ -877,6 +877,7 @@ Finally, if the model is specified as ``non-stiff'' (by setting
 <<>>=
 out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
 @
+
 \clearpage
 \section{Events}
 
@@ -962,7 +963,8 @@ event <- function(t, y, parms) {
 @
 
 After specifying the initial values and times, the model is solved.
-Both integrators \code{lsodar} or \code{lsode} can estimate a root.
+Several integrators (\code{lsoda}, \code{lsodar} and  \code{lsode}) 
+can estimate a root.
 
 <<>>=
 yini  <- c(height = 0, v = 20)
@@ -986,6 +988,108 @@ plot(out, which = "height", type = "l",lwd = 2,
 \caption{A model, with event triggered by a root function}
 \label{fig:event2}
 \end{figure}
+
+\subsection{Events and time steps}
+
+The use of events requires that all event times are contained in the
+output time steps, otherwise such events would be skipped. This sounds
+easy but sometimes problems can occur due to the limited accuracy of
+floating point arithmetics of the computer. To make things work as
+excpected, two requirements have to be fulfilled:
+
+\begin{enumerate} 
+  \item all event times have to be contained \textbf{exactly} in
+    times, i.e. with the maximum possible accuracy of floating point
+    arithmetics.
+  \item two time steps should not be too close together, otherwise
+    numerical problems would occur during the integration.
+\end{enumerate}
+
+Starting from version 1.10 of \pkg{deSolve} this is now checked (and
+if necessary also fixed) automatically by the solver functions. A
+warning is issued to inform the user about possible problems,
+especially that the output time steps were now adjusted and therefore
+different from the ones originally specified by the user. This means
+that all values of eventtimes are now contained but only the subset of
+times that have no exact or ``rather close'' neighbors in eventtimes.
+
+Instead of relying on this automatism, matching times and eventtimes
+can also be managed by the user, either by appropriate rounding or by
+using function \code{cleanEventTimes} shown below.
+
+Let's assume we have a vector of time steps \code{times} and another vector 
+of event times \code{eventtimes}:
+
+<<>>=
+times      <- seq(0, 1, 0.1)
+eventtimes <- c(0.7, 0.9)
+@
+
+If we now check whether the \code{eventtimes} are in \code{times}:
+
+<<>>=
+eventtimes %in% times
+@
+
+we get the surprising answer that this is only partly the case,
+because \code{seq} made small numerical errors. The easiest method to
+get rid of this is rounding:
+
+<<>>=
+times2 <- round(times, 1)
+times - times2
+@
+
+The last line shows us that the error was always smaller than, say
+$10^{-15}$\footnote{The accuracy of the machine can be determined with
+\code{.Machine\$double.eps}.}
+
+To check if all \code{eventtimes} are now contained in the new times
+vector \code{times2}, we use:
+
+<<>>=
+eventtimes %in% times2
+@
+
+or
+
+<<>>=
+all(eventtimes %in% times2)
+@
+
+and see that everything is o.k. now.
+
+In few cases, rounding may not work properly, for example if a
+pharmacokinetic model is simulated with a daily time step, but drug
+injection occurs at precisely fixed times within the day. Then one has
+to add all additional event times to the ordinary time stepping:
+
+<<>>=
+times <- 1:10
+eventtimes <- c(1.3, 3.4, 4, 7.9, 8.5)
+newtimes <- sort(unique(c(times, eventtimes)))
+@
+
+If, however, an event and a time step are almost (but not exactly) the
+same, then it is more safe to use:
+
+<<>>=
+times <- 1:10
+eventtimes <- c(1.3, 3.4, 4, 7.9999999999999999, 8.5)
+newtimes <- sort(c(eventtimes, cleanEventTimes(times, eventtimes)))
+@
+
+because \code{cleanEventTimes} removes not only the doubled 4 (like
+\code{unique}, but also the ``almost doubled'' 8, while keeping the
+exact event time. The tolerance of \code{cleanEventTimes} can be
+adjusted using an optional argument \code{eps}.
+
+As said, this is normally done automatically by the differential
+equation solvers and in most cases appropriate rounding will be
+sufficient to get rid of the warnings.
+
+
+
 \clearpage
 
 \section{Delay differential equations}
@@ -1052,11 +1156,72 @@ plot(yout[,2], yout[,3], xlab = "y", ylab = "dy", type = "l", lwd = 2)
 \caption{A delay differential equation model}
 \label{fig:dde}
 \end{figure}
-
 \clearpage
+
+\section{Discrete time models, difference equations}
+
+There is one special-purpose solver, triggered with \code{method = "iteration"}
+which can be used in cases where the new values of the state variables are
+estimated by the user, and need not be found by integration.
+
+This is for instance useful when the model consists of difference equations,
+or for 1-D models when transport is implemented by an implicit or a
+semi-implicit method.
+
+We give here an example of a discrete time model, represented by a difference
+equation: the Teasel model as from \citet[p287]{Soetaert08}.
+
+The dynamics of this plant is described by 6 stages and the transition from
+one stage to another is in a transition matrix:
+
+We define the stages and the transition matrix first:
+<<>>=
+Stages <- c("DS 1yr", "DS 2yr", "R small", "R medium", "R large", "F")
+
+NumStages   <- length(Stages)
+
+# Population matrix
+A <- matrix(nrow = NumStages, ncol = NumStages, byrow = TRUE, data = c(
+                   0,      0,      0,      0,      0,      322.38,
+                   0.966,  0,      0,      0,      0,      0     ,
+                   0.013,  0.01,   0.125,  0,      0,      3.448 ,
+                   0.007,  0,      0.125,  0.238,  0,      30.170,
+                   0.008,  0,      0.038,  0.245,  0.167,  0.862 ,
+                   0,      0,      0,      0.023,  0.75,   0      )  )
+@
+The difference function is defined as usual, but does not return the
+``rate of change'' but rather the new relative stage densities are returned.
+Thus, each time step, the updated values are divided by the summed densities:
+<<>>=
+Teasel <- function (t, y, p) {
+  yNew <-  A %*% y
+  list (yNew / sum(yNew))
+}
+@
+The model is solved using method ``iteration'':
+<<>>=
+out <- ode(func = Teasel, y = c(1, rep(0, 5) ), times = 0:50,
+           parms = 0, method = "iteration")
+@
+and plotted using R-function \code{matplot}:
+<<label=difference,include=FALSE>>=
+matplot(out[,1], out[,-1], main = "Teasel stage distribution", type = "l")
+legend("topright", legend = Stages, lty = 1:6, col = 1:6)
+@
+\setkeys{Gin}{width=0.6\textwidth}
+\begin{figure}
+\begin{center}
+<<label=difference,fig=TRUE,echo=FALSE>>=
+<<difference>>
+@
+\end{center}
+\caption{A difference model solved with method = ``iteration''}
+\label{fig:difference}
+\end{figure}
+
 \section{Plotting deSolve Objects}
 
-There are S3 \code{plot} and \code{image} methods for plotting 0-D (plot), and
+There are \proglang{S3} \code{plot} and \code{image} methods for plotting 0-D (plot), and
 1-D and 2-D model output (image) as
 generated with \code{ode}, \code{ode.1D}, \code{ode.2D}.
 
@@ -1064,8 +1229,6 @@ How to use it and examples can be found by typing \code{?plot.deSolve}.
 
 \subsection{Plotting Multiple Scenario's}
 
-%% HERE SOME TEXT!
-%% thpe:
 The \code{plot} method for \code{deSolve} objects can also be used to compare
 different scenarios, e.g from the same model but with different sets of parameters
 or initial values, with one single call to \code{plot}.
@@ -1304,7 +1467,7 @@ print(system.time(
                 N = N, rr = r, ri = ri, dr = dr, dri = dri)
 ))
 @
-The \code{summary} method provides summaries for both 1-Dimensional state variables:
+The \code{summary} method provides summaries for both 1-dimensional state variables:
 <<>>=
 summary(out)
 @
@@ -1315,7 +1478,7 @@ p10 <- subset(out, select = "PREY", subset = time == 10)
 head(p10)
 @
 
-We first plot both 1-Dimensional state variables at once; we specify that
+We first plot both 1-dimensional state variables at once; we specify that
 the figures are arranged in two rows, and 2 columns; when we call \code{image},
 we overrule the default mfrow setting (\code{mfrow = NULL}).
 Next we plot "PREY" again, once with the default xlim and ylim, and next
@@ -1340,7 +1503,7 @@ image(out, grid = r, which = c("PREY", "PREY"), mfrow = NULL,
 %%<<label=plotimg,fig=TRUE,echo=FALSE>>=
 %%<<img>>
 %%@
-\includegraphics{image1D.jpeg}
+\includegraphics{image1D.png}
 \end{center}
 \caption{image plots}
 \label{fig:plotimg}
@@ -1360,8 +1523,8 @@ consumption, at a rate \code{r_x2y2}, where \code{r_x2y2} depends on the
 position along the grid. First the derivative function is defined:
 <<>>=
 Simple2D <- function(t, Y, par) {
-  y    <- matrix(nrow = nx, ncol = ny, data = Y)  # vector to 2-D matrix
-  dY   <- - r_x2y2 * y   # consumption
+  y  <- matrix(nrow = nx, ncol = ny, data = Y)  # vector to 2-D matrix
+  dY <- - r_x2y2 * y                            # consumption
   return(list(dY))
 }
 @
@@ -1437,7 +1600,7 @@ parms  <- c(c = 5, d = 0.1, e = 0.1, f = 0.1)
 @
 
 After specification of initial conditions and output times, the model
-is solved - using \code{lsoda}:
+is solved -- using \code{lsoda}:
 
 <<>>=
 xstart <- c(P = 0.5, C = 1)
@@ -1516,7 +1679,7 @@ e.g. \url{r-help@r-project.org} or, more specific,
 
 \subsection{Making sense of deSolve's error messages}
 
-As many of \pkg{deSolve}'s functions are wrappers around existing FORTRAN codes,
+As many of \pkg{deSolve}'s functions are wrappers around existing \proglang{FORTRAN} codes,
 the warning and error messages are derived from these codes.
 Whereas these codes are highly robust, well tested, and efficient, they are
 not always as user-friendly as we would like.
@@ -1527,12 +1690,12 @@ Consider the first example on the \code{ode} function:
 <<>>=
 LVmod <- function(Time, State, Pars) {
   with(as.list(c(State, Pars)), {
-    Ingestion    <- rIng  * Prey*Predator
-    GrowthPrey   <- rGrow * Prey*(1-Prey/K)
+    Ingestion    <- rIng  * Prey * Predator
+    GrowthPrey   <- rGrow * Prey * (1 - Prey/K)
     MortPredator <- rMort * Predator
 
     dPrey        <- GrowthPrey - Ingestion
-    dPredator    <- Ingestion*assEff -MortPredator
+    dPredator    <- Ingestion * assEff - MortPredator
 
     return(list(c(dPrey, dPredator)))
   })
@@ -1586,22 +1749,34 @@ Warning messages:
 2: In lsoda(y, times, func, parms, ...) :
   Returning early. Results are accurate, as far as they go
 \end{verbatim}
-The first sentence tells us that at T=0.8562448350331e+02, the solver used a step size H= 0.3273781304624e-17.
-This step size is so small that it cannot tell the difference between T and T+H. Nevertheless, the solver tried again.
+
+The first sentence tells us that at T = 0.8562448350331e+02, the solver used a step size H = 0.3273781304624e-17.
+This step size is so small that it cannot tell the difference between T and T + H. Nevertheless, the solver tried again.
 
 The second sentence tells that, as this warning has been occurring 10 times, it will not be outputted again.
 
 As expected, this error did not go away, so soon the maximal number of steps (5000) has been exceeded. This is indeed what the next message is about:
 
-The third sentence tells that at T=0.8562448350331e+02, maxstep =5000 steps have been done.
+The third sentence tells that at T = 0.8562448350331e+02, maxstep = 5000 steps have been done.
 
 The one before last message tells why the solver returned prematurely, and suggests a solution.
 
-Note: simply increasing maxsteps will not work.
-It makes more sense to first see if the output tells what happens:
+Simply increasing maxsteps will not work and it makes more sense to
+first see if the output tells what happens:
+
 <<label=err,include=FALSE>>=
 plot(out2, type = "l", lwd = 2, main = "corrupt Lotka-Volterra model")
 @
+
+You may, of course, consider to use another solver:
+
+<<include=FALSE,results=hide>>=
+pars["rIng"] <- 100
+out3 <- ode(func = LVmod, y = yini, parms = pars, 
+          times = times, method = "ode45", atol = 1e-14, rtol = 1e-14)
+@
+
+but don't forget to think about this too. We leave this open as an exercise to the reader.
 
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}

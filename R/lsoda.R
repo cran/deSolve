@@ -10,8 +10,8 @@
 ### ============================================================================
 
 lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
-	jacfunc=NULL, jactype = "fullint", 
-  verbose=FALSE, tcrit = NULL, hmin=0, hmax=NULL, hini=0,
+	jacfunc=NULL, jactype = "fullint", rootfunc = NULL,
+  verbose = FALSE, nroot = 0, tcrit = NULL, hmin=0, hmax=NULL, hini=0,
   ynames=TRUE, maxordn = 12, maxords = 5,
   bandup = NULL, banddown = NULL, maxsteps = 5000,
   dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL, 
@@ -19,6 +19,14 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   initforc = NULL, fcontrol = NULL, events = NULL, lags=NULL, ...)   {
 
 ### check input
+  if (! is.null(rootfunc))
+    return(lsodar (y, times, func, parms, rtol, atol, jacfunc,
+ 	         jactype, rootfunc, verbose, nroot, tcrit,
+           hmin, hmax, hini, ynames, maxordn, maxords,
+           bandup, banddown, maxsteps, dllname, initfunc,
+           initpar, rpar, ipar, nout, outnames, forcings,
+           initforc, fcontrol, events, lags, ...))
+
   hmax <- checkInput (y, times, func, rtol, atol,
     jacfunc, tcrit, hmin, hmax, hini, dllname)
 
@@ -56,9 +64,12 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   JacFunc <- NULL
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
+
   Eventfunc <- NULL
   events <- checkevents(events, times, Ynames, dllname) 
-
+  # KS: added...
+  if (! is.null(events$newTimes)) times <- events$newTimes
+  
   if (jt == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
 

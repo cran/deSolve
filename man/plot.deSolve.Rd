@@ -29,8 +29,7 @@ plot.1D (x, which = NULL, ask = NULL, grid = NULL, xyswap = FALSE, delay=0, \dot
     
     For \code{plot.deSolve}, it is allowed to pass several objects of class
     \code{deSolve} after \code{x} (unnamed) - see second example.
-    }
-
+  }
   \item{which }{the name(s) or the index to the variables that should be
     plotted or selected.  Default = all variables, except \code{time}. }
 
@@ -42,7 +41,7 @@ plot.1D (x, which = NULL, ask = NULL, grid = NULL, xyswap = FALSE, delay=0, \dot
   \item{ask }{logical; if \code{TRUE}, the user is \emph{ask}ed before
     each plot, if \code{NULL} the user is only asked if more than one
     page of plots is necessary and the current graphics device is set
-    interactive, see \code{\link{par}(ask=.)} and
+    interactive, see \code{\link{par}(ask)} and
     \code{\link{dev.interactive}}.}
   
   \item{add.contour }{if \code{TRUE}, will add contours to the image plot.}

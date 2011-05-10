@@ -5,10 +5,15 @@
 
 rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL, hini = hmax,
-  ynames=TRUE, method = rkMethod("rk45dp7", ... ), maxsteps = 5000,
+  ynames = TRUE, method = rkMethod("rk45dp7", ... ), maxsteps = 5000,
   dllname = NULL, initfunc = dllname, initpar = parms,
-  rpar = NULL,  ipar = NULL, nout = 0, outnames=NULL, forcings = NULL,
-  initforc = NULL, fcontrol=NULL, events = NULL, ...) {
+  rpar = NULL,  ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
+  initforc = NULL, fcontrol = NULL, events = NULL, ...) {
+
+    if (is.character(method)) method <- rkMethod(method)
+    varstep <- method$varstep
+    if (!varstep & (hmin != 0 | !is.null(hmax)))
+      cat("'hmin' and 'hmax' are ignored (fixed step Runge-Kutta method).\n")
 
     ## Check inputs
     hmax <- checkInput(y, times, func, rtol, atol,
@@ -19,7 +24,6 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 
     if (maxsteps < 0)       stop("maxsteps must be positive")
     if (!is.finite(maxsteps)) maxsteps <- .Machine$integer.max
-    if (is.character(method)) method <- rkMethod(method)
     if (is.null(tcrit)) tcrit <- max(times)
 
     ## ToDo: check for nonsense-combinations of densetype and d
@@ -32,12 +36,12 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
         method$densetype <- NULL
       }
     }
-
-    ## Check interpolation order
+    ## Checks and ajustments for Neville-Aitken interpolation
+    ## - starting from deSolve >= 1.7 this interpolation method
+    ##   is disabled by default.
+    ## - Dense output for special RK methods is enabled and
+    ## all others adjust internal time steps to hit external time steps
     if (is.null(method$nknots)) {
-      ## starting from deSolve >= 1.7
-      ## polynomial interpolation is disabled by default
-      ## methods use either dense output or hit external time steps
       method$nknots <- 0L
     } else {
       method$nknots <- as.integer(ceiling(method$nknots))
@@ -46,16 +50,18 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     if (nknots > 8L) {
         warning("Large number of nknots does not make sense.")
     } else if (nknots < 2L) {
-      # cat("\nMethod without or with disabled interpolation\n")
+      ## method without or with disabled interpolation
       method$nknots <- 0L
     } else {
       trange <- diff(range(times))
       ## ensure that we have at least nknots + 2 data points; + 0.5 for safety)
       ## to allow 3rd order polynomial interpolation
       ## for methods without built-in dense output
-      if ((is.null(method$d) &                             # has no "dense output"?
-           is.null(method$densetype) &                     # densetype: dense output type
-        (hmax > 1.0/(nknots + 2.5) * trange))) {           # time steps too large?
+      if ((is.null(method$d) &                        # has no "dense output"?
+           is.null(method$densetype) &                # or no dense output type
+        (hmax > 1.0/(nknots + 2.5) * trange))) {      # or time steps too large?
+        ## in interpolation mode: automatic adjustment of step size arguments
+        ## to ensure the required minimum of knots
         hini <- hmax <- 1.0/(nknots + 2.5) * trange
         if (hmin < hini) hmin <- hini
         cat("\nNote: Method ", method$ID,
@@ -69,6 +75,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     Initfunc <- NULL
     Eventfunc <- NULL
     events <- checkevents(events, times, Ynames, dllname)
+    if (! is.null(events$newTimes)) times <- events$newTimes    
 
     flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
@@ -77,10 +84,10 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       DLL <- checkDLL(func, NULL, dllname,
                       initfunc, verbose, nout, outnames)
 
-      Initfunc <- DLL$ModelInit
-      Func     <- DLL$Func
-      Nglobal  <- DLL$Nglobal
-      Nmtot    <- DLL$Nmtot
+      Initfunc  <- DLL$ModelInit
+      Func      <- DLL$Func
+      Nglobal   <- DLL$Nglobal
+      Nmtot     <- DLL$Nmtot
       Eventfunc <- events$func
 
       if (! is.null(forcings))
@@ -91,7 +98,8 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       if (is.null(rpar)) rpar <- 0
 
     } else {
-      initpar <- NULL # parameter initialisation not needed if function is not a DLL
+      ## parameter initialisation not needed if function is not a DLL
+      initpar <- NULL 
       rho <- environment(func)
 
       ## func is overruled, either including ynames, or not
@@ -112,7 +120,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
         if (! is.null(events$Type))
           if (events$Type == 2)
             Eventfunc <- function(time, state)
-              events$func(time, state, parms,...)
+              events$func(time, state, parms, ...)
       }
 
       ## Call func once to figure out whether and how many "global"
@@ -136,8 +144,8 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 
     ## Number of steps until the solver gives up
     nsteps  <- min(.Machine$integer.max, maxsteps * length(times))
-    varstep <- method$varstep
-    vrb <- FALSE # TRUE would force internal debugging output of the C code
+
+    vrb <- FALSE # TRUE forces some internal debugging output of the C code
     ## Implicit methods
     on.exit(.C("unlock_solver"))
     implicit <- method$implicit
@@ -161,7 +169,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
         as.double(rpar), as.integer(ipar), method,
         as.integer(nsteps), flist)
     } else { # Fixed step methods
-      ## hini=0 for fixed step methods means
+      ## hini = 0 for fixed step methods means
       ## that steps in "times" are used as they are
       if (is.null(hini)) hini <- 0
       out <- .Call("call_rkFixed", as.double(y), as.double(times),
@@ -172,7 +180,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
         as.integer(nsteps), flist)
     }
 
-    ## saving results
+    ## output cleanup
     out <- saveOutrk(out, y, n, Nglobal, Nmtot,
                      iin = c(1, 12:15), iout = c(1:3, 13, 18))
 

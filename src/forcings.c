@@ -189,9 +189,13 @@ int initEvents(SEXP elist, SEXP eventfunc) {
       else
         Rootsave = 0;
       if (Rootsave > 0)  {
+         nrroot = (int *)R_alloc( (int)Rootsave, sizeof(int) );
+         for (i = 0; i < Rootsave; i++) nrroot[i] = 0;
          troot = (double *)R_alloc( (int)Rootsave, sizeof(double) );
          for (i = 0; i < Rootsave; i++) troot[i] = 0.;
-       }     
+         valroot = (double *)R_alloc( (int)Rootsave*n_eq, sizeof(double) );
+         for (i = 0; i < Rootsave*n_eq; i++) valroot[i] = 0.;
+       }
     } 
     else
       rootevent = 0;
@@ -205,8 +209,7 @@ int initEvents(SEXP elist, SEXP eventfunc) {
      i = LENGTH(Time);
      timeevent = (double *) R_alloc((int) i+1, sizeof(double));
      for (j = 0; j < i; j++) timeevent[j] = REAL(Time)[j];
-     //timeevent[i+1] = 0; // thpe removed
-     timeevent[i] = 0;     // thpe added
+     timeevent[i] = 0;
       
      if (typeevent == 1) {  
        /* specified in a data.frame */
@@ -255,8 +258,8 @@ void updateevent(double *t, double *y, int *istate) {
             y[svar] = y[svar] * value;
           tEvent = timeevent[++iEvent]; 
         } while ((tEvent == *t) && (iEvent <= nEvent));
-      } else {                  /* a function (R or compiled code) */
-        event_func(&n_eq,t,y); 
+      } else {                  /* a root event or specific times */
+        event_func(&n_eq, t, y);
         if (!rootevent)
           tEvent = timeevent[++iEvent];  /* karline: this was toggled off - why?*/
       }  

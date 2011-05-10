@@ -283,56 +283,58 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 ## Example: Resource-producer-consumer Lotka-Volterra model
 ## =======================================================================
 
-## Note:
-## parameters are a list, names accessible via "with" function
-## (see also ode and lsoda examples)
+## Notes:
+## - Parameters are a list, names accessible via "with" function
+## - Function sigimp passed as an argument (input) to model
+##  (see also ode and lsoda examples)
 
-SPCmod <- function(t, x, parms) {
-  S <- x[1] # substrate
-  P <- x[2] # producer
-  C <- x[3] # consumer
-
-  with(parms, {
-    import <- approx(signal$times, signal$import, t)$y
-    dS <- import - b * S * P + g * C
-    dP <- c * S * P  - d * C * P
-    dC <- e * P * C  - f * C
+SPCmod <- function(t, x, parms, input)  {
+  with(as.list(c(parms, x)), {
+    import <- input(t)
+    dS <- import - b*S*P + g*C    # substrate
+    dP <- c*S*P  - d*C*P          # producer
+    dC <- e*P*C  - f*C            # consumer
     res <- c(dS, dP, dC)
     list(res)
   })
 }
 
+## The parameters 
+parms <- c(b = 0.001, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
+
 ## vector of timesteps
-times  <- seq(0, 100, length = 101)
+times <- seq(0, 200, length = 101)
 
 ## external signal with rectangle impulse
-signal <- as.data.frame(list(times = times,
-                            import = rep(0,length(times))))
+signal <- data.frame(times = times,
+                     import = rep(0, length(times)))
 
 signal$import[signal$times >= 10 & signal$times <= 11] <- 0.2
 
-## Parameters for steady state conditions
-parms <- list(b = 0.0, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
+sigimp <- approxfun(signal$times, signal$import, rule = 2)
 
 ## Start values for steady state
-y <- xstart <- c(S = 1, P = 1, C = 1)
+xstart <- c(S = 1, P = 1, C = 1)
 
-system.time({
 ## Euler method
-out1  <- rk(xstart, times, SPCmod, parms, hini = 0.1, method = "euler")
+out1  <- rk(xstart, times, SPCmod, parms, hini = 0.1, 
+            input = sigimp, method = "euler")
 
 ## classical Runge-Kutta 4th order
-out2 <- rk(xstart, times, SPCmod, parms, hini = 1, method = "rk4")
+out2 <- rk(xstart, times, SPCmod, parms, hini = 1, 
+           input = sigimp, method = "rk4")
 
 ## Dormand-Prince method of order 5(4)
-out3 <- rk(xstart, times, SPCmod, parms, hmax = 1, method = "rk45dp7")
-})
+out3 <- rk(xstart, times, SPCmod, parms, hmax = 1, 
+           input = sigimp, method = "rk45dp7")
 
 mf <- par("mfrow")
-plot(out1, out2, out3, which = c("S","P","C"), 
+## deSolve plot method for comparing scenarios
+plot(out1, out2, out3, which = c("S", "P", "C"), 
      main = c ("Substrate", "Producer", "Consumer"),
      col =c("black", "red", "green"), 
      lty = c("solid", "dotted", "dotted"), lwd = c(1, 2, 1))
+## user-specified plot function
 plot (out1[,"P"], out1[,"C"], type = "l", xlab = "Producer", ylab = "Consumer")
 lines(out2[,"P"], out2[,"C"], col = "red",   lty = "dotted", lwd = 2)
 lines(out3[,"P"], out3[,"C"], col = "green", lty = "dotted")

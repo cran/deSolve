@@ -20,12 +20,13 @@
 \usage{
 radau(y, times, func, parms, nind = c(length(y), 0, 0), 
   rtol = 1e-6, atol = 1e-6, jacfunc = NULL, jactype = "fullint", 
-  mass = NULL, massup = NULL, massdown = NULL,
-  verbose = FALSE, hmax = NULL, hini = 0, ynames = TRUE, 
+  mass = NULL, massup = NULL, massdown = NULL, rootfunc = NULL,
+  verbose = FALSE, nroot = 0, hmax = NULL, hini = 0, ynames = TRUE,
   bandup = NULL, banddown = NULL, maxsteps = 5000, 
   dllname = NULL, initfunc = dllname, initpar = parms, 
   rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, 
-  forcings = NULL, initforc = NULL, fcontrol = NULL, ...)
+  forcings = NULL, initforc = NULL, fcontrol = NULL,
+  events=NULL, lags = NULL, ...)
 }
 
 \arguments{
@@ -97,7 +98,8 @@ radau(y, times, func, parms, nind = c(length(y), 0, 0),
     that of \code{func}.
 
     If the Jacobian is a full matrix,
-    \code{jacfunc} should return a matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row
+    \code{jacfunc} should return a matrix
+    \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row
     contains the derivative of \eqn{dy_i/dt} with respect to \eqn{y_j},
     or a vector containing the matrix elements by columns (the way \R
     and FORTRAN store matrices).  \cr If the Jacobian is banded,
@@ -111,11 +113,12 @@ radau(y, times, func, parms, nind = c(length(y), 0, 0),
   }
   \item{mass }{the mass matrix. 
       If not \code{NULL}, the problem is a linearly
-     implicit DAE and defined as \eqn{M\, dy/dt = f(t,y)}{M dy/dt = f(t,y)}. If the mass-matrix \eqn{M}
-     is full, it should be of dimension \eqn{n^2}{n*n} where \eqn{n} is the 
-     number of \eqn{y}-values; if banded the number of rows should be less than \eqn{n},
-     and the mass-matrix is stored diagonal-wise with element \eqn{(i, j)} stored in 
-    \code{mass(i - j + mumas + 1, j)}.
+     implicit DAE and defined as \eqn{M\, dy/dt = f(t,y)}{M dy/dt = f(t,y)}.
+     If the mass-matrix \eqn{M} is full, it should be of dimension
+     \eqn{n^2}{n*n} where \eqn{n} is the number of \eqn{y}-values;
+     if banded the number of rows should be less than \eqn{n},
+     and the mass-matrix is stored diagonal-wise with element \eqn{(i, j)}
+     stored in \code{mass(i - j + mumas + 1, j)}.
 
      If \code{mass = NULL} then the model is an ODE (default)  
   }
@@ -125,8 +128,20 @@ radau(y, times, func, parms, nind = c(length(y), 0, 0),
   \item{massdown }{number of non-zero bands below the diagonal of the \code{mass} 
   matrix, in case it is banded.
   }
+  \item{rootfunc }{if not \code{NULL}, an \R function that computes the
+    function whose root has to be estimated or a string giving the name
+    of a function or subroutine in \file{dllname} that computes the root
+    function.  The \R calling sequence for \code{rootfunc} is identical
+    to that of \code{func}.  \code{rootfunc} should return a vector with
+    the function values whose root is sought.
+  }
   \item{verbose }{if \code{TRUE}: full output to the screen, e.g. will
     print the \code{diagnostiscs} of the integration - see details.
+  }
+  \item{nroot }{only used if \file{dllname}  is specified: the number of
+    constraint functions whose roots are desired during the integration;
+    if \code{rootfunc} is an R-function, the solver estimates the number
+    of roots.
   }
   \item{hmax }{an optional maximum value of the integration stepsize. If
     not specified, \code{hmax} is set to the largest difference in
@@ -205,6 +220,13 @@ radau(y, times, func, parms, nind = c(length(y), 0, 0),
   }
   \item{fcontrol }{A list of control parameters for the forcing functions.
     See \link{forcings} or vignette \code{compiledCode}.
+  }
+  \item{events }{A list that specifies events, i.e. when the value of a
+   state variable is suddenly changed. See \link{events} for more information.
+  }
+  \item{lags }{A list that specifies timelags, i.e. the number of steps
+   that has to be kept. To be used for delay differential equations.
+   See \link{timelags}, \link{dede} for more information.
   }
   \item{... }{additional arguments passed to \code{func} and
     \code{jacfunc} allowing this to be a generic function.
@@ -415,6 +437,16 @@ plot(out, which = 1:4, type = "l", lwd = 2)
   Information about linking forcing functions to compiled code is in 
   \link{forcings} (from package \code{deSolve}).
 
+  \code{radau} can find the root of at least one of a set of constraint functions
+  \code{rootfunc} of the independent and dependent variables.  It then returns the
+  solution at the root if that occurs sooner than the specified stop
+  condition, and otherwise returns the solution according the specified
+  stop condition.
+
+  Caution:  Because of numerical errors in the function
+  \code{rootfun} due to roundoff and integration error, \code{radau} may
+  return false roots, or return the same root at two or more
+  nearly equal values of \code{time}.
 }
 \seealso{
   \itemize{

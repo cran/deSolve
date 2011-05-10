@@ -8,7 +8,8 @@
 }
 \usage{ode.1D(y, times, func, parms, nspec = NULL, dimens = NULL, 
    method= c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
-   "euler", "rk4", "ode23", "ode45", "radau", "bdf", "adams", "impAdams"),
+   "euler", "rk4", "ode23", "ode45", "radau", "bdf", "adams", "impAdams",
+   "iteration"),
    names = NULL, bandwidth = 1, ...)
 }
 \arguments{
@@ -56,6 +57,12 @@
      \code{function}. Use one of the other Runge-Kutta methods via 
      \code{rkMethod}. For instance, \code{method = rkMethod("ode45ck")} will
      trigger the Cash-Karp method of order 4(5).
+     
+  Method \code{"iteration"} is special in that here the function \code{func} should
+  return the new value of the state variables rather than the rate of change.
+  This can be used for individual based models, for difference equations,
+  or in those cases where the integration is performed within \code{func})
+
   }
   \item{names }{the names of the components; used for plotting.
   }
@@ -304,7 +311,7 @@ DLSODES- RWORK length is insufficient to proceed.
   If the model is specified in compiled code (in a DLL), then option 2,
   based on \code{lsodes} is the only solution method.
 
-  For single-species 1-D models, use \code{\link{ode.band}}.
+  For single-species 1-D models, you may also use \code{\link{ode.band}}.
   
   See the selected integrator for the additional options.
 }

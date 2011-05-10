@@ -25,63 +25,74 @@
    karline: version 1.7: 
                       1. added root finding in lsode -> lsoder (fortran code)
                       2. added time lags -> delay differential equations
-                      3. output variables now in C-code 
+                      3. output variables now in C-code -> lsodeSr (fortran code)
             improving names
+   karline: version 1.9.1: root finding in lsodes
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /* definition of the calls to the FORTRAN functions - in file opkdmain.f
 and in file dvode.f**/
 
 void F77_NAME(dlsoda)(void (*)(int *, double *, double *, double *, double *, int *),
-		     int *, double *, double *, double *,
-		     int *, double *, double *, int *, int *,
-		     int *, double *,int *,int *, int *,
-		     void (*)(int *, double *, double *, int *,
-			      int *, double *, int *, double *, int *),
-		     int *, double *, int *);
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *,int *,int *, int *,
+             void (*)(int *, double *, double *, int *,
+                  int *, double *, int *, double *, int *),
+             int *, double *, int *);
 
 void F77_NAME(dlsode)(void (*)(int *, double *, double *, double *, double *, int *),
-		     int *, double *, double *, double *,
-		     int *, double *, double *, int *, int *,
-		     int *, double *,int *,int *, int *,
-		     void (*)(int *, double *, double *, int *,
-			      int *, double *, int *, double *, int *),
-		     int *, double *, int *);
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *,int *,int *, int *,
+             void (*)(int *, double *, double *, int *,
+                  int *, double *, int *, double *, int *),
+             int *, double *, int *);
 
 void F77_NAME(dlsoder)(void (*)(int *, double *, double *, double *, double *, int *),
-		     int *, double *, double *, double *,
-		     int *, double *, double *, int *, int *,
-		     int *, double *,int *,int *, int *,
-		     void (*)(int *, double *, double *, int *,
-			      int *, double *, int *, double *, int *), int *, 
-		     void (*)(int *, double *, double *, int *, double *),  /* rootfunc */
-         int *, int *,         double *, int *);
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *,int *,int *, int *,
+             void (*)(int *, double *, double *, int *,
+                  int *, double *, int *, double *, int *), int *, 
+             void (*)(int *, double *, double *, int *, double *),  /* rootfunc */
+             int *, int *,         double *, int *);
 
 void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, int *),
-		     int *, double *, double *, double *,
-		     int *, double *, double *, int *, int *,
-		     int *, double *, int *, int *, int *,
-		     void (*)(int *, double *, double *, int *,
-			      int *, int *, double *, double *, int *),   /* jacvec */
-		     int *, double *, int *);
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *, int *, int *, int *,
+             void (*)(int *, double *, double *, int *,
+                      int *, int *, double *, double *, int *),     /* jacvec */
+             int *, double *, int *);
+
+void F77_NAME(dlsodesr)(void (*)(int *, double *, double *, double *, double *, int *),
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *, int *, int *, int *,
+             void (*)(int *, double *, double *, int *,
+                  int *, int *, double *, double *, int *),         /* jacvec */
+             int *,
+             void (*)(int *, double *, double *, int *, double *),  /* rootfunc */
+             int *, int *,           double *, int *);
 
 void F77_NAME(dlsodar)(void (*)(int *, double *, double *, double *, double *, int *),
-		     int *, double *, double *, double *,
-		     int *, double *, double *, int *, int *,
-		     int *, double *,int *,int *, int *,
-		     void (*)(int *, double *, double *, int *,
-			      int *, double *, int *, double *, int *), int *, 
-		     void (*)(int *, double *, double *, int *, double *),  /* rootfunc */
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *,int *,int *, int *,
+             void (*)(int *, double *, double *, int *,
+                  int *, double *, int *, double *, int *), int *, 
+             void (*)(int *, double *, double *, int *, double *),  /* rootfunc */
          int *, int *, double *, int *);
 
 void F77_NAME(dvode)(void (*)(int *, double *, double *, double *,
                               double *, int *),
-		     int *, double *, double *, double *,
-		     int *, double *, double *, int *, int *,
-		     int *, double *,int *,int *, int *,
-		     void (*)(int *, double *, double *, int *,
-			            int *, double *, int *, double*, int*),
-		     int *, double *, int *);
+             int *, double *, double *, double *,
+             int *, double *, double *, int *, int *,
+             int *, double *,int *,int *, int *,
+             void (*)(int *, double *, double *, int *,
+                        int *, double *, int *, double*, int*),
+             int *, double *, int *);
 
 /* wrapper above the derivate function that first estimates the
 values of the forcing functions */
@@ -136,7 +147,7 @@ static void C_deriv_out (int *nOut, double *t, double *y,
   my_unprotect(2);                                  
 }      
 
-/* only if lsodar: 
+/* only if lsodar, lsoder, lsodesr:
    interface between FORTRAN call to root and corresponding R function */
 
 static void C_root_func (int *neq, double *t, double *y, int *ng, double *gout)
@@ -157,7 +168,7 @@ static void C_root_func (int *neq, double *t, double *y, int *ng, double *gout)
 /* interface between FORTRAN call to jacobian and R function */
 
 static void C_jac_func (int *neq, double *t, double *y, int *ml,
-		    int *mu, double *pd, int *nrowpd, double *yout, int *iout)
+            int *mu, double *pd, int *nrowpd, double *yout, int *iout)
 {
   int i;
   SEXP R_fcall, ans;
@@ -177,11 +188,11 @@ static void C_jac_func (int *neq, double *t, double *y, int *ml,
    interface between FORTRAN call to jacvec and corresponding R function */
 
 static void C_jac_vec (int *neq, double *t, double *y, int *j,
-		    int *ian, int *jan, double *pdj, double *yout, int *iout)
+            int *ian, int *jan, double *pdj, double *yout, int *iout)
 {
   int i;
   SEXP R_fcall, ans, J;
-  PROTECT(J = NEW_INTEGER(1));                  incr_N_Protect();
+  PROTECT(J = NEW_INTEGER(1));                    incr_N_Protect();
                              INTEGER(J)[0] = *j;
                              REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++) REAL(Y)[i] = y[i];
@@ -198,14 +209,14 @@ static void C_jac_vec (int *neq, double *t, double *y, int *j,
 /* give name to data types */
 typedef void C_root_func_type (int *, double *, double *,int *, double *);
 typedef void C_jac_func_type  (int *, double *, double *, int *,
-		                    int *, double *, int *, double *, int *);
+                            int *, double *, int *, double *, int *);
 typedef void C_jac_vec_type   (int *, double *, double *, int *,
-		                    int *, int *, double *, double *, int *);
+                            int *, int *, double *, double *, int *);
 
 /* MAIN C-FUNCTION, CALLED FROM R-code */
 
 SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
-		SEXP atol, SEXP rho, SEXP tcrit, SEXP jacfunc, SEXP initfunc, 
+        SEXP atol, SEXP rho, SEXP tcrit, SEXP jacfunc, SEXP initfunc, 
     SEXP eventfunc, SEXP verbose, SEXP iTask, SEXP rWork, SEXP iWork, SEXP jT, 
     SEXP nOut, SEXP lRw, SEXP lIw, SEXP Solver, SEXP rootfunc, 
     SEXP nRoot, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP flist, SEXP elist,
@@ -220,11 +231,11 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   int  maxit, solver, isForcing, isEvent, islag;
   double *xytmp, tin, tout, *Atol, *Rtol, *dy=NULL, ss, pt;
   int itol, itask, istate, iopt, jt, mflag,  is;
-  int nroot, *jroot=NULL, isroot,  isDll, type;
+  int nroot, *jroot=NULL, isDll, type;
   
   int    *iwork, it, ntot, nout, iroot, *evals =NULL;   
   double *rwork;
-  SEXP TROOT, NROOT;
+  SEXP TROOT, NROOT, VROOT; /* IROOT is in deSolve.h*/
   
   /* pointers to functions passed to FORTRAN */
   C_deriv_func_type *deriv_func;
@@ -250,7 +261,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
  
   nroot  = INTEGER(nRoot)[0];   /* number of roots (lsodar, lsode) */
   solver = INTEGER(Solver)[0];  /* 1=lsoda,2=lsode,3=lsodeS,4=lsodar,5=vode,
-                                  6=lsoder */
+                                  6=lsoder, 7 = lsodeSr */
   
   /* is function a dll ?*/
   if (inherits(derivfunc, "NativeSymbol")) {
@@ -282,13 +293,12 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
      for (j=0; j<length(rWork); j++) rwork[j] = REAL(rWork)[j];
 
 /* a global variable*/  
-  //timesteps = (double *) R_alloc(2, sizeof(double));
   for (j=0; j<2; j++) timesteps[j] = 0.;
   
 /* if a 1-D, 2-D or 3-D special-purpose problem (lsodes)
    iwork will contain the sparsity structure */
 
-  if (solver ==3)
+  if (solver == 3 || solver == 7)
   {
     type   = INTEGER(Type)[0];
     if (type == 2)        /* 1-D problem ; Type contains further information */
@@ -318,8 +328,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
      /* DLL address passed to FORTRAN */
       deriv_func = (C_deriv_func_type *) R_ExternalPtrAddr(derivfunc);  
       /* no need to communicate with R - but output variables set here */
-	  
-	  /* here overruling deriv_func if forcing */
+      
+      /* here overruling deriv_func if forcing */
       if (isForcing) {
         DLL_deriv_func = deriv_func;
         deriv_func = (C_deriv_func_type *) C_deriv_func_forc;
@@ -332,23 +342,23 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       R_envir = rho;
   }
 
-  if (!isNull(jacfunc) && solver !=3) { /* lsodes uses jac_vec */
+  if (!isNull(jacfunc) && solver != 3 && solver != 7) { /* lsodes uses jac_vec */
     if (isDll)
       jac_func = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
-	  else  {
-	    R_jac_func = jacfunc;
-	    jac_func = C_jac_func;
-	  }
-  }  else if (!isNull(jacfunc) && solver ==3) {  /*lsodes*/
+      else  {
+        R_jac_func = jacfunc;
+        jac_func = C_jac_func;
+      }
+  }  else if (!isNull(jacfunc) && (solver == 3 || solver == 7)) {  /*lsodes*/
     if (isDll)
       jac_vec = (C_jac_vec_type *) R_ExternalPtrAddr(jacfunc);
-	  else  {
-	     R_jac_vec = jacfunc;
-	     jac_vec = C_jac_vec;
-	  }
+      else  {
+         R_jac_vec = jacfunc;
+         jac_vec = C_jac_vec;
+      }
   }
 
-  if ((solver == 4 || solver == 6) && nroot > 0)        /* lsodar, lsoder */
+  if ((solver == 4 || solver == 6  || solver == 7) && nroot > 0) /* lsodar, lsoder, lsodeSr */
   { jroot = (int *) R_alloc(nroot, sizeof(int));
      for (j=0; j<nroot; j++) jroot[j] = 0;
      
@@ -416,52 +426,59 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       updateevent(&tin, xytmp, &istate);
     }
     repcount = 0;
-    do 	{
+    do  {
       if (islag)       
         rwork[0] = tout;
- 	   
+       
       /* error control */
-	    if (istate == -2) {
-	      for (j = 0; j < lrtol; j++) Rtol[j] *= 10.0;
-	      for (j = 0; j < latol; j++) Atol[j] *= 10.0;
-	      warning("Excessive precision requested.  `rtol' and `atol' have been scaled upwards by the factor %g\n",10.0);
-	      istate = 3;
-	    }
+        if (istate == -2) {
+          for (j = 0; j < lrtol; j++) Rtol[j] *= 10.0;
+          for (j = 0; j < latol; j++) Atol[j] *= 10.0;
+          warning("Excessive precision requested.  `rtol' and `atol' have been scaled upwards by the factor %g\n",10.0);
+          istate = 3;
+        }
 
       if (solver == 1) {
-	      F77_CALL(dlsoda) (deriv_func, &n_eq, xytmp, &tin, &tout,
-			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-			   &lrw, iwork, &liw, jac_func, &jt, out, ipar); 
+          F77_CALL(dlsoda) (deriv_func, &n_eq, xytmp, &tin, &tout,
+               &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+               &lrw, iwork, &liw, jac_func, &jt, out, ipar); 
       } else if (solver == 2) {
         F77_CALL(dlsode) (deriv_func, &n_eq, xytmp, &tin, &tout,
-			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-			   &lrw, iwork, &liw, jac_func, &jt, out, ipar); 
+               &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+               &lrw, iwork, &liw, jac_func, &jt, out, ipar); 
       } else if (solver == 3) {
         F77_CALL(dlsodes) (deriv_func, &n_eq, xytmp, &tin, &tout,
-			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-			   &lrw, iwork, &liw, jac_vec, &jt, out, ipar); 
+               &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+               &lrw, iwork, &liw, jac_vec, &jt, out, ipar); 
       } else if (solver == 4) {
         F77_CALL(dlsodar) (deriv_func, &n_eq, xytmp, &tin, &tout,
-			   &itol, Rtol, Atol,  &itask, &istate, &iopt, rwork,
-			   &lrw, iwork, &liw, jac_func, &jt, root_func, &nroot, jroot, 
-         out, ipar); 
+               &itol, Rtol, Atol,  &itask, &istate, &iopt, rwork,
+               &lrw, iwork, &liw, jac_func, &jt, root_func, &nroot, jroot, 
+               out, ipar); 
       } else if (solver == 5) {
- 	      F77_CALL(dvode) (deriv_func, &n_eq, xytmp, &tin, &tout,
-			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-			   &lrw, iwork, &liw, jac_func, &jt, out, ipar);
+          F77_CALL(dvode) (deriv_func, &n_eq, xytmp, &tin, &tout,
+               &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+               &lrw, iwork, &liw, jac_func, &jt, out, ipar);
       } else if (solver == 6) {
- 	      F77_CALL(dlsoder) (deriv_func, &n_eq, xytmp, &tin, &tout,
-			   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-			   &lrw, iwork, &liw, jac_func, &jt, root_func, &nroot, jroot, 
-         out, ipar);
+          F77_CALL(dlsoder) (deriv_func, &n_eq, xytmp, &tin, &tout,
+               &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+               &lrw, iwork, &liw, jac_func, &jt, root_func, &nroot, jroot, 
+               out, ipar);
+     } else if (solver == 7) {
+        F77_CALL(dlsodesr) (deriv_func, &n_eq, xytmp, &tin, &tout,
+               &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
+               &lrw, iwork, &liw, jac_vec, &jt, root_func, &nroot, jroot, 
+			         out, ipar);
+			  lyh = iwork[21];
       }
-      /* in case size of timesteps is called for */
+	  /* in case size of timesteps is called for */
       timesteps [0] = rwork[10];
       timesteps [1] = rwork[11];
-    
-	    if (istate == -1)  {
+
+        if (istate == -1)  {
         warning("an excessive amount of work (> maxsteps ) was done, but integration was not successful - increase maxsteps");
-      } else if (istate == 3 && (solver == 4 || solver == 6)){
+      } else if (istate == 3 && (solver == 4 || solver == 6 || solver == 7)){
+
        /* root found - take into account if an EVENT */
         if (isEvent && rootevent) {
           pt = tEvent;
@@ -469,20 +486,26 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
           /* function evaluations set to 0 again . */
           for (j=0; j<3; j++) evals[j] = evals[j] + iwork[10+j];
           
+          if (iroot < Rootsave) {
+            troot[iroot] = tin;
+            for (j = 0; j < nroot; j++)
+              if (jroot[j] == 1) nrroot[iroot] = j+1;
+            for (j = 0; j < n_eq; j++)
+              valroot[iroot*n_eq+j] = xytmp[j];
+          }
+          iroot ++;
           updateevent(&tin, xytmp, &istate);
           tEvent = pt;
 
           istate = 1;
           repcount = 0;
           if (mflag ==1) Rprintf("root found at time %g\n",tin);
-          if (iroot <= Rootsave) troot[iroot] = tin;
-          iroot ++; 
         } else{
-	       istate = -20;  repcount = 50;
-	      } 
+           istate = -20;  repcount = 50;
+          } 
       } else if (istate == -2)  {
-	      warning("Excessive precision requested.  scale up `rtol' and `atol' e.g by the factor %g\n",10.0);
-	    } else if (istate == -4)  {
+          warning("Excessive precision requested.  scale up `rtol' and `atol' e.g by the factor %g\n",10.0);
+        } else if (istate == -4)  {
         warning("repeated error test failures on a step, but integration was successful - singularity ?");
       } else if (istate == -5)  {
         warning("repeated convergence test failures on a step, but integration was successful - inaccurate Jacobian matrix?");
@@ -494,17 +517,16 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       updatehist(tin, xytmp, dy, rwork, iwork);    
       repcount = 0;
     }
-	    repcount ++;
-	} while (tin < tout && istate >= 0 && repcount < maxit); 
-	
+        repcount ++;
+    } while (tin < tout && istate >= 0 && repcount < maxit); 
+
   if (istate == -3)  {
     error("illegal input detected before taking any integration steps - see written message");
-	  unprotect_all();
-	}  else	{
-	  REAL(YOUT)[(it+1)*(ntot+1)] = tin;
-	  for (j = 0; j < n_eq; j++)
-	    REAL(YOUT)[(it+1)*(ntot + 1) + j + 1] = xytmp[j];
-
+      unprotect_all();
+    }  else {
+      REAL(YOUT)[(it+1)*(ntot+1)] = tin;
+      for (j = 0; j < n_eq; j++)
+        REAL(YOUT)[(it+1)*(ntot + 1) + j + 1] = xytmp[j];
 
     if (nout>0)   {
       if (isDll == 1)   /* function in DLL and output */
@@ -514,11 +536,12 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       for (j = 0; j < nout; j++) 
         REAL(YOUT)[(it+1)*(ntot + 1) + j + n_eq + 1] = out[j];
      }                
-	}
-	  
+    }
+
+
 /*                    ####  an error occurred   ####                          */    
    if (istate < 0 || tin < tout) {
-	  if (istate != -20) 
+      if (istate != -20)
       returnearly (1, it, ntot);
     else 
       returnearly (0, it, ntot);  /* stop because a root was found */
@@ -535,13 +558,15 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   terminate(istate,iwork, 23,0, rwork, 5,10);    /* istate, iwork, rwork */
   
-  if (istate == -20) INTEGER(ISTATE)[0] = 3; 	  
+  if (istate == -20) INTEGER(ISTATE)[0] = 3;      
 
   if (istate == -20 && nroot > 0)  {
-    isroot = 1   ;
     PROTECT(IROOT = allocVector(INTSXP, nroot));incr_N_Protect();
     for (k = 0;k<nroot;k++) INTEGER(IROOT)[k] = jroot[k];
     setAttrib(YOUT2, install("iroot"), IROOT);
+    PROTECT(TROOT = allocVector(REALSXP, 1)); incr_N_Protect();
+    REAL(TROOT)[0] = tin;
+    setAttrib(YOUT2, install("troot"), TROOT);
   }
   if (iroot > 0) {                                 /* root + events */
     PROTECT(NROOT = allocVector(INTSXP, 1));incr_N_Protect();
@@ -552,14 +577,24 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
     PROTECT(TROOT = allocVector(REALSXP, iroot)); incr_N_Protect();
     for (k = 0; k < iroot; k++) REAL(TROOT)[k] = troot[k];
 
+    PROTECT(VROOT = allocVector(REALSXP, iroot*n_eq)); incr_N_Protect();
+    for (k = 0; k < iroot*n_eq; k++) REAL(VROOT)[k] = valroot[k];
+
+    PROTECT(IROOT = allocVector(INTSXP, iroot)); incr_N_Protect();
+    for (k = 0; k < iroot; k++) INTEGER(IROOT)[k] = nrroot[k];
+
     if (istate > 0 ) {
       setAttrib(YOUT, install("troot"), TROOT);
       setAttrib(YOUT, install("nroot"), NROOT);
-    }  
+      setAttrib(YOUT, install("valroot"), VROOT);
+      setAttrib(YOUT, install("indroot"), IROOT);
+    }
     else  {
       setAttrib(YOUT2, install("troot"), TROOT);
       setAttrib(YOUT2, install("nroot"), NROOT);
-    }      
+      setAttrib(YOUT2, install("valroot"), VROOT);
+      setAttrib(YOUT2, install("indroot"), IROOT);
+    }
   }
 /*                       ####   termination   ####                            */    
   restore_N_Protected(old_N_Protect);

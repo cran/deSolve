@@ -10,7 +10,7 @@ around the implemented ODE solvers}
 \usage{ode(y, times, func, parms, 
 method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
            "euler", "rk4", "ode23", "ode45", "radau", 
-           "bdf", "bdf_d", "adams", "impAdams", "impAdams_d"), ...)
+           "bdf", "bdf_d", "adams", "impAdams", "impAdams_d", "iteration"), ...)
 
 \method{print}{deSolve}(x, \dots)
 \method{summary}{deSolve}(object, \dots)
@@ -54,10 +54,18 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     \code{"lsode"}, \code{"lsodes"},\code{"lsodar"},\code{"vode"},
     \code{"daspk"}, \code{"euler"}, \code{"rk4"},   \code{"ode23"},
     \code{"ode45"}, \code{"radau"}, \code{"bdf"},   \code{"bdf_d"}, \code{"adams"}, 
-    or \code{"impAdams"}).
-    The latter three are the backward differentiation formula, the (explicit)
-    Adams and the implicit Adams method respectively (see details).
+    \code{"impAdams"} or \code{"impAdams_d"}  ,"iteration").
+    Options "bdf", "bdf_d", "adams", "impAdams" or "impAdams_d" are the backward
+    differentiation formula, the BDF with diagonal representation of the Jacobian,
+    the (explicit) Adams and the implicit Adams method, and the implicit Adams
+    method with diagonal representation of the Jacobian respectively (see details).
     The default integrator used is \link{lsoda}.
+
+    Method \code{"iteration"} is special in that here the function \code{func} should
+    return the new value of the state variables rather than the rate of change.
+    This can be used for individual based models, for difference equations,
+    or in those cases where the integration is performed within \code{func}).
+    See last example.
   }
   \item{x }{an object of class \code{deSolve}, as returned by the
     integrators, and to be printed or to be subsetted.
@@ -91,7 +99,7 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
   
   See the selected integrator for the additional options.
   
-  The default integrator used is \link{lsoda}.
+  The default integrator used is \code{\link{lsoda}}.
   
   The option \code{method = "bdf"} provdes a handle to the backward 
   differentiation formula (it is equal to using \code{method = "lsode"}). 
@@ -119,6 +127,7 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
 
   For very stiff systems, \code{method = "daspk"} may outperform 
   \code{method = "bdf"}.
+  
 }
 
 \seealso{
@@ -142,34 +151,38 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
 \examples{
 
 ## =======================================================================
-## Example1: Predator-Prey Lotka-Volterra model
+## Example1: Predator-Prey Lotka-Volterra model (with logistic prey)
 ## =======================================================================
 
 LVmod <- function(Time, State, Pars) {
   with(as.list(c(State, Pars)), {
-    Ingestion    <- rIng  * Prey*Predator
-    GrowthPrey   <- rGrow * Prey*(1-Prey/K)
+    Ingestion    <- rIng  * Prey * Predator
+    GrowthPrey   <- rGrow * Prey * (1 - Prey/K)
     MortPredator <- rMort * Predator
 
     dPrey        <- GrowthPrey - Ingestion
-    dPredator    <- Ingestion*assEff - MortPredator
+    dPredator    <- Ingestion * assEff - MortPredator
 
     return(list(c(dPrey, dPredator)))
   })
 }
 
-pars    <- c(rIng   = 0.2,    # /day, rate of ingestion
-             rGrow  = 1.0,    # /day, growth rate of prey
-             rMort  = 0.2 ,   # /day, mortality rate of predator
-             assEff = 0.5,    # -, assimilation efficiency
-             K      = 10)     # mmol/m3, carrying capacity
+pars  <- c(rIng   = 0.2,    # /day, rate of ingestion
+           rGrow  = 1.0,    # /day, growth rate of prey
+           rMort  = 0.2 ,   # /day, mortality rate of predator
+           assEff = 0.5,    # -, assimilation efficiency
+           K      = 10)     # mmol/m3, carrying capacity
 
-yini    <- c(Prey = 1, Predator = 2)
-times   <- seq(0, 200, by = 1)
-out     <- ode(func = LVmod, y = yini, parms = pars, times = times)
+yini  <- c(Prey = 1, Predator = 2)
+times <- seq(0, 200, by = 1)
+out   <- ode(yini, times, LVmod, pars)
 summary(out)
 
-matplot(out[,1], out[,2:3], type = "l", xlab = "time", ylab = "Conc",
+## Default plot method
+plot(out)
+
+## User specified plotting
+matplot(out[ , 1], out[ , 2:3], type = "l", xlab = "time", ylab = "Conc",
         main = "Lotka-Volterra", lwd = 2)
 legend("topright", c("prey", "predator"), col = 1:2, lty = 1:2)
 
@@ -199,23 +212,22 @@ parms <- c(b = 0.001, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
 times <- seq(0, 200, length = 101)
 
 ## external signal with rectangle impulse
-signal <- as.data.frame(list(times = times,
-                            import = rep(0, length(times))))
+signal <- data.frame(times = times,
+                     import = rep(0, length(times)))
 
 signal$import[signal$times >= 10 & signal$times <= 11] <- 0.2
 
 sigimp <- approxfun(signal$times, signal$import, rule = 2)
 
-
 ## Start values for steady state
 xstart <- c(S = 1, P = 1, C = 1)
 
 ## Solve model
-out <- ode(y = xstart,times = times,
-           func = SPCmod, parms, input = sigimp)
+out <- ode(y = xstart, times = times,
+           func = SPCmod, parms = parms, input = sigimp)
 
 ## Default plot method
-plot(out, type = "l")
+plot(out)
 
 ## User specified plotting
 mf <- par(mfrow = c(1, 2))
@@ -225,5 +237,42 @@ plot(out[,"P"], out[,"C"], type = "l", lwd = 2, xlab = "producer",
   ylab = "consumer")
 par(mfrow = mf)
 
+## =======================================================================
+## Example3: Discrete time model - using method = "iteration"
+##           The host-parasitoid model from Soetaert and Herman, 2009, 
+##           Springer - p. 284.
+## =======================================================================
+
+Parasite <- function(t, y, ks) {
+  P <- y[1]
+  H <- y[2]
+  f    <- A * P / (ks + H)
+  Pnew <- H * (1 - exp(-f))
+  Hnew <- H * exp(rH * (1 - H) - f)
+  
+  list (c(Pnew, Hnew))
+}
+rH <- 2.82 # rate of increase
+A  <- 100  # attack rate
+ks <- 15   # half-saturation density
+
+out <- ode(func = Parasite, y = c(P = 0.5, H = 0.5), times = 0:50, parms = ks,
+           method = "iteration")
+            
+out2<- ode(func = Parasite, y = c(P = 0.5, H = 0.5), times = 0:50, parms = 25,
+           method = "iteration")
+
+out3<- ode(func = Parasite, y = c(P = 0.5, H = 0.5), times = 0:50, parms = 35,
+           method = "iteration")
+
+## Plot all 3 scenarios in one figure
+plot(out, out2, out3, lty = 1, lwd = 2)
+
+## Same like "out", but *output* every two steps
+## hini = 1 ensures that the same *internal* timestep of 1 is used
+outb <- ode(func = Parasite, y = c(P = 0.5, H = 0.5),
+            times = seq(0, 50, 2), hini = 1, parms = ks,
+            method = "iteration")
+plot(out, outb, type = c("l", "p"))
 }
 

@@ -10,7 +10,7 @@
 }
 
 \usage{ode.2D(y, times, func, parms, nspec = NULL, dimens,
-  method= c("lsodes", "euler", "rk4", "ode23", "ode45", "adams"),
+  method= c("lsodes", "euler", "rk4", "ode23", "ode45", "adams", "iteration"),
   names = NULL, cyclicBnd = NULL, ...)}
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
@@ -61,6 +61,12 @@
      
      If  \code{"lsodes"} is used, then also the size of the work array should
      be specified (\code{lrw}) (see \link{lsodes}).
+     
+    Method \code{"iteration"} is special in that here the function \code{func} should
+  return the new value of the state variables rather than the rate of change.
+  This can be used for individual based models, for difference equations,
+  or in those cases where the integration is performed within \code{func})
+
   }
   \item{... }{additional arguments passed to \code{lsodes}.}
 }
@@ -103,8 +109,8 @@
 
 lvmod2D <- function (time, state, pars, N, Da, dx) {
   NN <- N*N
-  Prey <- matrix(nr = N,nc = N,state[1:NN])
-  Pred <- matrix(nr = N,nc = N,state[(NN+1):(2*NN)])
+  Prey <- matrix(nrow = N, ncol = N,state[1:NN])
+  Pred <- matrix(nrow = N, ncol = N,state[(NN+1):(2*NN)])
 
   with (as.list(pars), {
     ## Biology
@@ -170,7 +176,7 @@ summary(out)
 Col <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
                           "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
 for (i in seq(1, length(times), by = 1))
-   image(matrix(nr = N, nc = N, out[i, 2:(NN+1)]),
+   image(matrix(nrow = N, ncol = N, out[i, 2:(NN+1)]),
    col = Col(100), xlab = , zlim = range(out[,2:(NN+1)]))
 
 ## similar:
@@ -248,7 +254,7 @@ persp(t10, theta = 30, border = NA, phi = 70,
 \dontrun{
 zlim <- range(ST3[, -1])
 for (i in 2:nrow(ST3)) {
-  y <- matrix(nr = nx, nc = ny, data = ST3[i, -1])
+  y <- matrix(nrow = nx, ncol = ny, data = ST3[i, -1])
   filled.contour(y, zlim = zlim, main = i)
 }
 }
