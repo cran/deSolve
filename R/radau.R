@@ -3,14 +3,14 @@
 ### radau, implicit runge-kutta
 ### ============================================================================
 
-radau <- function(y, times, func, parms, nind = c(length(y),0,0),
+radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
   rtol = 1e-6, atol = 1e-6, jacfunc = NULL, jactype = "fullint",
   mass = NULL, massup = NULL, massdown = NULL, rootfunc = NULL,
-  verbose = FALSE, nroot = 0, hmax = NULL,
-  hini = 0, ynames=TRUE, bandup=NULL, banddown=NULL, maxsteps=5000,
-  dllname=NULL, initfunc=dllname, initpar=parms,
-  rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, events = NULL, lags = NULL,...)
+  verbose = FALSE, nroot = 0, hmax = NULL, hini = 0,
+  ynames = TRUE, bandup = NULL, banddown = NULL, maxsteps = 5000,
+  dllname = NULL, initfunc = dllname, initpar = parms,
+  rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
+  initforc = NULL, fcontrol = NULL, events = NULL, lags = NULL,...)
 {
 
 ### check input
@@ -190,12 +190,12 @@ radau <- function(y, times, func, parms, nind = c(length(y),0,0),
 
   }
 
-### Not yet implemented
+### The mass matrix
    mlmas <- n
    mumas <- n
   if (is.null(mass)) {
    imas  <- 0
-   lmas <- n                    # Check this...
+   lmas  <- n
    MassFunc <- NULL
   } else {
      imas  <- 1
@@ -220,7 +220,7 @@ radau <- function(y, times, func, parms, nind = c(length(y),0,0),
    }
   }
 
-  lmas <- n                    # Check this...
+  lmas <- n
 
   nrmas <- as.integer(c(imas, mlmas, mumas))
   if (banddown == n)  {
