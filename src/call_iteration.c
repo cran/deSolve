@@ -11,13 +11,14 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
   /* Initialization */
   long int old_N_Protect = save_N_Protected();
 
+  double *f, *FF;
   double *tt = NULL, *xs = NULL;
-  double *ytmp, *FF, *out;
+  double *ytmp, *out;
 
   SEXP  R_f, R_y0, R_yout, R_t=NULL, R_y=NULL;
   SEXP Val, R_fcall;
 
-  double *f, *y0,  *yout, *yy;
+  double *y0, *yout, *yy;
 
   double t, dt;
   int i = 0, j = 0, it = 0, nt = 0, nst = 0, neq = 0;
@@ -38,7 +39,7 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
   neq = length(Xstart);
 
   ytmp =  (double *) R_alloc(neq, sizeof(double));
-  FF   =  (double *) R_alloc(neq, sizeof(double));
+  //FF   =  (double *) R_alloc(neq, sizeof(double));
 
   int nout  = INTEGER(Nout)[0]; /* n of global outputs if func is in a DLL */
   int verbose = INTEGER(Verbose)[0];
@@ -52,14 +53,14 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
   /* DLL, ipar, rpar (for compatibility with lsoda)                         */
   /*------------------------------------------------------------------------*/
   int isDll = FALSE;
-  int ntot  =  0;
+  //int ntot  =  0;
   int lrpar= 0, lipar = 0;
   int *ipar = NULL;
 
   if (inherits(Func, "NativeSymbol")) { /* function is a dll */
     isDll = TRUE;
     if (nout > 0) isOut = TRUE;
-    ntot  = neq + nout;           /* length of yout */
+    //ntot  = neq + nout;           /* length of yout */
     lrpar = nout + LENGTH(Rpar);  /* length of rpar; LENGTH(Rpar) is always >0 */
     lipar = 3    + LENGTH(Ipar);  /* length of ipar */
     cderivs = (C_deriv_func_type *) R_ExternalPtrAddr(Func);
@@ -67,7 +68,7 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
   } else {                        /* function is not a dll */
     isDll = FALSE;
     isOut = FALSE;
-    ntot = neq;
+    //ntot = neq;
     lipar = 3;
     lrpar = nout;
     PROTECT(R_y = allocVector(REALSXP, neq)); incr_N_Protect();

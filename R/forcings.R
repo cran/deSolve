@@ -115,6 +115,9 @@ checkforcings <- function (forcings, times, dllname,
   imat <- rep(1,nf+1)
 
   for (i in 1:nf) {
+    # Karline: check for NA in forcing series and remove those
+    ii <- apply(forcings[[i]],1,function(x)any(is.na(x)))
+    if (sum(ii) > 0) forcings[[i]] <- forcings[[i]][!ii,]
     tmat <- c(tmat, forcings[[i]][,1])
     fmat <- c(fmat, forcings[[i]][,2])
     imat[i+1]<-imat[i]+nrow(forcings[[i]])
@@ -125,7 +128,8 @@ checkforcings <- function (forcings, times, dllname,
 
   # DIRTY trick not to inflate the number of arguments:
   # add method (linear/constant) to imat
-  return(list(tmat=tmat,fmat=fmat,imat=c(imat,method),ModelForc=ModelForc))
+  return(list(tmat = tmat, fmat = fmat, imat = c(imat, method),
+              ModelForc = ModelForc))
 }
 
 ### ============================================================================

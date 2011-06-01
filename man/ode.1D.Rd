@@ -10,7 +10,7 @@
    method= c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
    "euler", "rk4", "ode23", "ode45", "radau", "bdf", "adams", "impAdams",
    "iteration"),
-   names = NULL, bandwidth = 1, ...)
+   names = NULL, bandwidth = 1, restructure = FALSE, ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
@@ -70,6 +70,10 @@
     Normally equal to 1 (box i only interacts with box i-1, and i+1). 
     Values larger than 1 will not work with \code{method = "lsodes"}.
     Ignored if the method is explicit.
+  }
+  \item{restructure }{whether or not the Jacobian should be restructured.
+    Only used if the \code{method} is an integrator function. Should be
+    \code{TRUE} if the method is implicit, \code{FALSE} if explicit.
   }
   \item{... }{additional arguments passed to the integrator.}
 }

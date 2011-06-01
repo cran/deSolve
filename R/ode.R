@@ -67,7 +67,8 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
                               "lsodes","lsodar","vode","daspk",
                               "euler", "rk4", "ode23", "ode45","radau",
                               "bdf", "adams", "impAdams", "iteration"),
-                              names = NULL, bandwidth = 1, ...)   {
+                              names = NULL, bandwidth = 1,
+                              restructure = FALSE, ...)   {
 # check input
   if (is.character(method)) method <- match.arg(method)
   islsodes <- FALSE
@@ -112,7 +113,15 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
 
 # Use lsodes
 
-  if (is.character(func) & !method %in% c("euler", "rk4", "ode23", "ode45", "iteration") || islsodes) {
+  explicit   <- FALSE
+  adams_expl <- FALSE
+  if (is.character(method)){
+    if (method %in% c("euler", "rk4", "ode23", "ode45", "iteration"))
+      explicit <- TRUE
+    adams_expl <- explicit | method == "adams"
+  }
+
+  if (is.character(func) & !explicit || islsodes) {
     if (is.character(method))
     if (! method %in% c("lsodes", "euler", "rk4", "ode23", "ode45", "iteration"))
       warning("ode.1D: R-function specified in a DLL-> integrating with lsodes")
@@ -131,12 +140,37 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
       stop("'method' should be given as string or as a list of class 'rkMethod'")
     out <- rk(y, times, func, parms, method = method, ...)
 
-# a function
-  } else if (is.function(method))
+# a function that does not need restructuring
+  } else if (is.function(method) && !restructure)
     out <- method(y, times, func, parms,...)
+    else if (is.function(method) && restructure) {
+    NL <- names(y)
 
-# an explicit method...
-    else if (method  %in% c("euler", "rk4", "ode23", "ode45", "adams", "iteration")) {
+  # internal function #
+    bmodel <- function (time,state,pars,model,...) {
+      Modconc <-  model(time,state[ij],pars,...)   # ij: reorder state variables
+      c(list(Modconc[[1]][ii]), Modconc[-1])       # ii: reorder rate of change
+    }
+
+    if (is.character(func))
+      stop ("cannot run ode.1D with R-function specified in a DLL")
+
+    ii    <- as.vector(t(matrix(data=1:N,ncol=nspec))) # from ordering per slice -> per spec
+    ij    <- as.vector(t(matrix(data=1:N,nrow=nspec)))   # from ordering per spec -> per slice
+
+    bmod  <- function(time,state,pars,...)
+      bmodel(time,state,pars,func,...)
+
+    out <- method(y[ii], times, func=bmod, parms=parms,
+                   bandup=nspec*bandwidth, banddown=nspec*bandwidth,
+                   jactype="bandint", ...)
+
+    out[,(ii+1)] <- out[,2:(N+1)]
+    if (! is.null(NL)) colnames(out)[2:(N+1)]<- NL
+  }
+
+# an explicit method... as a string
+    else if (adams_expl) {
      if (method == "euler")
       out <- rk(y, times, func, parms, method = "euler", ...)
      else if (method == "rk4")
@@ -217,8 +251,9 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
                    jactype="bandint", ...)
     else
       stop ("cannot run ode.1D: not a valid 'method'")
-      out[,(ii+1)] <- out[,2:(N+1)]
-      if (! is.null(NL)) colnames(out)[2:(N+1)]<- NL
+
+    out[,(ii+1)] <- out[,2:(N+1)]
+    if (! is.null(NL)) colnames(out)[2:(N+1)]<- NL
   }
   if (is.null(dimens)) dimens <- N/nspec
   attr (out, "dimens") <- dimens

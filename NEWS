@@ -1,0 +1,60 @@
+Changes version 1.10-2 (Karline)
+==========================
+ o remove NAs from forcing functions - when used in DLL (file forcings.R)
+ o new argument "restructure" in ode.1D, for use with implicit solvers not in deSolve
+ 
+Changes version 1.10-1 (Thomas)
+==========================
+ o remove several redundant variables from C code
+ o add NEWS file
+
+Changes version 1.10 (Karline, Thomas)
+======================================
+ o compiled code using mass in daspk
+ o cleanEventTimes
+
+Changes version 1.9+ (Karline)
+==============================
+ o roots, events, lags in radau
+ o roots in lsodes
+ o lags in daspk
+ o ode (method = "iteration")
+
+Changes version 1.9 (Karline, Thomas)
+=====================================
+ o summary.deSolve
+ o subset.deSolve
+ o plotting deSolve objects improved:
+   - plot more than one output in same figures (scenarios), 
+   - add observations
+ o vignette improved
+ o fixed bug in 'timesteps'
+
+Changes version 1.8.1 (Thomas, Woody, Karline)
+==============================================
+ o fixed compiler warnings using valgrind
+ o fixed compiler warning C-code
+
+Changes version 1.8 (Thomas)
+============================
+ o Dormand-Prince 8(7) coefficients use now common 
+   instead of decimal fractions
+
+
+Changes version 1.8 (Karline)
+=============================
+ o Runge-Kuttas:
+   - extra output: number of failed steps (see also 2)
+   - number of function evaluations + 1 for initial condition
+   - dense output for cash-karp
+   - dopri8(7) added
+   - radau added!! implicit runge kutta, solves also DAE up to index 3!
+ o other:
+   - image function for ode.2-D added.
+   - changed warning printing in FORTRAN code
+   - common interface for radau and daspk:
+     both can solve systems written as M*dy = f(x,y).
+     daspk can also solve systems written as 0 = g(x,y,dy) (=default for daspk)
+   
+
+
