@@ -1,5 +1,4 @@
-/* deals with forcing functions that are passed via arguments in the call
-to the integration routines */
+/* deals with forcing functions and events;  Karline Soetaert */
 
 #include "deSolve.h"
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -33,7 +32,7 @@ to the integration routines */
    
    Each time-step, it is tested whether an event occurs ("updateevent")  
 
- 
+   version 1.11: certain roots associated to eventa can terminate simulation 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 int    finit = 0;
@@ -173,8 +172,8 @@ static void C_event_func (int *n, double *t, double *y) {
 }
 
     
-int initEvents(SEXP elist, SEXP eventfunc) {
-    SEXP Time, SVar, Value, Method, Type, Root, maxRoot;
+int initEvents(SEXP elist, SEXP eventfunc, int nroot) {
+    SEXP Time, SVar, Value, Method, Type, Root, maxRoot, Terminateroot;
     int i, j, isEvent = 0;
 
     Time = getListElement(elist, "Time");
@@ -196,6 +195,17 @@ int initEvents(SEXP elist, SEXP eventfunc) {
          valroot = (double *)R_alloc( (int)Rootsave*n_eq, sizeof(double) );
          for (i = 0; i < Rootsave*n_eq; i++) valroot[i] = 0.;
        }
+     
+     /* to allow certain roots to stop simulation */  
+     termroot = (int *)R_alloc( nroot, sizeof(int) );
+     for (i = 0; i < nroot; i++) termroot[i] = 0; 
+
+     Terminateroot = getListElement(elist, "Terminalroot");
+     for (i = 0; i < LENGTH(Terminateroot); i++) {
+        j = INTEGER(Terminateroot)[i]-1;  
+        if (j > -1 && j < nroot) 
+          termroot[j] = 1;
+     }
     } 
     else
       rootevent = 0;

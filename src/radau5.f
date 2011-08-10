@@ -613,8 +613,7 @@ C -- MASS MATRIX
           END IF
 C ------ BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"
           IF (MLMAS.GT.MLJAC.OR.MUMAS.GT.MUJAC) THEN
-             WRITE (MSG,*) 'BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF
-     & "JAC"'
+      WRITE(MSG,*)'BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"'
             CALL rprint(MSG)
             ARRET=.TRUE.
           END IF
@@ -1220,7 +1219,6 @@ C     IT RETURNS THE VALUES OF COMMON CONRA as used in CONTR5
 C ----------------------------------------------------------
       IMPLICIT DOUBLE PRECISION (A-H,O-Z)
       DOUBLE PRECISION RCONRA(2)
-      INTEGER I
 
       COMMON /CONRA5/NN,NN2,NN3,NN4,XSOL,HSOL,C2M1,C1M1
       

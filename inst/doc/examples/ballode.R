@@ -28,7 +28,7 @@ event <- function(t, y, parms) {
 # initial values and times
 #-----------------------------
 yini  <- c(height = 0, v = 20)
-times <- seq(0, 20, 0.01)
+times <- seq(0, 40, 0.01)
 
 #-----------------------------
 # solve the model
@@ -36,8 +36,8 @@ times <- seq(0, 20, 0.01)
 out   <- lsodar(times = times, y = yini, func = ballode, parms = NULL,
   events = list(func = event, root = TRUE), rootfun = root)
 
-out2   <- lsode(times = times, y = yini, func = ballode, parms = NULL,
-  events = list(func = event, root = TRUE), rootfun = root, verbose=TRUE)
+out2   <- radau(times = times, y = yini, func = ballode, parms = NULL,
+  events = list(func = event, root = TRUE), rootfun = root)  #         , verbose=TRUE
 
 attributes(out)$troot
 attributes(out2)$troot

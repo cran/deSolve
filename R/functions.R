@@ -261,7 +261,7 @@ saveOut <- function (out, y, n, Nglobal, Nmtot, func, Func2,
     if (is.na(Nmtot$lengthvar[1]))Nmtot$lengthvar[1] <- length(y) 
   attr(out, "lengthvar") <- Nmtot$lengthvar
   if (! is.null(troot)) attr(out, "troot") <-  troot
-  if (! is.null(valroot)) attr(out, "valroot") <- matrix(nr = n, valroot)
+  if (! is.null(valroot)) attr(out, "valroot") <- matrix(nrow = n, valroot)
   if (! is.null(indroot)) attr(out, "indroot") <- indroot
 
   ii <- if (is.null(Nmtot$dimvar)) 

@@ -162,7 +162,7 @@ SEXP call_rkImplicit(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   
   initParms(Initfunc, Parms);
   isForcing = initForcings(Flist);
-  isEvent = initEvents(elist, eventfunc);
+  isEvent = initEvents(elist, eventfunc,0);
   if (isEvent) interpolate = FALSE;
   
   /*------------------------------------------------------------------------*/

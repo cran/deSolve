@@ -61,7 +61,7 @@ void F77_NAME(dlsoder)(void (*)(int *, double *, double *, double *, double *, i
 void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, int *),
              int *, double *, double *, double *,
              int *, double *, double *, int *, int *,
-             int *, double *, int *, int *, int *,
+             int *, double *, int *, int *, int *, double *,  /* extra 'double'; is integer in fortran */
              void (*)(int *, double *, double *, int *,
                       int *, int *, double *, double *, int *),     /* jacvec */
              int *, double *, int *);
@@ -69,7 +69,7 @@ void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, i
 void F77_NAME(dlsodesr)(void (*)(int *, double *, double *, double *, double *, int *),
              int *, double *, double *, double *,
              int *, double *, double *, int *, int *,
-             int *, double *, int *, int *, int *,
+             int *, double *, int *, int *, int *, double *, /* extra 'double'; is integer in fortran */
              void (*)(int *, double *, double *, int *,
                   int *, int *, double *, double *, int *),         /* jacvec */
              int *,
@@ -230,7 +230,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   int  i, j, k, nt, repcount, latol, lrtol, lrw, liw;
   int  maxit, solver, isForcing, isEvent, islag;
   double *xytmp, tin, tout, *Atol, *Rtol, *dy=NULL, ss, pt;
-  int itol, itask, istate, iopt, jt, mflag,  is;
+  int itol, itask, istate, iopt, jt, mflag,  is, iterm;
   int nroot, *jroot=NULL, isDll, type;
   
   int    *iwork, it, ntot, nout, iroot, *evals =NULL;   
@@ -259,7 +259,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   maxit = 10;                   /* number of iterations */ 
   mflag = INTEGER(verbose)[0];
  
-  nroot  = INTEGER(nRoot)[0];   /* number of roots (lsodar, lsode) */
+  nroot  = INTEGER(nRoot)[0];   /* number of roots (lsodar, lsode, lsodes) */
   solver = INTEGER(Solver)[0];  /* 1=lsoda,2=lsode,3=lsodeS,4=lsodar,5=vode,
                                   6=lsoder, 7 = lsodeSr */
   
@@ -315,7 +315,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 /* Initialization of Parameters and Forcings (DLL functions)  */
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
-  isEvent = initEvents(elist, eventfunc);
+  isEvent = initEvents(elist, eventfunc, nroot); /* added nroot */
   islag = initLags(elag, solver, nroot);
   
 /* pointers to functions deriv_func, jac_func, jac_vec, root_func, passed to FORTRAN */
@@ -449,7 +449,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       } else if (solver == 3) {
         F77_CALL(dlsodes) (deriv_func, &n_eq, xytmp, &tin, &tout,
                &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-               &lrw, iwork, &liw, jac_vec, &jt, out, ipar); 
+               &lrw, iwork, &liw, rwork, jac_vec, &jt, out, ipar);  /*rwork: iwk in fortran*/
       } else if (solver == 4) {
         F77_CALL(dlsodar) (deriv_func, &n_eq, xytmp, &tin, &tout,
                &itol, Rtol, Atol,  &itask, &istate, &iopt, rwork,
@@ -467,7 +467,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
      } else if (solver == 7) {
         F77_CALL(dlsodesr) (deriv_func, &n_eq, xytmp, &tin, &tout,
                &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-               &lrw, iwork, &liw, jac_vec, &jt, root_func, &nroot, jroot, 
+               &lrw, iwork, &liw, rwork, jac_vec, &jt, root_func, &nroot, jroot, /*rwork: iwk in fortran*/
 			         out, ipar);
 			  lyh = iwork[21];
       }
@@ -494,12 +494,23 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
               valroot[iroot*n_eq+j] = xytmp[j];
           }
           iroot ++;
-          updateevent(&tin, xytmp, &istate);
-          tEvent = pt;
-
-          istate = 1;
-          repcount = 0;
-          if (mflag ==1) Rprintf("root found at time %g\n",tin);
+          iterm = 0;      /* check if simulation should be terminated */
+         
+          for (j = 0; j < nroot; j++)
+            if (jroot[j] == 1 && termroot[j] == 1) iterm = 1;
+                   
+          if (iterm == 0) {
+            updateevent(&tin, xytmp, &istate);
+            tEvent = pt;
+            istate = 1;
+            repcount = 0;
+            if (mflag ==1) Rprintf("root found at time %g\n",tin);
+          } else {
+            istate = - 30;
+            repcount = 50;          
+            if (mflag ==1) Rprintf("TERMINAL root found at time %g\n",tin);
+          }
+          
         } else{
            istate = -20;  repcount = 50;
           } 
@@ -541,7 +552,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
 /*                    ####  an error occurred   ####                          */    
    if (istate < 0 || tin < tout) {
-      if (istate != -20)
+      if (istate > -20)
       returnearly (1, it, ntot);
     else 
       returnearly (0, it, ntot);  /* stop because a root was found */
@@ -558,7 +569,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   terminate(istate,iwork, 23,0, rwork, 5,10);    /* istate, iwork, rwork */
   
-  if (istate == -20) INTEGER(ISTATE)[0] = 3;      
+  if (istate <= -20) INTEGER(ISTATE)[0] = 3;      
 
   if (istate == -20 && nroot > 0)  {
     PROTECT(IROOT = allocVector(INTSXP, nroot));incr_N_Protect();

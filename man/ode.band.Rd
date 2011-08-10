@@ -12,8 +12,9 @@
   species.
 }
 
-\usage{ode.band(y, times, func, parms, nspec = NULL, 
-  bandup = nspec, banddown = nspec, method = "lsode", ...)
+\usage{ode.band(y, times, func, parms, nspec = NULL, dimens = NULL, 
+  bandup = nspec, banddown = nspec, method = "lsode", names = NULL, 
+  ...)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
@@ -43,8 +44,13 @@
     should be specified in the same order as the state variables \code{y}.
 
   }
-  \item{parms }{parameters passed to \code{func}.}
-  \item{nspec }{the number of *species* (components) in the model.}
+  \item{parms }{parameters passed to \code{func}.
+  }
+  \item{nspec }{the number of *species* (components) in the model.
+  }
+  \item{dimens}{the number of \bold{boxes} in the model. If \code{NULL}, then
+    \code{nspec} should be specified.
+  }
   \item{bandup }{the number of nonzero bands above the Jacobian
     diagonal.
   }
@@ -53,6 +59,8 @@
   }
   \item{method }{the integrator to use, one of \code{"vode"},
     \code{"lsode"}, \code{"lsoda"}, \code{"lsodar"}, \code{"radau"}.
+  }
+  \item{names }{the names of the components; used for plotting.
   }
   \item{... }{additional arguments passed to the integrator.}
 }
@@ -115,19 +123,30 @@ state         <- c(APHIDS = APHIDS)      # initialise state variables
                   
 ## RUNNING the model:
 times <- seq(0, 200, by = 1)   # output wanted at these time intervals
-out   <- ode.band(state, times, Aphid, parms = 0, nspec = 1)
+out   <- ode.band(state, times, Aphid, parms = 0, 
+                  nspec = 1, names = "Aphid")
 
 ## ================
 ## Plotting output
 ## ================
+image(out, grid = Distance, method = "filled.contour", 
+      xlab = "time, days", ylab = "Distance on plant, m",
+      main = "Aphid density on a row of plants")
 
-## the data in 'out' consist of: 1st col times, 2-41: the density
-## select the density data
-DENSITY   <- out[,2:(numboxes + 1)]
+matplot.1D(out, grid = Distance, type = "l", 
+   subset = time \%in\% seq(0, 200, by = 10))
 
-filled.contour(x = times, y = Distance, DENSITY, color = topo.colors,
-               xlab = "time, days", ylab = "Distance on plant, m",
-               main = "Aphid density on a row of plants")
+# add an observed dataset to 1-D plot (make sure to use correct name):
+data <- cbind(dist  = c(0,10, 20,  30,  40, 50, 60), 
+              Aphid = c(0,0.1,0.25,0.5,0.25,0.1,0))
+
+matplot.1D(out, grid = Distance, type = "l", 
+   subset = time \%in\% seq(0, 200, by = 10), 
+   obs = data, obspar = list(pch = 18, cex = 2, col="red"))
+\dontrun{
+plot.1D(out, grid = Distance, type = "l")
+
+}
 }
 \details{
   This is the method of choice for single-species 1-D reactive transport

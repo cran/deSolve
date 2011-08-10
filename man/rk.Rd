@@ -112,7 +112,7 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     Runge-Kutta-Fehlberg \code{"rk34f"}, the fifth-order Cash-Karp
     method \code{"rk45ck"} or the fifth-order Dormand-Prince method with
     seven stages \code{"rk45dp7"}.
-    As a suggestion, one may use \code{"rk23"} (alias \code{"ode23"}) for
+    As a suggestion, one may use \code{"rk23bs"} (alias \code{"ode23"}) for
     simple problems and \code{"rk45dp7"} (alias \code{"ode45"}) for
     rough problems.
   }
@@ -273,8 +273,8 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     \item \code{\link{ode.1D}} for integrating 1-D models,
     \item \code{\link{ode.2D}} for integrating 2-D models,
     \item \code{\link{ode.3D}} for integrating 3-D models,
+    \item \code{\link{diagnostics}} to print diagnostic messages.
   }
-  \code{\link{diagnostics}} to print diagnostic messages.
 }
 
 

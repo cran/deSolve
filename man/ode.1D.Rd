@@ -205,6 +205,10 @@ image(out2, grid = r)
 # summaries of 1-D variables
 summary(out)
 
+# 1-D plots:
+matplot.1D(out, type = "l", subset = time == 10)
+matplot.1D(out, type = "l", subset = time > 10 & time < 20)
+
 ## =======================================================================
 ## Example 2.
 ## Biochemical Oxygen Demand (BOD) and oxygen (O2) dynamics

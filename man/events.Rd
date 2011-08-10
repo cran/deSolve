@@ -1,7 +1,8 @@
 \name{events}
 \alias{events}
+\alias{roots}
 \title{
-  Implementing Events in Differential Equation Models.
+  Implementing Events and Roots in Differential Equation Models.
 }
 \description{
   An \code{event} occurs when the value of a state variable is suddenly
@@ -11,6 +12,9 @@
   \code{deSolve}, events can be imposed by means of an input data.frame,
   that specifies at which time and how a certain state variable is altered,
   or via an event function.
+  
+  Roots occur when a root function becomes zero. By default when a root is 
+  found, the simulation either stops (no event), or triggers an event.
 }
 \details{
   
@@ -42,6 +46,11 @@
     \item{root: }{when events are specified by a function and triggered
       by a root, this logical should be set equal to \code{TRUE}
     }
+    \item{terminalroot }{when events are triggered by a root, the default is
+      that the simulation continues after the event is executed. In
+      \code{terminalroot}, we can specify which roots should terminate the 
+      simulation.
+    }
     \item{maxroot: }{when \code{root = TRUE}, the maximal number of
       times at with a root is found and that are kept; defaults to 100.  If
       the number of roots > \code{maxroot}, then only the first
@@ -53,7 +62,7 @@
      }
    }
   
-   In case the events are specified by means of an \R \emph{**FUNCTION**}
+   In case the events are specified by means of an \R \bold{function}
    (argument \code{events$func}),
    it must be defined as: \code{function(t, y, parms, ...)}.
    \code{t} is the current time point in the integration,
@@ -61,33 +70,29 @@
    If the initial values \code{y} has a \code{names} attribute, the
    names will be available inside \code{events$func}.  \code{parms} is a
    vector or list of parameters; \code{...} (optional) are any other
-   arguments passed to the function.  The function should return the
-   modified y-values, as a \emph{vector}.
+   arguments passed to the function via the call to the integration method.  
+   The event function should return the y-values (some of which modified), 
+   as a \emph{vector}.
 
    If \code{events$func} is a string, this indicates that the events are
    specified by a \code{function} in compiled code. This function has as
    arguments, the number of state variables, the time, and the state
    variable vector. See package vignette "compiledCode" for more details.
 
-   Also, if events are specified by an \R-function,
-   this requires either input of the \emph{time} of the events, a vector in
-   \code{events$time} OR the specification of a \emph{root} function.  In the
+   In case events are specified by an \R-function,
+   this requires either: input of the \emph{time} of the events, a vector as
+   defined in \code{events$time} 
+   OR the specification of a \emph{root} function.  In the
    latter case, the model must be solved with an integration routine
    with root-finding capability
-   (note that from version 1.9.1 the following routines have root-finding capability:
-   lsoda, lsode, lsodes, radau).
+
    The root function itself should be  specified with argument \code{rootfunc}.
    In this case, the integrator is informed that the simulation it to be
    continued after a root is found by
    setting \code{events$root} equal to \code{TRUE}.
+ 
   
-   If roots are found, then the output will have attribute
-   \code{troot} which will contain the \code{times} at which a root was found.
-   There will be at most \code{events$maxroot} such values. The default is 100.
-  
-   See two last examples; also see example of \code{\link{ccl4model}}.
-  
-   If the evenst are specified by a **\code{data.frame}**
+   If the evenst are specified by a \bold{data frame}
    (argument \code{events$data}), this should
    contain the following columns (and in that order):
   \enumerate{
@@ -98,23 +103,46 @@
     \item{value }{the value, magnitude of the event}
     \item{method }{which event is to take place; should be one of ("replace", 
       "add", "multiply"); also allowed is to specify the number 
-      (1=replace, 2=add, 3=multiply)
+      (1 = replace, 2 = add, 3 = multiply)
     }
   }
 
   For instance, the following line 
   
-  "v1"  10  2  "add"
+  \code{"v1"  10  2  "add"}
   
-  will cause the value 2 to be added to a state variable, called "v1" at 
-  time = 10.
+  will cause the value 2 to be added to a state variable, called \code{"v1"} at 
+  \code{time = 10}.
   
+
+   From deSolve version 1.9.1 the following routines have \bold{root-finding} capability:
+   \link{lsoda}, \link{lsode}, \link{lsodes}, and \link{radau}. 
+   For the first 3 integration methods, the 
+   root finding algorithm is based on the algorithm in solver LSODAR, and is 
+   implemented in FORTRAN. For radau, the root solving algorithm is written
+   in C-code, and it works slightly different. Thus, some problems involving roots 
+   may be more efficiently solved with either lsoda, lsode, or lsodes, while other
+   problems are more efficiently solved with radau.
+
+   If a root function is defined, but not an event function, then by default the
+   solver will stop at a root. If this is not desirable, e.g. because we want
+   to record the position of many roots, then a dummy "event" function can be 
+   defined which returns the values of the state variables - unaltered.
+
+   If roots and events are combined, and roots are found, then the output will have attribute
+   \code{troot} which will contain the \code{times} at which a root was found (and
+   the event trigerred).
+   There will be at most \code{events$maxroot} such values. The default is 100.
+  
+   See two last examples; also see example of \code{\link{ccl4model}}.
 }
 \author{
   Karline Soetaert,
 }
 \seealso{
   \link{forcings}, for how to implement forcing functions.
+
+  \link{lsodar}, for more examples of roots
 }
 \examples{
 ## =============================================================================
@@ -210,6 +238,72 @@ plot(out, type = "l")
 ## time of the root:
 troot <- attributes(out)$troot
 points(troot, rep(0.5, length(troot)))
+
+
+## =============================================================================
+## 4. More ROOT examples: Rotation function
+## =============================================================================
+Rotate <- function(t, x, p )
+  list(c( x[2],
+         -x[1]  ))
+
+## Root = when second state variable = 0
+rootfun <- function(t, x, p) x[2]
+
+## "event" returns state variables unchanged
+eventfun <- function(t, x, p) x
+times <- seq(from = 0, to = 15, by = 0.1)
+
+## 1. No event: stops at first root
+out1 <- ode(func = Rotate, y = c(5, 5), parms = 0,
+           times = times, rootfun = rootfun)
+tail(out1)
+
+## 2. Continues till end of times and records the roots           
+out <- ode(func = Rotate, y = c(5, 5), parms = 0,
+           times = times, rootfun = rootfun,
+           events = list(func = eventfun, root = TRUE) )
+
+plot(out)
+troot <- attributes(out)$troot  # time of roots
+points(troot,rep(0, length (troot)))
+
+## Multiple roots:  either one of the state variables = 0
+root2 <- function(t, x, p) x
+
+out2 <- ode(func = Rotate, y = c(5, 5), parms = 0,
+           times = times, rootfun = root2,
+           events = list(func = eventfun, root = TRUE) )
+
+plot(out2, which = 2)
+troot <- attributes(out2)$troot
+indroot <- attributes(out2)$indroot  # which root was found
+points(troot, rep(0, length (troot)), col = indroot, pch = 18, cex = 2)
+
+## Multiple roots and stop at first time root 1.
+out3 <- ode(func = Rotate, y = c(5, 5), parms = 0,
+      times = times, rootfun = root2,
+      events = list(func = eventfun, root = TRUE, terminalroot = 1))
+
+
+## =============================================================================
+## 5. Stop at 5th root - only works with radau.
+## =============================================================================
+Rotate <- function(t, x, p )
+  list(c( x[2],
+         -x[1],
+         0  ))
+
+## Root = when second state variable = 0
+root3  <- function(t, x, p)  c(x[2], x[3] - 5)
+event3 <- function (t, x, p) c(x[1:2], x[3]+1)
+times <- seq(0, 15, 0.1)
+out3 <- ode(func = Rotate, y = c(x1 = 5, x2 = 5, nroot = 0), 
+      parms = 0, method = "radau",
+      times = times, rootfun = root3,
+      events = list(func = event3, root = TRUE, terminalroot = 2))
+plot(out3)
+attributes(out3)[c("troot", "nroot", "indroot")]
 }
 
 \keyword{utilities}

@@ -555,7 +555,7 @@ elapsed in seconds to solve this 60 state-variable model is estimated
 <<>>=
 times <-seq(0, 200, by = 1)
 print(system.time(
-  out <- ode.1D(state, times, Aphid, parms = 0, nspec = 1)
+  out <- ode.1D(state, times, Aphid, parms = 0, nspec = 1, names = "Aphid")
 ))
 @
 
@@ -597,6 +597,34 @@ As this is a 1-D model, it is best solved with
 \ds function \code{ode.1D}.  A multi-species IVP example can be
 found in \citet{Soetaert08}.  For 2-D and 3-D problems, we refer to the
 help-files of functions \code{ode.2D} and \code{ode.3D}.
+
+The output of one-dimensional models can also be plotted using S3-method
+\code{plot.1D} and \code{matplot.1D}. In both cases, we can simply take
+a \code{subset} of the output, and add observations.
+<<>>=
+data <- cbind(dist  = c(0,10, 20,  30,  40, 50, 60),
+              Aphid = c(0,0.1,0.25,0.5,0.25,0.1,0))
+@
+<<label=matplot1d,include=FALSE>>=
+par (mfrow = c(1,2))
+matplot.1D(out, grid = Distance, type = "l", mfrow = NULL,
+    subset = time %in% seq(0, 200, by = 10),
+   obs = data, obspar = list(pch = 18, cex = 2, col="red"))
+plot.1D(out, grid = Distance, type = "l", mfrow = NULL,
+    subset = time == 100,
+   obs = data, obspar = list(pch = 18, cex = 2, col="red"))
+@
+\setkeys{Gin}{width=1.0\textwidth}
+\begin{figure}
+\begin{center}
+<<label=matplot1d,fig=TRUE,echo=FALSE, height = 6, width = 10>>=
+<<matplot1d>>
+@
+\end{center}
+\caption{Solution of the Aphid model - plotted with matplot.1D, plot.1D -
+  see text for R-code}
+\label{fig:matplot1d}
+\end{figure}
 
 \clearpage
 
@@ -879,12 +907,28 @@ out5  <- lsode(yini, times, f1, parms = 0, mf = 10)
 @
 
 \clearpage
-\section{Events}
+\section{Events and roots}
+
 
 As from version 1.6, \code{events} are supported. Events occur when
 the values of state variables are instantaneously changed.
 They can be specified as a \code{data.frame}, or in a function. Events can
 also be triggered by a root function.
+
+Several integrators (\code{lsoda}, \code{lsodar},  \code{lsode}, \code{lsodes} and \code{radau})
+can estimate the root of one or more functions.
+For the first 4 integration methods, the root finding algorithm is based on
+the algorithm in solver LSODAR, and implemented in FORTRAN.
+For \code{radau}, the root solving algorithm is written in C-code, and it
+works slightly different.
+Thus, some problems involving roots may be more efficient to solve with either
+\code{lsoda, lsode}, or \code{lsodes},
+while other problems are more efficiently solved with \code{radau}.
+
+If a root is found, then the integration will be terminated, unless an event function is defined.
+
+A help file with information on roots and events can be opened by typing
+\code{?events} or \code{?roots}.
 
 \subsection{Event specified in a data.frame}
 
@@ -910,7 +954,7 @@ eventdat <- data.frame(var = c("v1", "v2", "v2", "v1"), time = c(1, 1, 5, 9),
 eventdat
 @
 
-The model is solved with \code{vode}:
+The model is solved with \code{ode}:
 
 <<>>=
 out <- ode(func = eventmod, y = yini, times = times, parms = NULL,
@@ -962,9 +1006,8 @@ event <- function(t, y, parms) {
 }
 @
 
-After specifying the initial values and times, the model is solved.
-Several integrators (\code{lsoda}, \code{lsodar} and  \code{lsode}) 
-can estimate a root.
+After specifying the initial values and times, the model is solved, here using
+\code{lsode}.
 
 <<>>=
 yini  <- c(height = 0, v = 20)
@@ -997,7 +1040,7 @@ easy but sometimes problems can occur due to the limited accuracy of
 floating point arithmetics of the computer. To make things work as
 excpected, two requirements have to be fulfilled:
 
-\begin{enumerate} 
+\begin{enumerate}
   \item all event times have to be contained \textbf{exactly} in
     times, i.e. with the maximum possible accuracy of floating point
     arithmetics.
@@ -1017,7 +1060,7 @@ Instead of relying on this automatism, matching times and eventtimes
 can also be managed by the user, either by appropriate rounding or by
 using function \code{cleanEventTimes} shown below.
 
-Let's assume we have a vector of time steps \code{times} and another vector 
+Let's assume we have a vector of time steps \code{times} and another vector
 of event times \code{eventtimes}:
 
 <<>>=
@@ -1772,7 +1815,7 @@ You may, of course, consider to use another solver:
 
 <<include=FALSE,results=hide>>=
 pars["rIng"] <- 100
-out3 <- ode(func = LVmod, y = yini, parms = pars, 
+out3 <- ode(func = LVmod, y = yini, parms = pars,
           times = times, method = "ode45", atol = 1e-14, rtol = 1e-14)
 @
 
@@ -1804,12 +1847,12 @@ but don't forget to think about this too. We leave this open as an exercise to t
 \code{ode.band}             & integrates systems of ODEs resulting from unicomponent 1-dimensional reaction-transport problems             \\ \hline
 \code{dede}                 & integrates systems of delay differential equations                                                           \\ \hline
 \code{daspk}                & solves systems of differential algebraic equations, assumes a full or banded  Jacobian                       \\ \hline
-\code{radau}                & solves systems of ordinary or differential algebraic equations, assumes a full or banded  Jacobian                       \\ \hline
+\code{radau}                & solves systems of ordinary or differential algebraic equations, assumes a full or banded  Jacobian; includes a root solving procedure                       \\ \hline
 \code{lsoda}                & integrates ODEs, automatically chooses method for stiff or non-stiff problems, assumes a full or banded Jacobian   \\ \hline
 \code{lsodar}               & same as \code{lsoda}, but includes a root-solving procedure                                                  \\ \hline
 \code{lsode} or \code{vode} & integrates ODEs, user must specify if stiff or non-stiff assumes a full or banded Jacobian;
 Note that, as from version 1.7, \code{lsode} includes a root finding procedure, similar to \code{lsodar}.                  \\ \hline
-\code{lsodes}               & integrates ODEs, using stiff method and assuming an arbitrary sparse Jacobian                                \\ \hline
+\code{lsodes}               & integrates ODEs, using stiff method and assuming an arbitrary sparse Jacobian. Note that, as from version 1.7, \code{lsodes} includes a root finding procedure, similar to \code{lsodar}                                \\ \hline
 \code{rk}                   & integrates ODEs, using Runge-Kutta methods (includes Runge-Kutta 4 and Euler as special cases)               \\ \hline
 \code{rk4}                  & integrates ODEs, using the classical Runge-Kutta 4th order method (special code with less options than \code{rk}) \\ \hline
 \code{euler}                & integrates ODEs, using Euler's method  (special code with less options than \code{rk})                       \\ \hline

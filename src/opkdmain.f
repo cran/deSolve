@@ -1769,8 +1769,8 @@ C----------------------- END OF SUBROUTINE DLSODE ----------------------
       END
 *DECK DLSODES
       SUBROUTINE DLSODES (F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK,
-     1            ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, MF, rpar,
-     2            ipar)
+     1        ISTATE, IOPT, RWORK, LRW, IWORK, LIW,IWK, JAC, MF, rpar,
+     2        ipar)
       EXTERNAL F, JAC
 CKS: added rpar, ipar
       integer ipar(*)
@@ -1778,6 +1778,7 @@ CKS: added rpar, ipar
       
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, IWORK, LIW, MF
       DOUBLE PRECISION Y, T, TOUT, RTOL, ATOL, RWORK
+      INTEGER IWK(2*LRW)
       DIMENSION NEQ(*), Y(*), RTOL(*), ATOL(*), RWORK(LRW), IWORK(LIW)
 C-----------------------------------------------------------------------
 C This is the 12 November 2003 version of
@@ -3255,7 +3256,7 @@ C DIPREP and DPREP do sparse matrix preprocessing if MITER = 1 or 2. ---
       LEWT = MIN(LEWT,LRW)
       LACOR = MIN(LACOR,LRW)
 CKS
-      CALL DIPREP (NEQ, Y, RWORK, IWORK(LIA),IWORK(LJA), IPFLAG, F, JAC,
+      CALL DIPREP (NEQ,Y,RWORK,IWK,IWORK(LIA),IWORK(LJA), IPFLAG, F, JAC,
      & rpar, ipar )
       LENRW = LWM - 1 + LENWK + LREST
       IWORK(17) = LENRW
@@ -3308,7 +3309,7 @@ C Load and invert the EWT array.  (H is temporarily set to 1.0.) -------
       IF (MITER .EQ. 0 .OR. MITER .EQ. 3) GO TO 120
 C DIPREP and DPREP do sparse matrix preprocessing if MITER = 1 or 2. ---
       LACOR = MIN(LACOR,LRW)
-      CALL DIPREP (NEQ, Y, RWORK, IWORK(LIA),IWORK(LJA), IPFLAG, F, JAC,
+      CALL DIPREP (NEQ,Y,RWORK,IWK,IWORK(LIA),IWORK(LJA),IPFLAG,F,JAC,
      & rpar, ipar)
       LENRW = LWM - 1 + LENWK + LREST
       IWORK(17) = LENRW
@@ -3466,7 +3467,7 @@ C-----------------------------------------------------------------------
 C    CALL DSTODE(NEQ,Y,YH,NYH,YH,EWT,SAVF,ACOR,WM,WM,F,JAC,DPRJS,DSOLSS)
 C-----------------------------------------------------------------------
       CALL DSTODE (NEQ, Y, RWORK(LYH), NYH, RWORK(LYH), RWORK(LEWT),
-     1   RWORK(LSAVF), RWORK(LACOR), RWORK(LWM), RWORK(LWM),
+     1   RWORK(LSAVF), RWORK(LACOR), RWORK(LWM), IWK(2*LWM-1),
      2   F, JAC, DPRJS, DSOLSS, rpar,ipar)
       KGO = 1 - KFLAG
       GO TO (300, 530, 540, 550), KGO
