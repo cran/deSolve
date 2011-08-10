@@ -1,10 +1,21 @@
+Changes version 1.10-3 (Karline)
+================================
+ o rwork and iwrk in lsodes from Fortran -> C (to remove compiler warnings)
+ o roots + events - now certain roots can stop simulation + fixed bug in radau root
+ o improved events\roots help file
+ o diagnostics(out) gave error in case method=iteration (no rstate) now fixed
+ o the package authors agreed to assign the maintainer role to T.P.,
+   but the order of authorship and credits remain unchanged.
+
 Changes version 1.10-2 (Karline)
-==========================
+================================
  o remove NAs from forcing functions - when used in DLL (file forcings.R)
  o new argument "restructure" in ode.1D, for use with implicit solvers not in deSolve
+ o removed requirement to have eventfunc in compiled code when func is in compiled code
+ o subsetting on summary.deSolve
  
 Changes version 1.10-1 (Thomas)
-==========================
+===============================
  o remove several redundant variables from C code
  o add NEWS file
 

@@ -37,16 +37,15 @@ rkMethod(method = NULL, ...)
     "euler"            \tab | \tab Euler's Method\cr
     "rk2"              \tab | \tab 2nd order Runge-Kutta, fixed time step (Heun's method)\cr
     "rk4"              \tab | \tab classical 4th order Runge-Kutta, fixed time step\cr
-    "rk23"             \tab | \tab Runge-Kutta, order 2(3), Octave: \bold{ode23}\cr
-    "rk23bs", "ode23"  \tab | \tab Bogacki-Shampine, order 2(3), Matlab: \bold{ode23}\cr
+    "rk23"             \tab | \tab Runge-Kutta, order 2(3); Octave: ode23\cr
+    "rk23bs", "ode23"  \tab | \tab Bogacki-Shampine, order 2(3); Matlab: ode23\cr
     "rk34f"            \tab | \tab Runge-Kutta-Fehlberg, order 3(4)\cr
     "rk45ck"           \tab | \tab Runge-Kutta Cash-Karp, order 4(5)\cr
-    "rk45f"            \tab | \tab Runge-Kutta-Fehlberg, order 4(5), Octave: \bold{ode45, pair=1} \cr
+    "rk45f"            \tab | \tab Runge-Kutta-Fehlberg, order 4(5); Octave: ode45, pair=1 \cr
     "rk45e"            \tab | \tab Runge-Kutta-England, order 4(5)\cr
     "rk45dp6"          \tab | \tab Dormand-Prince, order 4(5), local order 6\cr
     "rk45dp7", "ode45" \tab | \tab Dormand-Prince 4(5), local order 7 \cr
-                       \tab | \tab (also known as \bold{dopri5}, MATLAB:
-		         \bold{ode45}, Octave: \bold{ode45, pair=0})\cr
+                       \tab | \tab (also known as dopri5; MATLAB: ode45; Octave: ode45, pair=0)\cr
     "rk78f"            \tab | \tab Runge-Kutta-Fehlberg, order 7(8)\cr		       
     "rk78dp"           \tab | \tab Dormand-Prince, order 7(8)\cr
   }

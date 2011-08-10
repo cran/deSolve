@@ -26,9 +26,9 @@
   
   Two uses of \code{lsodar} are: 
   \itemize{
-    \item To stop the simulation
+    \item To stop the simulation when a certain condition is met
     \item To trigger an \link{events}, i.e. a sudden change in one of the 
-      state variables.
+      state variables when a certain condition is met.
   }
    when a particular condition is met. 
 }
@@ -421,6 +421,7 @@ plot(out, type = "l", lwd = 2, main = "lsodar with event")
 }
 \seealso{
   \itemize{
+    \item \code{\link{roots}} for more examples on roots and events 
     \item \code{\link{rk}}, \code{\link{rkMethod}}, \code{\link{rk4}} and \code{\link{euler}} for
       Runge-Kutta integrators.
     \item \code{\link{lsoda}}, \code{\link{lsode}},

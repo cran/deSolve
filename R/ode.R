@@ -90,7 +90,7 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
 
   N     <- length(y)
   if (is.null(nspec)  )
-    nspec = N/dimens
+    nspec <- N/dimens
   if (N %% nspec != 0    )
     stop ("cannot run ode.1D: nspec is not an integer fraction of number of state variables")
 
@@ -289,7 +289,7 @@ ode.2D    <- function (y, times, func, parms, nspec=NULL, dimens,
     stop ("cannot run ode.2D: dimensions are not an integer fraction of number of state variables")
 
   if (is.null (nspec))
-    nspec = N/prod(dimens) else
+    nspec <- N/prod(dimens) else
   if (nspec*prod(dimens) != N)
     stop ("cannot run ode.2D: dimens[1]*dimens[2]*nspec is not equal to number of state variables")
   if (! is.null(names) && length(names) != nspec)
@@ -368,7 +368,7 @@ ode.3D    <- function (y, times, func, parms, nspec=NULL, dimens,
     stop ("cannot run ode.3D: dimensions are not an integer fraction of number of state variables")
 
   if (is.null (nspec))
-    nspec = N/prod(dimens) else
+    nspec <- N/prod(dimens) else
   if (nspec*prod(dimens) != N)
     stop ("cannot run ode.3D: dimens[1]*dimens[2]*dimens[3]*nspec is not equal to number of state variables")
   if (! is.null(names) && length(names) != nspec)
@@ -431,15 +431,33 @@ ode.3D    <- function (y, times, func, parms, nspec=NULL, dimens,
 
 ### ============================================================================
 
-ode.band  <- function (y, times, func, parms, nspec=NULL, bandup=nspec,
-                       banddown=nspec, method = "lsode", ...)  {
+ode.band  <- function (y, times, func, parms, nspec = NULL,  dimens = NULL, 
+                       bandup = nspec, banddown = nspec, 
+                       method = "lsode", names = NULL, ...)  {
 
   if (is.null(bandup)  )
     stop ("cannot run ode.band: bandup is not specified")
+
   if (is.null(banddown))
     stop ("cannot run ode.band: banddown is not specified")
+
+  if (is.null(nspec) && is.null(dimens))
+    stop ("cannot run ode.band: nspec OR dimens should be specified")
+
+  N     <- length(y)
+
+  if (is.null(nspec)  )
+    nspec <- N/dimens
+
+  if (N %% nspec != 0    )
+    stop ("cannot run ode.band: nspec is not an integer fraction of number of state variables")
+
+  if (! is.null(names) && length(names) != nspec)
+    stop("length of 'names' should equal 'nspec'")
+
   if (is.null(method))
     method <- "lsode"
+
   if (method == "vode")
    out <- vode(y, times, func, parms=parms, bandup=bandup, banddown=banddown,
         jactype="bandint", ...)
@@ -465,6 +483,6 @@ ode.band  <- function (y, times, func, parms, nspec=NULL, bandup=nspec,
 
   attr (out,"dimens") <- N/nspec
   attr (out,"nspec") <- nspec
+  attr (out, "ynames") <- names
   return(out)
 }
-

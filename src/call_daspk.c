@@ -261,7 +261,7 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   initdaeglobals(nt, ntot);
   initParms(initfunc, parms);
   isForcing = initForcings(flist);
-  isEvent = initEvents(elist, eventfunc);
+  isEvent = initEvents(elist, eventfunc, 0);  /* zero roots */
   islag = initLags(elag, 0, 0);
  
  /* pointers to functions res_func, psol_func and daejac_func, 

@@ -194,6 +194,9 @@ image(prey10)
 image(pred10)
 par (mfrow = mf)
 
+# same, using deSolve's image:
+image(out, subset = (time == 10))
+
 ## =======================================================================
 ## An example with a cyclic boundary condition.
 ## Diffusion in 2-D; extra flux on 2 boundaries,
@@ -251,12 +254,20 @@ t10 <-  matrix (nrow = nx, ncol = ny,
 persp(t10, theta = 30, border = NA, phi = 70, 
      col = "lightblue", shade = 0.5, box = FALSE)
 
+# image plot, using deSolve's image function
+image(ST3, subset = time == 10, method = "persp",
+      theta = 30, border = NA, phi = 70, main = "", 
+      col = "lightblue", shade = 0.5, box = FALSE)
+
 \dontrun{
 zlim <- range(ST3[, -1])
 for (i in 2:nrow(ST3)) {
   y <- matrix(nrow = nx, ncol = ny, data = ST3[i, -1])
   filled.contour(y, zlim = zlim, main = i)
 }
+
+# same
+image(ST3, method = "filled.contour")
 }
 
 }

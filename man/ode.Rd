@@ -13,7 +13,8 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
            "bdf", "bdf_d", "adams", "impAdams", "impAdams_d", "iteration"), ...)
 
 \method{print}{deSolve}(x, \dots)
-\method{summary}{deSolve}(object, \dots)
+\method{summary}{deSolve}(object, select = NULL, which = select, 
+                 subset = NULL, \dots)
 }
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
@@ -74,6 +75,14 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     integrators, and whose summary is to be calculated. In contrast to R's default,
     this returns a data.frame. It returns one summary column for a multi-dimensional variable.
   }
+  \item{which }{the name(s) or the index to the variables whose summary should be
+    estimated.  Default = all variables. }
+
+  \item{select }{which variable/columns to be selected.
+  }
+  \item{subset }{logical expression indicating elements or rows to keep when 
+    calculating a \code{summary}: missing values are taken as \code{FALSE}
+  }
   \item{... }{additional arguments passed to the integrator or to the
     methods.}
 }
@@ -133,6 +142,7 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
 \seealso{
   \itemize{
     \item \code{\link{plot.deSolve}} for plotting the outputs,
+    \item \code{\link{dede}} general solver for delay differential equations
     \item \code{\link{ode.band}} for solving models with a banded
       Jacobian,
     \item \code{\link{ode.1D}} for integrating 1-D models,

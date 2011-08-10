@@ -31,8 +31,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.10\cr
-    Date:    \tab 2011-05-10\cr
+    Version: \tab 1.10-3\cr
+    Date:    \tab 2011-08-06\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
@@ -50,7 +50,7 @@
   
   Thomas Petzoldt,
 
-  R. Woodrow Setzer (Maintainer)
+  R. Woodrow Setzer
 }
 \references{
 

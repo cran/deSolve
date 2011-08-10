@@ -14,13 +14,10 @@ nearestEvent(times, eventtimes)
 cleanEventTimes(times, eventtimes, eps = .Machine$double.eps * 10)
 }
 \arguments{
-  \item{times}{the vector of output times,
-}
-  \item{eventtimes}{a vector with the event times,
-}
+  \item{times}{the vector of output times,}
+  \item{eventtimes}{a vector with the event times,}
   \item{eps}{relative tolerance value below which two numbers are assumed 
-    to be numerically equal.
-}
+    to be numerically equal.}
 }
 \details{
   In floating point arithmetics, problems can occur if values have to be
@@ -38,14 +35,11 @@ cleanEventTimes(times, eventtimes, eps = .Machine$double.eps * 10)
   These checks are normally performed internally by the integration solvers.
 }
 \value{
-  \itemize{
-    
-    \item for \code{nearestEvent} a vector with the closest events for
-      each time step,
+    \code{nearestEvent} returns a vector with the closest events for
+      each time step and
   
-    \item for \code{cleanEventTimes} a vector with the output times
+    \code{cleanEventTimes} returns a vector with the output times
       without all those that are 'very close' to an event.
-  }
 }
 
 \author{
@@ -63,7 +57,7 @@ events <- sort(c(0, 2, 3, 4 + 1e-10, 5, 7 - 1e-10,
 times  <- sort(c(0, 1:7, 4.5, 6.75, 7.5, 9.2, 9.0001, 25, 879, 1e3, 1e300+5))
 
 nearest <- nearestEvent(times, events)
-data.frame(times=times, nearest=nearest)
+data.frame(times=times, nearest = nearest)
 
 ## typical usage: include all events in times after removing values that
 ## are numerically close together, events have priority 

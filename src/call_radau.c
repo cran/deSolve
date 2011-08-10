@@ -197,7 +197,7 @@ static void C_soloutrad(int * nr, double * told, double * t, double * y,
 
 {
   int i, j;
-  int istate;
+  int istate, iterm;
   double tr, tmin;
   double tol = 1e-9;			/* Acceptable tolerance		*/
   int maxit = 100;				/* Max # of iterations */
@@ -210,6 +210,7 @@ static void C_soloutrad(int * nr, double * told, double * t, double * y,
   timesteps[1] = *told-*t;
 
   if (islag == 1) C_saveLag(0, t, y, con, lrc, rpar, ipar);
+  *irtrn = 0;
 
   if (isEvent && ! rootevent) {
     if (*told <= tEvent && tEvent < *t) {
@@ -238,6 +239,7 @@ static void C_soloutrad(int * nr, double * told, double * t, double * y,
        iroot = i;
        jroot[i] = 1;
        tr = brent(*told, *t, oldroot[i], root[i], f, con, lrc, tol, maxit);
+       if (fabs(tprevroot - tr) > tol) {
        F77_CALL(contr5) (&n_eq, &tr, con, lrc, ytmp);
        *irtrn = -1;
         endsim = 1;
@@ -246,6 +248,7 @@ static void C_soloutrad(int * nr, double * told, double * t, double * y,
           tprevroot = tmin;
           for (j = 0; j < n_eq; j++) y[j] = ytmp[j];
         }
+       } 
      } else jroot[i] = 0;
     for (i = 0; i < nroot; i++) oldroot[i] = root[i];
   }
@@ -256,7 +259,7 @@ static void C_soloutrad(int * nr, double * told, double * t, double * y,
     it++;
     if ( it >= maxt) break;
   }
-   if ((*irtrn == -1) && rootevent) {
+   if ((*irtrn == -1) && rootevent) {      
      *t = tmin;
      tin = *t;
      tEvent = tin;
@@ -267,9 +270,17 @@ static void C_soloutrad(int * nr, double * told, double * t, double * y,
        for (j = 0; j < n_eq; j++)
          valroot[nr_root* n_eq + j] = y[j];
      }
-     nr_root++;
-     updateevent(&tin, y, &istate);
-     endsim = 0;
+     iterm = 0;      /* check if simulation should be terminated */
+     for (j = 0; j < nroot; j++)
+       if (jroot[j] == 1 && termroot[j] == 1) iterm = 1;
+
+     if (iterm == 0) {
+       nr_root++;
+       updateevent(&tin, y, &istate);
+       endsim = 0;
+     } else {  
+       endsim = 1;
+     }
    }
 }
 
@@ -402,7 +413,7 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
   /* Initialization of Parameters, Forcings (DLL), lags */
   initParms (initfunc, parms);
   isForcing = initForcings(flist);
-  isEvent = initEvents(elist, eventfunc);
+  isEvent = initEvents(elist, eventfunc, nroot);
   islag = initLags(elag, 10, nroot);
 
   if (nout > 0 || islag) {

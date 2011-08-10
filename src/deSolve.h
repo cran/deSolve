@@ -37,7 +37,7 @@ double *forcings;
 double tEvent;
 int iEvent, nEvent, typeevent, rootevent, Rootsave;
 double *troot, *valroot;
-int *nrroot;
+int *nrroot, *termroot;
 
 double *timeevent, *valueevent;
 int *svarevent, *methodevent;
@@ -114,7 +114,7 @@ void initdaeglobals(int, int);
 /* the forcings and event functions */
 void updatedeforc(double*);
 int initForcings(SEXP list);
-int initEvents(SEXP list, SEXP);
+int initEvents(SEXP list, SEXP, int);
 void updateevent(double*, double*, int*);
 
 

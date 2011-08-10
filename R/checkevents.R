@@ -1,11 +1,16 @@
 ### ============================================================================
 ### Check events data set 
+### Changes version 1.11: event can be an R-function, even if DLL model
+###                       continueeroot: to continue even if a root is found
 ### ============================================================================
 
 checkevents <- function (events, times, vars, dllname, root = FALSE) {
 
   if (is.null(events)) return(list())
-  if (is.null(events$data) && is.null(events$func)) return(list())
+  if (is.null(events$data) && is.null(events$func) && 
+      is.null(events$terminalroot)) return(list())
+
+  funevent <- events$func
 
   if (root) {  # check if root should trigger an event...
     Root <- events$root
@@ -17,8 +22,15 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
   if (is.null(maxroot)) maxroot <- 100  # number of roots to save.
   if (maxroot < 0)
     stop("events$maxroot should be > 0 in events")
+  Terminalroot <- events$terminalroot
 
-  funevent <- events$func
+  if (! is.null(Terminalroot) && is.null(funevent))
+    funevent <- function(t,y,p) return(y)  # dummy event function 
+
+  if (is.null(Terminalroot)) 
+    Terminalroot <- 0  # at which roots simulation should continue
+
+
 ## ----------------------
 ## event in a function
 ## ----------------------
@@ -34,8 +46,8 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
       Type <- 3  
     } else {
       Type <- 2  # SHOULD ALSO CHECK THE FUNCTION if R-function....
-      if (!is.null(dllname))
-       stop("'events$func' should be a string, events specified in compiled code if 'dllname' is not NULL")
+#      if (!is.null(dllname))      KARLINE: removed that 02/07/2011
+#       stop("'events$func' should be a string, events specified in compiled code if 'dllname' is not NULL")
     }
     if (Root == 0) {
       if (is.null(events$time)) 
@@ -52,7 +64,8 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
     } else eventtime <- min(times) - 1  # never reached....
       return (list (Time = eventtime, SVar = NULL, Value = NULL,
         Method = NULL, Type = as.integer(Type), func = funevent,
-        Rootsave = as.integer(maxroot), Root = Root))
+        Rootsave = as.integer(maxroot), Root = Root,
+        Terminalroot = as.integer(Terminalroot)))
 
   }
 ## ----------------------
@@ -162,7 +175,9 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
   return (list (Time = as.double(eventdata[,2]), SVar = as.integer(eventdata[,1]),
     Value = as.double(eventdata[,3]), Method = as.integer(eventdata[,4]),
     Rootsave = as.integer(maxroot),
-    Type = as.integer(1), Root = Root, newTimes = times))
+    Type = as.integer(1), Root = Root, 
+    Terminalroot = as.integer(Terminalroot),
+    newTimes = times))
 }
 
 

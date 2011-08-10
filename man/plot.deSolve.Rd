@@ -1,6 +1,7 @@
 \name{plot.deSolve}
 \alias{plot.deSolve}
 \alias{plot.1D}
+\alias{matplot.1D}
 \alias{hist.deSolve}
 \alias{image.deSolve}
 \alias{subset.deSolve}
@@ -11,16 +12,23 @@
 Plot the output of numeric integration routines.
 }
 \usage{
-\method{plot}{deSolve}(x, \dots, which = NULL, ask = NULL, 
-              obs = NULL, obspar = list())
-\method{hist}{deSolve}(x, which = 1:(ncol(x)-1), ask = NULL, \dots)
-\method{image}{deSolve}(x, which = NULL, ask = NULL, 
+\method{plot}{deSolve}(x, \dots, select = NULL, which = select, ask = NULL,
+              obs = NULL, obspar = list(), subset = NULL)
+\method{hist}{deSolve}(x, select = 1:(ncol(x)-1), which  = select, ask = NULL,
+              subset = NULL, \dots)
+\method{image}{deSolve}(x, select = NULL, which = select, ask = NULL,
               add.contour = FALSE, grid = NULL, 
-              method = "image", legend = FALSE, \dots)  
-\method{subset}{deSolve}(x, subset = NULL, select= NULL,
+              method = "image", legend = FALSE, subset = NULL, \dots)
+\method{subset}{deSolve}(x, subset = NULL, select = NULL,
              which = select, \dots)
 
-plot.1D (x, which = NULL, ask = NULL, grid = NULL, xyswap = FALSE, delay=0, \dots) 
+plot.1D (x, \dots, select = NULL, which = select, ask = NULL, 
+         obs = NULL, obspar = list(), grid = NULL,
+         xyswap = FALSE, delay = 0, vertical = FALSE, subset = NULL)
+
+matplot.1D (x, select = NULL, which = select, ask = NULL,
+         obs = NULL, obspar = list(), grid = NULL,
+         xyswap = FALSE, vertical = FALSE, subset = NULL, \dots)
 }
 
 \arguments{
@@ -36,7 +44,7 @@ plot.1D (x, which = NULL, ask = NULL, grid = NULL, xyswap = FALSE, delay=0, \dot
   \item{select }{which variable/columns to be selected.
   }
   \item{subset }{logical expression indicating elements or rows to keep in 
-    \code{select}: missing values are taken as \code{false}
+    \code{select}: missing values are taken as \code{FALSE}
   }
   \item{ask }{logical; if \code{TRUE}, the user is \emph{ask}ed before
     each plot, if \code{NULL} the user is only asked if more than one
@@ -57,7 +65,12 @@ plot.1D (x, which = NULL, ask = NULL, grid = NULL, xyswap = FALSE, delay=0, \dot
   \item{xyswap }{if \code{TRUE}, then x-and y-values are swapped and the 
     y-axis is from top to bottom. Useful for drawing vertical profiles.}
   
-  \item{delay }{adds a delay (in milliseconds) between consecutive plots 
+  \item{vertical }{if \code{TRUE}, then 1. x-and y-values are swapped, the
+    y-axis is from top to bottom, the x-axis is on top, margin 3 and the
+    main title gets the value of the x-axis.
+    Useful for drawing vertical profiles; see example 2.}
+
+  \item{delay }{adds a delay (in milliseconds) between consecutive plots
     of \code{plot.1D} to enable animations.}
     
   \item{obs }{a \code{data.frame} or \code{matrix} with "observed data" that 
@@ -90,7 +103,7 @@ plot.1D (x, which = NULL, ask = NULL, grid = NULL, xyswap = FALSE, delay=0, \dot
     The graphical arguments are passed to
     \code{\link{plot.default}}, \code{\link{image}} or \code{\link{hist}} 
 
-    For \code{plot.deSolve}, the dots may contain other objects of class 
+    For \code{plot.deSolve}, and \code{plot.1D}, the dots may contain other objects of class
     \code{deSolve}, as returned by the integrators, and 
     to be plotted on the same graphs as \code{x}  - see second example.
     In this case, \code{x} and and these other objects should be compatible, 
@@ -222,7 +235,7 @@ obs2 <- as.data.frame(out2[out2[,1] \%in\% seq(10, 500, by = 50), ])
 ## manual xlim, log
 plot(out, out2, type = "l", obs = list(obs, obs2), col = c("red", "blue"),
       obspar = list(pch = 18:19, cex = 2, col = c("red", "blue")),
-      log = c("y",""), which = c("prey1","prey1"), 
+      log = c("y",""), which = c("prey1", "prey1"),
       xlim = list(c(100, 500), c(0, 400)))
 
 ## data in 'long' format
@@ -232,11 +245,16 @@ OBS <- data.frame(name = c(rep("prey1",3), rep("prey2",2)),
 OBS
 plot(out, obs = OBS, obspar = c(pch = 18, cex = 2))
 
+# a subset only:
+plot(out, subset = prey1 < 0.5, type = "p")
+
 # Simple histogram
 hist(out, col = "darkblue", breaks = 50)
 
+hist(out, col = "darkblue", breaks = 50, subset = prey1<1 & prey2 < 1)
+
 # different parameters per plot
-hist(out, col = c("darkblue","red", "orange", "black"), 
+hist(out, col = c("darkblue", "red", "orange", "black"),
      breaks = c(10,50))
 
 ## =======================================================================
@@ -278,15 +296,27 @@ state         <- c(APHIDS = APHIDS)      # initialise state variables
                   
 ## RUNNING the model:
 times <- seq(0, 200, by = 1)   # output wanted at these time intervals
-out   <- ode.1D(state, times, Aphid, parms = 0, nspec = 1)
+out   <- ode.1D(state, times, Aphid, parms = 0, nspec = 1, names = "Aphid")
 
 image(out, grid = Distance, main = "Aphid model", ylab = "distance, m", 
   legend = TRUE)
 
+# restricting time
+image(out, grid = Distance, main = "Aphid model", ylab = "distance, m",
+  legend = TRUE, subset = time < 100)
+  
 image(out, grid = Distance, main = "Aphid model", ylab = "distance, m", 
   method = "persp", border = NA, theta = 30)
 
 FluxAphid <- subset(out, select = "Flux", subset = time < 50)
+
+matplot.1D(out, type = "l", lwd = 2, xyswap = TRUE, lty = 1)
+
+matplot.1D(out, type = "l", lwd = 2, xyswap = TRUE, lty = 1,
+           subset = time < 50)
+
+matplot.1D(out, type = "l", lwd = 2, xyswap = TRUE, lty = 1,
+           subset = time \%in\% seq(0, 200, by = 10), col = "grey")
 
 \dontrun{
   plot(out, ask = FALSE, mfrow = c(1, 1))
