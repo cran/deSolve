@@ -5,7 +5,7 @@
 #  Biogeosciences                                                              #
 #                                                                              #
 #  MODEL PARAMETERS, INITIAL CONDITIONS, COMMON MODEL ROUTINES                 #
-#  Implementation: Andreas Hofmann, Karline Soetaert - NIOO-CEME               #
+#  Implementation: Andreas Hofmann, Karline Soetaert - NIOZ                    #
 ################################################################################
 
 require(deSolve)

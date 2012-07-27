@@ -36,18 +36,19 @@ void rk_fixed(
   /*------------------------------------------------------------------------*/
   /* Main Loop                                                              */
   /*------------------------------------------------------------------------*/
+  //Rprintf("1: dt, hini = %g , %g\n", dt, hini);
   do {
     /* select time step (possibly irregular) */
-    if (hini > 0.0)
-      dt = fmin(hini, tmax - t); /* adjust dt for step-by-step-mode */
-    else
+    if (fabs(hini) < (DBL_EPSILON * 100.0))
       dt = tt[it] - tt[it-1];
-
+    else
+      dt = fmin(fabs(hini), fabs(tmax - t)) * sign(hini);
+    //Rprintf("dt, hini = %g , %g\n", dt, hini);
     timesteps[0] = timesteps[1];
     timesteps[1] = dt;
 
     /******  Prepare Coefficients from Butcher table ******/
-    /* NOTE: the fixed-step solver needs coefficients as, not matrix !  */
+    /* NOTE: the fixed-step solver needs coefficients as vector, not matrix!  */
     for (j = 0; j < stage; j++) {
       if (j == 0) 
         for(i = 0; i < neq; i++) Fj[i] = 0;
@@ -123,7 +124,8 @@ void rk_fixed(
       break;
     }
     /* tolerance to avoid rounding errors */
-  } while (t < (tmax - 100.0 * DBL_EPSILON * dt)); /* end of rk main loop */
+  } //while (fabs(t - tmax) > 100.0 * DBL_EPSILON * dt); /* end of rk main loop */
+  while (fabs(t - tmax) > 100.0 * DBL_EPSILON); /* end of rk main loop */
   
   /* return reference values */
   *_iknots = iknots; *_it = it; *_it_ext = it_ext; *_it_tot = it_tot;

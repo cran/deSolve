@@ -84,7 +84,7 @@ df <- c( "The return code :",                                              #1
          "The number of times a new coefficient matrix has been formed so far",
          "The number of times the order of the method has been changed so far")
 
-  if (is.na(istate[14])) istate[14]<-istate[4]+istate[10]  # Jacobian+LU
+#  if (is.na(istate[14])) istate[14]<-istate[4]+istate[10]  # Jacobian+LU
   cat("\n--------------------\n")
   cat("INTEGER values\n")
   cat("--------------------\n")

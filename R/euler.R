@@ -83,8 +83,8 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     #    out <- saveOutrk(out, y, n, Nglobal, Nmtot,
     #                 iin = c(1, 12, 13, 15), iout = c(1:3, 18), transpose = TRUE)
     ## === end testing code ===
-    if (verbose) diagnostics(out)
     attr(out, "type") <- "rk"
+    if (verbose) diagnostics(out)
     out
 }
 

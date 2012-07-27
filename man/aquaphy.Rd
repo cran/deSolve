@@ -51,7 +51,7 @@
   \item{...}{any other parameters passed to the integrator \code{ode}
     (which solves the model).}
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## ======================================================
 ##

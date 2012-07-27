@@ -5143,21 +5143,15 @@ C-----------------------------------------------------------------------
       JSTART = -1
       IF (IXPR .EQ. 0) GO TO 310
       IF (METH .EQ. 2) THEN
-c      MSG='DLSODA- switch to the BDF (stiff) method has occurred     '
-C KS      CALL XERRWD (MSG, 60, 105, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-c      CALL DBLEPR(MSG, 60, 0, 0)
-	    write(msg,'(A20,D18.10,A9,D18.10)') 
-     &      'Switch to bdf   at T',TN,' new step', H
-C KS      CALL XERRWD (MSG, 60, 107, 0, 1, NST, 0, 2, TN, H)
-      CALL DBLEPR(MSG, 65, 0, 0)
+       CALL rprintd2(
+     &      'Switch to bdf   at T (=R1), new step (=R2)', TN,H)
       ENDIF
       IF (METH .EQ. 1) THEN
 C      MSG='DLSODA- A switch to the Adams (nonstiff) method has occurred'
 C KS      CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
 C      CALL DBLEPR(MSG, 60, 0, 0)
-	    write(msg,'(A20,D18.10,A9,D18.10)') 
-     &      'Switch to adams at T',TN,' new step', H
-      CALL DBLEPR(MSG, 65, 0, 0)
+       CALL rprintd2(
+     &      'Switch to adams at T (=R1), new step (=R2)', TN,H)
       ENDIF
 c	    write(msg,'(A4,D18.10,A9,D18.10)') 
 c     &      'at T',TN,' new step', H
@@ -6977,10 +6971,8 @@ C KS      CALL XERRWD (MSG, 60, 105, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
 C      CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
       CALL DBLEPR(MSG, 60, 0, 0)
       ENDIF
-	    write(msg,'(A3,D20.12,A14,D20.12)') 
-     &      'at T',TN,' new step size', H
-C KS      CALL XERRWD (MSG, 60, 107, 0, 1, NST, 0, 2, TN, H)
-      CALL DBLEPR(MSG, 60, 0, 0)
+      call rprintd2 (
+     &      'at T (R1), the new step size is (R2) ',TN, H)
  310  CONTINUE
 C
       IF (NGC .EQ. 0) GO TO 315

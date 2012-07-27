@@ -70,7 +70,7 @@ dede(y, times, func=NULL, parms,
   will be used to label the columns of the output value.
 
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 
 \details{
   Functions \link{lagvalue} and \link{lagderiv} are to be used with \code{dede} 

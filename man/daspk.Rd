@@ -24,8 +24,9 @@
   dynamically loaded.
 }
 \usage{
-daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
-  nalg = 0, rtol = 1e-6, atol = 1e-8, jacfunc = NULL,
+daspk(y, times, func = NULL, parms, nind = c(length(y), 0, 0), 
+  dy = NULL, res = NULL, nalg = 0, 
+  rtol = 1e-6, atol = 1e-6, jacfunc = NULL,
   jacres = NULL, jactype = "fullint", mass = NULL, estini = NULL,
   verbose = FALSE, tcrit = NULL, hmin = 0, hmax = NULL,
   hini = 0, ynames = TRUE, maxord = 5, bandup = NULL,
@@ -73,6 +74,18 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   }
   \item{parms }{vector or list of parameters used in \code{func},
     \code{jacfunc}, or \code{res}
+  }
+  \item{nind }{if a DAE system: a three-valued vector with the number of
+    variables of index 1, 2, 3 respectively.
+    The equations must be defined such that the index 1 variables precede
+    the index 2 variables which in turn precede the index 3 variables.
+    The sum of the variables of different index should equal N,
+    the total number of variables.
+	Note that this has been added for consistency with \link{radau}. 
+	If used, then the variables are weighed differently than in the 
+	original daspk code, i.e. index 2 variables are scaled with 1/h,
+	index 3 variables are scaled with 1/h^2. In some cases this allows
+	daspk to solve index 2 or index 3 problems.
   }
   \item{dy }{the initial derivatives of the state variables of the DE
     system.  Ignored if an ODE.
@@ -147,9 +160,9 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
     parameters (which may have a names attribute).
     
     If the Jacobian is a full matrix, \code{jacres} should return the
-    matrix \eqn{dG/dy + c_j\cdot dG/dy'}{dG/dy + cj*dG/dyprime}, where the \eqn{i}th row is the sum of the
+    matrix \eqn{dG/dy + c_j\cdot dG/dy'}{dG/d y + cj*dG/d y'}, where the \eqn{i}th row is the sum of the
     derivatives of \eqn{G_i} with respect to \eqn{y_j} and the scaled
-    derivatives of \eqn{G_i} with respect to \eqn{dy_j}.
+    derivatives of \eqn{G_i} with respect to \eqn{y'_j}.
     
     If the Jacobian is banded, \code{jacres} should return only the
     nonzero bands of the Jacobian, rotated rowwise. See details for the
@@ -215,8 +228,10 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   }
   \item{maxsteps }{maximal number of steps per output interval taken by the
     solver; will be recalculated to be at least 500 and a multiple of
-    500; the solver will give a warning if more than 500 steps are
-    taken, but it will continue till \code{maxsteps} steps.
+    500; if \code{verbose} is \code{TRUE} 
+    the solver will give a warning if more than 500 steps are
+    taken, but it will continue till \code{maxsteps} steps. 
+    (Note this warning was always given in deSolve versions < 1.10.3).
   }
   \item{dllname }{a string giving the name of the shared library
     (without extension) that contains all the compiled function or
@@ -294,7 +309,7 @@ daspk(y, times, func = NULL, parms, dy = NULL, res = NULL,
   of the output value.
       
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## Coupled chemical reactions including an equilibrium
@@ -499,18 +514,21 @@ plot(ODE_dll, which = c("Prod", "D"), xlab = "time",
   The daspk solver uses the backward differentiation formulas of orders
   one through five (specified with \code{maxord}) to solve either:
   \itemize{
-    \item an ODE system of the form \deqn{y' = f(t,y,...)}  for y = Y,
+    \item an ODE system of the form \deqn{y' = f(t,y,...)}  
     or
-    \item a DAE system of the form \deqn{F(t,y,y') = 0} for y = Y and y'
-    = YPRIME. The index of the DAE should be <=1.
+    \item a DAE system of the form \deqn{y' = M f(t,y,...)} 
+    or
+    \item a DAE system of the form \deqn{F(t,y,y') = 0}. 
+    The index of the DAE should be preferable <= 1.
   }
   
-  ODEs are specified in \code{func}, DAEs are specified in \code{res}.
+  ODEs are specified using argument \code{func}, 
+  DAEs are specified using argument \code{res}.
   
-  If a DAE system, Values for Y \emph{and} YPRIME at the initial time
-  must be given as input. Ideally,these values should be consistent,
-  that is, if T, Y, YPRIME are the given initial values, they should
-  satisfy F(T,Y,YPRIME) = 0.  \cr However, if consistent values are not
+  If a DAE system, Values for y \emph{and} y' (argument \code{dy}) 
+  at the initial time must be given as input. Ideally, these values should be consistent,
+  that is, if t, y, y' are the given initial values, they should
+  satisfy F(t,y,y') = 0.  \cr However, if consistent values are not
   known, in many cases daspk can solve for them: when \code{estini} = 1,
   y' and algebraic variables (their number specified with \code{nalg})
   will be estimated, when \code{estini} = 2, y will be estimated.
@@ -545,6 +563,14 @@ plot(ODE_dll, which = c("Prod", "D"), xlab = "time",
   \bold{error control} performed by the solver.  If the request for
   precision exceeds the capabilities of the machine, \code{daspk} will return
   an error code. See \code{\link{lsoda}} for details.
+  
+  When the index of the variables is specified (argument \code{nind}), 
+  and higher index variables
+  are present, then the equations are scaled such that equations corresponding
+  to index 2 variables are multiplied with 1/h, for index 3 they are multiplied
+  with 1/h^2, where h is the time step. This is not in the standard DASPK code,
+  but has been added for consistency with solver \link{radau}. Because of this,
+  daspk can solve certain index 2 or index 3 problems.
   
   \bold{res and jacres} may be defined in compiled C or FORTRAN code, as
   well as in an R-function. See package vignette \code{"compiledCode"}
@@ -589,6 +615,22 @@ plot(ODE_dll, which = c("Prod", "D"), xlab = "time",
 }
 \note{
   In this version, the Krylov method is not (yet) supported.
+
+  From \code{deSolve} version 1.10.4 and above, the following changes were made
+  
+  \enumerate{
+  \item the argument list to \code{daspk} 
+  now also includes \code{nind}, the index of each variable. 
+  This is used to scale the variables, such that \code{daspk} in R can also solve
+  certain index 2 or index 3 problems, which the original Fortran version 
+  may not be able to solve.
+
+  \item the default of \code{atol} was changed from 1e-8 to 1e-6,
+    to be consistent with the other solvers.
+
+  \item the multiple warnings from daspk when the number of steps exceed 500
+  were toggled off unless \code{verbose} is \code{TRUE}
+  }
 }
 \keyword{math}
 

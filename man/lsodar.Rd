@@ -239,7 +239,7 @@
   \code{iroot}, an integer indicating which root has been found.
   
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## Example 1:

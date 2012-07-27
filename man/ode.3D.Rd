@@ -93,7 +93,7 @@
 
   Do \bold{not} use this method for problems that are not 3D!
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## Diffusion in 3-D; imposed boundary conditions

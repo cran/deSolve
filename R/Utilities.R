@@ -588,7 +588,10 @@ drapecol <- function (A,
 
 select1dvar <- function (Which, var, att) {
 
-  proddim <- prod(att$dimens)
+  if (is.null(att$map))
+    proddim <- prod(att$dimens)
+  else 
+    proddim <- sum(!is.na(att$map))  
 
   ln   <- length(Which)
   csum <- cumsum(att$lengthvar) + 2
@@ -635,7 +638,10 @@ select1dvar <- function (Which, var, att) {
 
 select2dvar <- function (Which, var, att) {
 
-  proddim <- prod(att$dimens)
+  if (is.null(att$map))
+    proddim <- prod(att$dimens)
+  else 
+    proddim <- sum(!is.na(att$map))  
   ln   <- length(Which)
   csum <- cumsum(att$lengthvar) + 2
 
@@ -1156,8 +1162,11 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
   nspec <- att$nspec
   dimens <- att$dimens
   proddim <- prod(dimens)
-
-  if ((ncol(x) - nspec*proddim) < 1)
+  
+  Mask <- att$map 
+  map  <- (! is.null(Mask)) 
+  
+  if (!map & (ncol(x) - nspec*proddim) < 1)
     stop("ncol of 'x' should be > 'nspec' * dimens if x is a vector")
 
   # variables to be plotted
@@ -1234,7 +1243,13 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
       i       <- i+1
       istart <- Select$istart[ip]
       istop  <- Select$istop[ip]
-      out <- x[nt,istart:istop]
+      if (map) {
+        out <- rep (NA, length = prod(Select$dim[[ip]]))
+        ii <- which (! is.na(Mask))
+        out[ii] <- x[nt, istart:istop] 
+      } else 
+        out <- x[nt, istart:istop]
+      
       dim(out) <- Select$dim[[ip]]
 
       dotmain    <- extractdots(Dotmain, i)
@@ -1247,6 +1262,13 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
         if (diff(dotmain$zlim ) == 0 )
           dotmain$zlim[2] <- dotmain$zlim[2] +1
       }
+       if (map) {
+          if (is.null(dotmain$zlim))
+            dotmain$zlim <- range(out, na.rm=TRUE)
+          out[is.na(out)] <- dotmain$zlim[1] - 0.01*max(1e-18,diff(dotmain$zlim))
+          dotmain$zlim [1] <- dotmain$zlim[1] - 0.01*max(1e-18,diff(dotmain$zlim))
+        }
+      
       List <- alist(z = out)
       if (! is.null(grid)) {
         List$x <- grid$x
@@ -1263,12 +1285,14 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
         else
           dotmain$col <- drapecol(out, col = dotscol, Range = dotmain$zlim)
 
-      } else if (method == "image")
+      } else if (method == "image") {
         dotmain$col <- dotscol
-      else if (method == "filled.contour")
+        if (map)           dotmain$col <- c("black", dotmain$col)
+      } else if (method == "filled.contour")
         dotmain$color.palette <- dotscolorpalette
 
       do.call(method, c(List, dotmain))
+      if (method != "persp") box()
       if (add.contour) do.call("contour", c(List, add = TRUE))
 
       if (legend) {

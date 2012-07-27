@@ -7,7 +7,7 @@
 #                               STEP 1 - FKA                                   #
 #  Full kinetic approach - pH model written as a set of stiff                  #
 #  ordinary differential equations, solved with ODE solver vode                #
-#  Implementation: Andreas Hofmann, Karline Soetaert - NIOO-CEME               #
+#  Implementation: Andreas Hofmann, Karline Soetaert - NIOZ                    #
 ################################################################################
 
 # load parameters, dissociation constants, initial conditions,

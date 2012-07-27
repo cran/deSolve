@@ -27,6 +27,7 @@ C SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 C------------------------------------------------------------------------
 
 C KS: write statements rewritten
+C Francesca Mazzia: small changes to avoid overflow
 
       SUBROUTINE RADAU5(N,FCN,X,Y,XEND,H,
      &                  RTOL,ATOL,ITOL,
@@ -405,7 +406,6 @@ C *** *** *** *** *** *** *** *** *** *** *** *** ***
       DIMENSION RPAR(*),IPAR(*)
       LOGICAL IMPLCT,JBAND,ARRET,STARTN,PRED
       EXTERNAL FCN,JAC,MAS,SOLOUT
-      CHARACTER (LEN=80) MSG
 C *** *** *** *** *** *** ***
 C        SETTING THE PARAMETERS 
 C *** *** *** *** *** *** ***
@@ -423,8 +423,8 @@ C -------- UROUND   SMALLEST NUMBER SATISFYING 1.0D0+UROUND>1.0D0
       ELSE
          UROUND=WORK(1)
          IF (UROUND.LE.1.0D-19.OR.UROUND.GE.1.0D0) THEN
-            WRITE(MSG,*)' COEFFICIENTS HAVE 20 DIGITS, UROUND=',WORK(1)
-            CALL rprint(MSG)
+           CALL rprintd1(
+     & ' COEFFICIENTS HAVE 20 DIGITS, UROUND=',WORK(1))
             ARRET=.TRUE.
          END IF
       END IF
@@ -432,8 +432,7 @@ C -------- CHECK AND CHANGE THE TOLERANCES
       EXPM=2.0D0/3.0D0
       IF (ITOL.EQ.0) THEN
           IF (ATOL(1).LE.0.D0.OR.RTOL(1).LE.10.D0*UROUND) THEN
-              WRITE (MSG,*) ' TOLERANCES ARE TOO SMALL'
-              CALL rprint(MSG)
+             CALL rprint( ' TOLERANCES ARE TOO SMALL')
               ARRET=.TRUE.
           ELSE
               QUOT=ATOL(1)/RTOL(1)
@@ -443,8 +442,7 @@ C -------- CHECK AND CHANGE THE TOLERANCES
       ELSE
           DO I=1,N
           IF (ATOL(I).LE.0.D0.OR.RTOL(I).LE.10.D0*UROUND) THEN
-              WRITE (MSG,*) ' TOLERANCES(',I,') ARE TOO SMALL'
-              CALL rprint(MSG)
+              CALL rprint ( ' TOLERANCES(',I,') ARE TOO SMALL')
               ARRET=.TRUE.
           ELSE
               QUOT=ATOL(I)/RTOL(I)
@@ -459,8 +457,7 @@ C -------- NMAX , THE MAXIMAL NUMBER OF STEPS -----
       ELSE
          NMAX=IWORK(2)
          IF (NMAX.LE.0) THEN
-            WRITE(MSG,*)' WRONG INPUT IWORK(2)=',IWORK(2)
-            CALL rprint(MSG)
+           CALL Rprinti1(' WRONG INPUT IWORK(2)=',IWORK(2))
             ARRET=.TRUE.
          END IF
       END IF
@@ -470,8 +467,7 @@ C -------- NIT    MAXIMAL NUMBER OF NEWTON ITERATIONS
       ELSE
          NIT=IWORK(3)
          IF (NIT.LE.0) THEN
-            WRITE(MSG,*)' CURIOUS INPUT IWORK(3)=',IWORK(3)
-            CALL rprint(MSG)
+           CALL rprinti1(' CURIOUS INPUT IWORK(3)=',IWORK(3))
             ARRET=.TRUE.
          END IF
       END IF
@@ -487,8 +483,8 @@ C -------- PARAMETER FOR DIFFERENTIAL-ALGEBRAIC COMPONENTS
       NIND3=IWORK(7)
       IF (NIND1.EQ.0) NIND1=N
       IF (NIND1+NIND2+NIND3.NE.N) THEN
-       WRITE(MSG,*)' CURIOUS INPUT FOR IWORK(5,6,7)=',NIND1,NIND2,NIND3
-       CALL rprint(MSG)
+       call rprinti3(
+     &' CURIOUS INPUT FOR IWORK(5,6,7)=',NIND1,NIND2,NIND3)
        ARRET=.TRUE.
       END IF
 C -------- PRED   STEP SIZE CONTROL
@@ -504,8 +500,7 @@ C -------- PARAMETER FOR SECOND ORDER EQUATIONS
       IF (M1.EQ.0) M2=N
       IF (M2.EQ.0) M2=M1
       IF (M1.LT.0.OR.M2.LT.0.OR.M1+M2.GT.N) THEN
-       WRITE(MSG,*)' CURIOUS INPUT FOR IWORK(9,10)=',M1,M2
-       CALL rprint(MSG)
+       CALL rprinti2(' CURIOUS INPUT FOR IWORK(9,10)=',M1,M2)
        ARRET=.TRUE.
       END IF
 C --------- SAFE     SAFETY FACTOR IN STEP SIZE PREDICTION
@@ -514,8 +509,7 @@ C --------- SAFE     SAFETY FACTOR IN STEP SIZE PREDICTION
       ELSE
          SAFE=WORK(2)
          IF (SAFE.LE.0.001D0.OR.SAFE.GE.1.0D0) THEN
-            WRITE(MSG,*)' CURIOUS INPUT FOR WORK(2)=',WORK(2)
-            CALL rprint(MSG)
+            Call rprintd1(' CURIOUS INPUT FOR WORK(2)=',WORK(2))
             ARRET=.TRUE.
          END IF
       END IF
@@ -525,8 +519,7 @@ C ------ THET     DECIDES WHETHER THE JACOBIAN SHOULD BE RECOMPUTED;
       ELSE
          THET=WORK(3)
          IF (THET.GE.1.0D0) THEN
-            WRITE(MSG,*)' CURIOUS INPUT FOR WORK(3)=',WORK(3)
-            CALL rprint(MSG)
+            Call rprintd1(' CURIOUS INPUT FOR WORK(3)=',WORK(3))
             ARRET=.TRUE.
          END IF
       END IF
@@ -537,8 +530,7 @@ C --- FNEWT   STOPPING CRITERION FOR NEWTON'S METHOD, USUALLY CHOSEN <1.
       ELSE
          FNEWT=WORK(4)
          IF (FNEWT.LE.UROUND/TOLST) THEN
-            WRITE(MSG,*)' CURIOUS INPUT FOR WORK(4)=',WORK(4)
-            CALL rprint(MSG)
+            Call rprintd1(' CURIOUS INPUT FOR WORK(4)=',WORK(4))
             ARRET=.TRUE.
          END IF
       END IF
@@ -554,8 +546,7 @@ C --- QUOT1 AND QUOT2: IF QUOT1 < HNEW/HOLD < QUOT2, STEP SIZE = CONST.
          QUOT2=WORK(6)
       END IF
       IF (QUOT1.GT.1.0D0.OR.QUOT2.LT.1.0D0) THEN
-         WRITE(MSG,*)' CURIOUS INPUT FOR WORK(5,6)=',QUOT1,QUOT2
-         CALL rprint(MSG)
+         CALL rprintd2(' CURIOUS INPUT FOR WORK(5,6)=',QUOT1,QUOT2)
          ARRET=.TRUE.
       END IF
 C -------- MAXIMAL STEP SIZE
@@ -576,10 +567,9 @@ C -------  FACL,FACR     PARAMETERS FOR STEP SIZE SELECTION
          FACR=1.D0/WORK(9)
       END IF
       IF (FACL.LT.1.0D0.OR.FACR.GT.1.0D0) THEN
-            WRITE(MSG,*)' CURIOUS INPUT WORK(8,9)=',WORK(8),WORK(9)
-            CALL rprint(MSG)
-            ARRET=.TRUE.
-         END IF
+         CALL rprintd2(' CURIOUS INPUT WORK(8,9)=',WORK(8),WORK(9))
+         ARRET=.TRUE.
+      END IF
 C *** *** *** *** *** *** *** *** *** *** *** *** ***
 C         COMPUTATION OF ARRAY ENTRIES
 C *** *** *** *** *** *** *** *** *** *** *** *** ***
@@ -613,8 +603,8 @@ C -- MASS MATRIX
           END IF
 C ------ BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"
           IF (MLMAS.GT.MLJAC.OR.MUMAS.GT.MUJAC) THEN
-      WRITE(MSG,*)'BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"'
-            CALL rprint(MSG)
+      CALL rprint(
+     &'BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"')
             ARRET=.TRUE.
           END IF
       ELSE
@@ -629,9 +619,9 @@ C ------ BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"
       LDMAS2=MAX(1,LDMAS)
 C ------ HESSENBERG OPTION ONLY FOR EXPLICIT EQU. WITH FULL JACOBIAN
       IF ((IMPLCT.OR.JBAND).AND.IJOB.EQ.7) THEN
-       WRITE(MSG,*)' HESSENBERG OPTION ONLY FOR EXPLICIT EQUATIONS WITH 
-     &FULL JACOBIAN'
-         CALL rprint(MSG)
+       CALL rprint(
+     &'  HESSENBERG OPTION ONLY FOR EXPLICIT EQUATIONS 
+     &   WITH FULL JACOBIAN')
          ARRET=.TRUE.
       END IF
 C ------- PREPARE THE ENTRY-POINTS FOR THE ARRAYS IN WORK -----
@@ -652,8 +642,8 @@ C ------- PREPARE THE ENTRY-POINTS FOR THE ARRAYS IN WORK -----
 C ------ TOTAL STORAGE REQUIREMENT -----------
       ISTORE=IEE2I+NM1*LDE1-1
       IF(ISTORE.GT.LWORK)THEN
-        WRITE(MSG,*)' INSUFFICIENT STORAGE FOR WORK, MIN. LWORK=',ISTORE
-        CALL rprint(MSG)
+        CALL rprinti1(
+     &' INSUFFICIENT STORAGE FOR WORK, MIN. LWORK=',ISTORE)
         ARRET=.TRUE.
       END IF
 C ------- ENTRY POINTS FOR INTEGER WORKSPACE -----
@@ -663,8 +653,8 @@ C ------- ENTRY POINTS FOR INTEGER WORKSPACE -----
 C --------- TOTAL REQUIREMENT ---------------
       ISTORE=IEIPH+NM1-1
       IF (ISTORE.GT.LIWORK) THEN
-         WRITE(MSG,*)' INSUFF. STORAGE FOR IWORK, MIN. LIWORK=',ISTORE
-         CALL rprint(MSG)
+        CALL rprinti1(
+     &' INSUFF. STORAGE FOR IWORK, MIN. LIWORK=',ISTORE)
          ARRET=.TRUE.
       END IF
 C ------ WHEN A FAIL HAS OCCURED, WE RETURN WITH IDID=-1
@@ -734,7 +724,6 @@ C ----------------------------------------------------------
       LOGICAL REJECT,FIRST,IMPLCT,BANDED,CALJAC,STARTN,CALHES
       LOGICAL INDEX1,INDEX2,INDEX3,LAST,PRED
       EXTERNAL FCN
-      CHARACTER (LEN=80) MSG
 
 C *** *** *** *** *** *** ***
 C  INITIALISATIONS
@@ -957,10 +946,14 @@ C *** *** *** *** *** *** ***
 C  LOOP FOR THE SIMPLIFIED NEWTON ITERATION
 C *** *** *** *** *** *** ***
             NEWT=0
+C--- December, 2011 FRANCESCA MAZZIA added this line to avoid owerflow
+            DYNO = 1.0d0
             FACCON=MAX(FACCON,UROUND)**0.8D0
             THETA=ABS(THET)
   40        CONTINUE
             IF (NEWT.GE.NIT) GOTO 78
+C--- December, 2011 FRANCESCA MAZZIA added this line to avoid owerflow
+            IF ( .NOT. (DYNO .GT. 0.0d0) ) GOTO 78
 C ---     COMPUTE THE RIGHT-HAND SIDE
             DO I=1,N
                CONT(I)=Y(I)+Z1(I)
@@ -1152,23 +1145,18 @@ C --- UNEXPECTED STEP-REJECTION
       GOTO 10
 C --- FAIL EXIT
  176  CONTINUE
-      WRITE(MSG,979)X   
-      WRITE(MSG,*) ' MATRIX IS REPEATEDLY SINGULAR, IER=',IER
-      CALL rprint(MSG)
+      CALL rprintd1(' EXIT OF RADAU5 AT X=', X   )
+      CALL rprinti1(' MATRIX IS REPEATEDLY SINGULAR, IER=',IER)
       IDID=-4
       RETURN
  177  CONTINUE
-      WRITE(MSG,979)X   
-      CALL rprint(MSG)
-      WRITE(MSG,*) ' STEP SIZE T0O SMALL, H=',H
-      CALL rprint(MSG)
+      CALL rprintd1(' EXIT OF RADAU5 AT X=', X   )
+      CALL rprintd1(' STEP SIZE T0O SMALL, H=', H)
       IDID=-3
       RETURN
  178  CONTINUE
-      WRITE(MSG,979)X   
-      CALL rprint(MSG)
-      WRITE(MSG,*) ' MORE THAN NMAX =',NMAX,'STEPS ARE NEEDED' 
-      CALL rprint(MSG)
+      CALL rprintd1(' EXIT OF RADAU5 AT X=', X   )
+      CALL rprinti1(' MORE THAN NMAX (I1),STEPS ARE NEEDED',NMAX )
       IDID=-2
       RETURN
 C --- EXIT CAUSED BY SOLOUT

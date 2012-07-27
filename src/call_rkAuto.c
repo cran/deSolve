@@ -24,7 +24,13 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
 
   SEXP R_FSAL, Alpha, Beta;
   int fsal = FALSE;       /* assume no FSAL */
-  int interpolate = TRUE; /* polynomial interpolation is done by default */
+  
+  /* Use polynomial interpolation if not disabled by the method
+     or when events come in to play (stop-and-go mode).
+     Methods with dense output interpolate by default,
+     all others do not.
+  */
+  int interpolate = TRUE;
 
   int i = 0, j = 0, it = 0, it_tot = 0, it_ext = 0, nt = 0, neq = 0, it_rej = 0;
   int isForcing, isEvent;

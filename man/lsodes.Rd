@@ -89,7 +89,8 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     generate the Jacobian by differences.
   }
   \item{sparsetype }{the sparsity structure of the Jacobian, one of
-    "sparseint" or "sparseusr", sparsity estimated internally by lsodes
+    "sparseint" or "sparseusr", "sparsejan", ..., 
+    The sparsity can be estimated internally by lsodes
     or given by the user.
   }
   \item{nnz }{the number of nonzero elements in the sparse Jacobian (if
@@ -239,7 +240,7 @@ DLSODES- RWORK length is insufficient to proceed.
   returns with an unrecoverable error. If \code{y} has a names
   attribute, it will be used to label the columns of the output value.
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## Various ways to solve the same model.
 
@@ -424,31 +425,44 @@ out4 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
   \code{lsodes} is applied for stiff problems, where the Jacobian has a
   sparse structure.
   
-  There are four choices depending on whether \code{jacvec} and
-  \code{inz} is specified.
+  There are several choices depending on whether \code{jacvec}
+  is specified and depending on the setting of \code{sparsetype}.
   
   If function \code{jacvec} is present, then it should return the j-th
   column of the Jacobian matrix.
   
-  If matrix \code{inz} is present, then it should contain indices (row,
-  column) to the nonzero elements in the Jacobian matrix.
-  
-  If  \code{jacvec} and \code{inz} are present, then the Jacobian is
-  fully specified by the user.
-  
-  If \code{jacvec} is present, but not \code{nnz} then the structure of
-  the Jacobian will be obtained from NEQ + 1 calls to \code{jacvec}.
-  
-  If \code{nnz} is present, but not \code{jacvec} then the Jacobian will
-  be estimated internally, by differences. 
-  
-  If neither \code{nnz} nor \code{jacvec} is present, then the Jacobian
-  will be generated internally by differences, its structure (indices to
-  nonzero elements) will be obtained from NEQ + 1 initial calls to
-  \code{func}.
-  
-  If \code{nnz} is not specified, it is advisable to provide an estimate
-  of the number of non-zero elements in the Jacobian (\code{inz}).
+  There are also several choices for the sparsity specification, selected by
+  argument \code{sparsetype}.
+  \itemize{
+    \item \code{sparsetype} = \code{"sparseint"}.  The sparsity is estimated
+      by the solver, based on numerical differences.
+      In this case, it is advisable to provide an estimate of the number
+      of non-zero elements in the Jacobian (\code{nnz}).
+      This value can be approximate; upon return the number of nonzero
+      elements actually required will be known (1st element of attribute
+      \code{dims}).
+      In this case, \code{inz} need not be specified. 
+    \item \code{sparsetype} = \code{"sparseusr"}. The sparsity is determined by
+      the user. In this case, \code{inz} should be a \code{matrix}, containing indices 
+      (row, column) to the  nonzero elements in the Jacobian matrix.
+      The number of nonzeros \code{nnz} will be set equal to the number of rows
+      in \code{inz}.
+    \item \code{sparsetype} = \code{"sparsejan"}. The sparsity is also determined by
+      the user.
+      In this case, \code{inz} should be a \code{vector}, containting the \code{ian} and 
+      \code{jan} elements of the sparse storage format, as used in the sparse solver.
+      Elements of \code{ian} should be the first \code{n+1} elements of this vector, and 
+      contain the starting locations in \code{jan} of columns 1.. n. 
+      \code{jan} contains the row indices of the nonzero locations of           
+      the Jacobian, reading in columnwise order.
+      The number of nonzeros \code{nnz} will be set equal to the length of \code{inz} - (n+1).
+    \item \code{sparsetype} = \code{"1D"}, \code{"2D"}, \code{"3D"}. 
+      The sparsity is estimated by the solver, based on numerical differences.
+      Assumes finite differences in a 1D, 2D or 3D regular grid - used by 
+      functions \code{ode.1D}, \code{ode.2D}, \code{ode.3D}.
+      Similar are \code{"2Dmap"}, and \code{"3Dmap"}, which also include a 
+      mapping variable (passed in nnz). 
+  }
   
   The input parameters \code{rtol}, and \code{atol} determine the
   \bold{error control} performed by the solver.  See \code{\link{lsoda}}

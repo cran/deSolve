@@ -38,10 +38,9 @@ initial value problems, R}
 
 \author{
   Karline Soetaert\\
-  Centre for \\
-  Estuarine and Marine Ecology\\
-  Netherlands Institute of Ecology\\
-  The Netherlands
+  Royal Netherlands Institute\\
+  of Sea Research (NIOZ)\\
+  Yerseke, The Netherlands
   \And
   Thomas Petzoldt\\
   Technische Universit\"at \\
@@ -88,10 +87,10 @@ initial value problems, R}
 \Address{
   Karline Soetaert\\
   Centre for Estuarine and Marine Ecology (CEME)\\
-  Netherlands Institute of Ecology (NIOO)\\
+  Royal Netherlands Institute of Sea Research (NIOZ)\\
   4401 NT Yerseke, Netherlands \\
-  E-mail: \email{k.soetaert@nioo.knaw.nl}\\
-  URL: \url{http://www.nioo.knaw.nl/ppages/ksoetaert}\\
+  E-mail: \email{karline.soetaert@nioz.nl}\\
+  URL: \url{http://www.nioz.nl}\\
   \\
   Thomas Petzoldt\\
   Institut f\"ur Hydrobiologie\\

@@ -13,16 +13,19 @@
 ### It then returns the solution at the root, if that occurs
 ### sooner than the specified stop condition, and otherwise returns
 ### the solution according the specified stop condition.
+###
+### Karline: version 1.10.4: 
+###    added 2-D with mapping - still in testing phase, undocumented
 ### ============================================================================
 
-lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
-  jacvec=NULL, sparsetype="sparseint", nnz = NULL, inz = NULL,
-  rootfunc=NULL, verbose=FALSE, nroot = 0,
-  tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE,
-  maxord=NULL, maxsteps=5000, lrw=NULL, liw=NULL,
-  dllname=NULL, initfunc=dllname,
-  initpar=parms, rpar=NULL, ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
-  initforc = NULL, fcontrol=NULL, events=NULL, lags = NULL, ...)  {
+lsodes <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
+  jacvec = NULL, sparsetype = "sparseint", nnz = NULL, inz = NULL,
+  rootfunc = NULL, verbose = FALSE, nroot = 0,
+  tcrit = NULL, hmin = 0, hmax = NULL, hini = 0, ynames = TRUE,
+  maxord = NULL, maxsteps = 5000, lrw = NULL, liw = NULL,
+  dllname = NULL, initfunc = dllname, initpar = parms, 
+  rpar = NULL, ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
+  initforc = NULL, fcontrol = NULL, events = NULL, lags = NULL, ...)  {
 
 ### check input
   hmax <- checkInput (y, times, func, rtol, atol,
@@ -41,19 +44,21 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
   if (sparsetype=="sparseusr" && is.null(inz))
     stop("'inz' must be specified if 'sparsetype' = 'sparseusr'")
+  if (sparsetype=="sparsejan" && is.null(inz))
+    stop("'inz' must be specified if 'sparsetype' = 'sparsejan'")
   if (sparsetype=="1D" && ! is.null(jacvec))
     stop("cannot combine 'sparsetype=1D' and 'jacvec'")
-  if (sparsetype=="2D" && ! is.null(jacvec))
+  if (sparsetype %in% c("2D", "2Dmap") && ! is.null(jacvec))
     stop("cannot combine 'sparsetype=2D' and 'jacvec'")
-  if (sparsetype=="3D" && ! is.null(jacvec))
+  if (sparsetype %in% c("3D", "3Dmap")  && ! is.null(jacvec))
     stop("cannot combine 'sparsetype=3D' and 'jacvec'")
 
   # imp = method flag as used in lsodes
-  if (! is.null(jacvec) &&  sparsetype=="sparseusr")
+  if (! is.null(jacvec) &&  sparsetype %in% c("sparseusr", "sparsejan"))
     imp <- 21   # inz supplied,jac supplied
   else if (! is.null(jacvec) && !sparsetype=="sparseusr")
     imp <- 121  # inz internally generated,jac supplied
-  else if (is.null(jacvec) &&  sparsetype%in%c("sparseusr","1D","2D","3D"))
+  else if (is.null(jacvec) &&  sparsetype%in%c("sparseusr","1D","2D","2Dmap","3D","3Dmap","sparsejan"))
     imp <- 22   # inz supplied,jac not supplied
   else
     imp <- 222  # sparse Jacobian, calculated internally
@@ -68,49 +73,61 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 ## nnz is altered to include the number of nonzero elements (element 1).
 ## 'Type' contains the type of sparsity + nspec + num boxes + cyclicBnd + bandwidth
 
-  if (sparsetype=="1D") {
+  if (sparsetype == "1D") {
     nspec  <- nnz[1]
     bandwidth <- 1 # nnz[3]
     Type   <- c(2,nnz)    #type=2
     nnz    <- n*(2+nspec*bandwidth)-2*nspec
-  } else if (sparsetype=="2D")  {
+  } else if (sparsetype %in% c("2D","2Dmap"))  {
     nspec  <- nnz[1]
     dimens <- nnz[2:3]
     bandwidth <-  1# nnz[6]
     maxdim <- max(dimens)
-    Type   <- c(3,nnz)   #type=3
-    nnz    <- n*(4+nspec*bandwidth)-2*nspec*(sum(dimens))
-
+    if (sparsetype == "2D") {    
+      Type   <- c(3, nnz)   #type=3
+      nnz    <- n*(4+nspec*bandwidth)-2*nspec*(sum(dimens))
+    } else {                      ## Karline: changes for 2D map
+      Type   <- c(30, nnz)   #type=30 for 2Dmap
+      nnz    <- (nspec*prod(dimens))*(4+nspec*bandwidth)-2*nspec*(sum(dimens))
+    }
     if (Type[5]==1) { # cyclic boundary in x-direction
       nnz <- nnz + 2*maxdim*nspec*bandwidth
     }
     if (Type[6] ==1) {# cyclic boundary in y-direction
       nnz <- nnz + 2*maxdim*nspec*bandwidth
     }
-  } else if (sparsetype=="3D")  {
+  } else if (sparsetype %in% c("3D","3Dmap"))  {
     nspec  <- nnz[1]
     dimens <- nnz[2:4]    #type=4
     bandwidth <- 1# nnz[8]
-    Type   <- c(4,nnz)
-    nnz    <- n*(6+nspec*bandwidth)-2*nspec*(sum(dimens))
+    if (sparsetype == "3D") {    
+      Type   <- c(4,nnz)
+      nnz    <- n*(6+nspec*bandwidth)-2*nspec*(sum(dimens))
+    } else {                      ## Karline: changes for 3D map
+      Type   <- c(40, nnz)   #type=40 for 3Dmap
+      nnz    <- (nspec*prod(dimens))*(6+nspec*bandwidth)-2*nspec*(sum(dimens))
+    }
 
-    if (Type[6]==1) { # cyclic boundary in x-direction
+    if (Type[6]== 1) { # cyclic boundary in x-direction
       nnz <- nnz + 2*dimens[2]*dimens[3]*nspec
     }
-    if (Type[7] ==1) {# cyclic boundary in y-direction
+    if (Type[7] == 1) {# cyclic boundary in y-direction
       nnz <- nnz + 2*dimens[1]*dimens[3]*nspec
     }
-    if (Type[8] ==1) {# cyclic boundary in y-direction
+    if (Type[8] == 1) {# cyclic boundary in y-direction
       nnz <- nnz + 2*dimens[1]*dimens[2]*nspec
     }
   } else if (sparsetype == "sparseusr") {
     Type <- 0
     nnz  <- nrow(inz)
+  } else if (sparsetype == "sparsejan") { # ian and jan inputted, as a vector
+    Type <- 0
+    nnz <- length(inz) - n
   } else  {
     Type <- 1
     if (is.null(nnz))   nnz <- n*n
   }
-  if (nnz<1)
+  if (nnz < 1)
     stop ("Jacobian should at least contain one non-zero value")
 
 ### model and Jacobian function
@@ -280,6 +297,13 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       if (il>0) iwork[i1:i2] <- inz[ii,1]
     }
     iwork[31:(31+n)] <- iwork[31:(31+n)]-31-n
+  }  else if(sparsetype=="sparsejan")  {
+    iwork   <- vector("integer",liw)
+    iwork[] <- 0
+
+    iw        <- 32+n
+    linz <- 30 + length(inz)
+    iwork[31:linz] <- inz
   } else   {   # sparsity not imposed; only 30 element of iwork allocated.
     iwork <- vector("integer",30)
     iwork[] <- 0
@@ -310,16 +334,16 @@ lsodes <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       txt <- "  The user has supplied indices to nonzero elements of Jacobian,
       and a Jacobian function"  else
     if (imp == 22)  {
-      if (sparsetype=="sparseusr")
+      if (sparsetype %in% c("sparseusr","sparsejan"))
         txt <-"  The user has supplied indices to nonzero elements of Jacobian,
         the Jacobian will be estimated internally, by differences"
       if (sparsetype=="1D")
         txt <-"  The nonzero elements are according to a 1-D model,
         the Jacobian will be estimated internally, by differences"
-      if (sparsetype=="2D")
+      if (sparsetype %in% c("2D", "2Dmap"))
         txt <-"  The nonzero elements are according to a 2-D model,
         the Jacobian will be estimated internally, by differences"
-      if (sparsetype=="3D")
+      if (sparsetype %in% c("3D","3Dmap"))
         txt <-"  The nonzero elements are according to a 3-D model,
         the Jacobian will be estimated internally, by differences"
                    } else

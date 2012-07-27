@@ -79,7 +79,7 @@ This function is meant to help developing FORTRAN or C models that are to be
 used to solve differential algebraic equations (DAE) in
 package \code{deSolve}.
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \keyword{utilities}
 
 \examples{

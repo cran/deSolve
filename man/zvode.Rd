@@ -17,7 +17,7 @@
     
 }
 
-\usage{zvode(y, times, func, parms, rtol = 1e-6, atol = 1e-8,  
+\usage{zvode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,  
   jacfunc = NULL, jactype = "fullint", mf = NULL, verbose = FALSE,   
   tcrit = NULL, hmin = 0, hmax = NULL, hini = 0, ynames = TRUE,
   maxord = NULL, bandup = NULL, banddown = NULL, maxsteps = 5000,
@@ -204,7 +204,7 @@
   returns with an unrecoverable error. If \code{y} has a names
   attribute, it will be used to label the columns of the output value.
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 
 ## =======================================================================
@@ -297,10 +297,13 @@ tail(cbind(out[,2], analytical[,1]))
   Netlib: \url{http://www.netlib.org}
 }
 \details{
-    see \code{\link{vode}}, the double precision version, for details
-}
+    see \code{\link{vode}}, the double precision version, for details.
+    }
 \note{
-(adapted from the zvode.f source code):
+From version 1.10.4, the default of atol was changed from 1e-8 to 1e-6,
+    to be consistent with the other solvers.
+
+The following text is adapted from the zvode.f source code:
 
 When using \code{zvode} for a stiff system, it should only be used for
 the case in which the function f is analytic, that is, when each f(i)
