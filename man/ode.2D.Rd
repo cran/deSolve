@@ -9,9 +9,11 @@
   that have been converted to ODEs by numerical differencing.
 }
 
-\usage{ode.2D(y, times, func, parms, nspec = NULL, dimens,
+\usage{
+ode.2D(y, times, func, parms, nspec = NULL, dimens,
   method= c("lsodes", "euler", "rk4", "ode23", "ode45", "adams", "iteration"),
-  names = NULL, cyclicBnd = NULL, ...)}
+  names = NULL, cyclicBnd = NULL, ...)
+}
 \arguments{
   \item{y }{the initial (state) values for the ODE system, a vector. If
     \code{y} has a name attribute, the names will be used to label the
@@ -96,7 +98,7 @@
 
   Do \bold{not} use this method for problems that are not 2D!
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## A Lotka-Volterra predator-prey model with predator and prey

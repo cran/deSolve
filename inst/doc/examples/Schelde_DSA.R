@@ -8,7 +8,7 @@
 #  Direct substitution approach - pH model written as a set of                 #
 #  ordinary differential equations, solved with ODE solver vode                #
 #  Hplus is a state variable; the model is not stiff                           #        
-#  Implementation: Andreas Hofmann, Karline Soetaert - NIOO-CEME               #
+#  Implementation: Andreas Hofmann, Karline Soetaert - NIOZ                    #
 ################################################################################
 
 # load parameters, dissociation constants, initial conditions,

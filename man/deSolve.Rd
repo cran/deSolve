@@ -19,30 +19,29 @@
   solvers of the Runge-Kutta family with fixed or variable time steps.
 
   The package contains routines designed for solving ODEs
-  resulting from 1-D, 2-D and 3-D
-  partial differential equations (PDE) that have been converted to ODEs by
-  numerical differencing.
+  resulting from 1-D, 2-D and 3-D partial differential equations (PDE)
+  that have been converted to ODEs by numerical differencing.
   
   It includes root-finding (or event location) and provides access to lagged
   variables and derivatives.
-
 }
 \details{
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.10-3\cr
-    Date:    \tab 2011-08-06\cr
+    Version: \tab 1.10-4\cr
+    Date:    \tab 2012-07-24\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
-  The system of differential equations is written as an \R function or defined in
-  compiled code that has been dynamically loaded, see package vignette
-  (\code{vignette(compiledCode)}) for details. The solvers may be used
-  as part of a modeling package for differential equations, or for
-  parameter estimation using any appropriate modeling tool for
-  non-linear models in \R such as \code{\link{optim}},
-  \code{\link{nls}}, \code{\link{nlm}} or \code{\link[nlme]{nlme}}.
+  The system of differential equations is written as an \R function or
+  defined in compiled code that has been dynamically loaded, see
+  package vignette (\code{vignette(compiledCode)}) for details. The
+  solvers may be used as part of a modeling package for differential
+  equations, or for parameter estimation using any appropriate
+  modeling tool for non-linear models in \R such as
+  \code{\link{optim}}, \code{\link{nls}}, \code{\link{nlm}} or
+  \code{\link[nlme]{nlme}}.
   
 }
 \author{

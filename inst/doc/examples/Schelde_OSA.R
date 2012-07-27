@@ -8,7 +8,7 @@
 #  Operator splitter approach - pH model written as a set of                   #
 #  ordinary differential equations, solved with ODE solver vode                #
 #  Each time step the pH is solved at equilibrium, using uniroot               #   
-#  Implementation: Andreas Hofmann, Karline Soetaert - NIOO-CEME               #     
+#  Implementation: Andreas Hofmann, Karline Soetaert - NIOZ                    #     
 ################################################################################
 
 # load parameters, dissociation constants, initial conditions,

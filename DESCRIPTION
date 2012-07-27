@@ -1,10 +1,10 @@
 Package: deSolve
-Version: 1.10-3
+Version: 1.10-4
 Title: General solvers for initial value problems of ordinary
         differential equations (ODE), partial differential equations
         (PDE), differential algebraic equations (DAE), and delay
         differential equations (DDE).
-Author: Karline Soetaert <k.soetaert@nioo.knaw.nl>, Thomas Petzoldt
+Author: Karline Soetaert <karline.soetaert@nioz.nl>, Thomas Petzoldt
         <thomas.petzoldt@tu-dresden.de>, R. Woodrow Setzer
         <setzer.woodrow@epa.gov>
 Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
@@ -12,17 +12,19 @@ Depends: R (>= 2.6.0)
 Description: Functions that solve initial value problems of a system of
         first-order ordinary differential equations (ODE), of partial
         differential equations (PDE), of differential algebraic
-        equations (DAE), and of delay differential equations. The
+        equations (DAE), and of delay differential equations.  The
         functions provide an interface to the FORTRAN functions lsoda,
         lsodar, lsode, lsodes of the ODEPACK collection, to the FORTRAN
         functions dvode and daspk and a C-implementation of solvers of
-        the Runge-Kutta family with fixed or variable time steps. The
+        the Runge-Kutta family with fixed or variable time steps.  The
         package contains routines designed for solving ODEs resulting
         from 1-D, 2-D and 3-D partial differential equations (PDE) that
         have been converted to ODEs by numerical differencing.
 License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
-Packaged: 2011-08-10 08:57:46 UTC; user
 Repository: CRAN
-Date/Publication: 2011-08-10 10:13:15
+Repository/R-Forge/Project: desolve
+Repository/R-Forge/Revision: 523
+Packaged: 2012-07-27 10:20:53 UTC; rforge
+Date/Publication: 2012-07-27 17:09:45

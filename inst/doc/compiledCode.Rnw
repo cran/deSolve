@@ -29,9 +29,9 @@ performance, FORTRAN, C}
 
 \author{
   Karline Soetaert\\
-  Centre for \\
-  Estuarine and Marine Ecology\\
-  Netherlands Institute of Ecology\\
+  Royal Netherlands Institute\\
+  of Sea Research (NIOZ)\\
+  Yerseke\\
   The Netherlands
   \And
   Thomas Petzoldt\\
@@ -54,11 +54,10 @@ performance, FORTRAN, C}
 %% in the following format:
 \Address{
   Karline Soetaert\\
-  Centre for Estuarine and Marine Ecology (CEME)\\
-  Netherlands Institute of Ecology (NIOO)\\
+  Royal Netherlands Institute of Sea Research (NIOZ)\\
   4401 NT Yerseke, Netherlands \\
-  E-mail: \email{k.soetaert@nioo.knaw.nl}\\
-  URL: \url{http://www.nioo.knaw.nl/users/ksoetaert}\\
+  E-mail: \email{karline.soetaert@nioz.nl}\\
+  URL: \url{http://www.nioz.nl}\\
   \\
   Thomas Petzoldt\\
   Institut f\"ur Hydrobiologie\\
@@ -311,15 +310,15 @@ void jac(int *neq, double *t, double *y, int *ml,
   integers are only relevant if the option of a banded Jacobian is
   selected. \code{*nrow} contains the number of rows of the Jacobian.
   Only for full Jacobian matrices, is this equal to \code{*neq}. In
-  case the Jacobian is banded, the size of \code{*nrowpd} depends on the 
-  integrator. If the method is one of \code{lsode, lsoda, vode}, 
+  case the Jacobian is banded, the size of \code{*nrowpd} depends on the
+  integrator. If the method is one of \code{lsode, lsoda, vode},
   then \code{*nrowpd}  will be equal to
-  \code{*mu + 2 * *ml + 1}, where the last \code{*ml} rows should be 
+  \code{*mu + 2 * *ml + 1}, where the last \code{*ml} rows should be
   filled with $0$s.
-  
+
   For \code{radau}, \code{*nrowpd} will be equal to \code{*mu + *ml + 1}
-  
-  See example ``odeband'' in the directory \url{doc/examples/dynload}, 
+
+  See example ``odeband'' in the directory \url{doc/examples/dynload},
   and chapter \ref{band}.
 \end{enumerate}
 
@@ -357,8 +356,8 @@ for the \proglang{FORTRAN} code or
 
 for the \proglang{C} code.
 
-This will create file \code{mymod.dll} on windows, or \code{mymod.so} on 
-other platforms. 
+This will create file \code{mymod.dll} on windows, or \code{mymod.so} on
+other platforms.
 
 We load the DLL, in windows as:
 \begin{verbatim}
@@ -415,7 +414,7 @@ this.  Note that it is not an error (just a waste of memory) to set
 
 Finally, in order to label the output matrix, the names of the ordinary
 output variables have to be passed explicitly (\code{outnames}). This is not
-necessary for the state variables, as their names are known through their 
+necessary for the state variables, as their names are known through their
 initial condition (\code{y}).
 
 \section{Alternative way of passing parameters and data in compiled code}
@@ -431,7 +430,7 @@ The problem is that data passed to, say, \code{ode} in the argument
 \code{parms} is not visible by default to the routines that define the
 model.  This is handled by a user-written initialization function, for
 example \code{initmod} in the \proglang{C} and \proglang{FORTRAN}
-examples from sections \ref{sec:Cexamp} and \ref{sec:forexamp}.  
+examples from sections \ref{sec:Cexamp} and \ref{sec:forexamp}.
 However, these set only the \emph{values} of the parameters.
 
 R-objects have many attributes that may also be of interest. To have access
@@ -600,8 +599,8 @@ Also, there is no initialiser function here (\code{initfunc = NULL}).
 \subsection{DAE models, integrator daspk}
 
 \code{daspk} is one of the integrators in the package that solve DAE
-models.  In order to be used with DASPK, DAEs are specified in implicit 
-form: \[0 = F(t, y, y', p)\] i.e. the DAE function (passed via argument 
+models.  In order to be used with DASPK, DAEs are specified in implicit
+form: \[0 = F(t, y, y', p)\] i.e. the DAE function (passed via argument
 \code{res}) specifies the ``residuals'' rather than the derivatives (as for ODEs).
 
 Consequently the DAE function specification in a compiled language is
@@ -707,7 +706,7 @@ For code written in \proglang{FORTRAN}, the \code{jacres} must be as:
 Function \code{radau} solves DAEs in linearly implicit form, i.e. in the form
 $M y' = f(t, y, p)$.
 
-The derivative function $f$ is specified in the same way as for an ODE, i.e. 
+The derivative function $f$ is specified in the same way as for an ODE, i.e.
 \begin{verbatim}
 void derivs (int *neq, double *t, double *y, double *ydot,
              double *yout, int *ip)
@@ -718,9 +717,9 @@ and
 \end{verbatim}
 for \proglang{C} and \proglang{FORTRAN} code respectively.
 
-To show how it should be used, we implement the caraxis problem as in 
-\citep{testset}. The implementation of this index 3 DAE, comprising 8 
-differential, and 2 algebraic equations in R is the last example of the 
+To show how it should be used, we implement the caraxis problem as in
+\citep{testset}. The implementation of this index 3 DAE, comprising 8
+differential, and 2 algebraic equations in R is the last example of the
 \code{radau} help page. We first repeat the R implementation:
 
 <<>>=
@@ -730,28 +729,28 @@ caraxisfun <- function(t, y, parms) {
     xb <- sqrt(L * L - yb * yb)
     Ll <- sqrt(xl^2 + yl^2)
     Lr <- sqrt((xr - xb)^2 + (yr - yb)^2)
-        
+
     dxl <- ul; dyl <- vl; dxr <- ur; dyr <- vr
-        
+
     dul  <- (L0-Ll) * xl/Ll      + 2 * lam2 * (xl-xr) + lam1*xb
     dvl  <- (L0-Ll) * yl/Ll      + 2 * lam2 * (yl-yr) + lam1*yb - k * g
-               
+
     dur  <- (L0-Lr) * (xr-xb)/Lr - 2 * lam2 * (xl-xr)
     dvr  <- (L0-Lr) * (yr-yb)/Lr - 2 * lam2 * (yl-yr) - k * g
-        
+
     c1   <- xb * xl + yb * yl
     c2   <- (xl - xr)^2 + (yl - yr)^2 - L * L
-        
+
     list(c(dxl, dyl, dxr, dyr, dul, dvl, dur, dvr, c1, c2))
   })
 }
-eps <- 0.01; M <- 10; k <- M * eps^2/2; 
+eps <- 0.01; M <- 10; k <- M * eps^2/2;
 L <- 1; L0 <- 0.5; r <- 0.1; w <- 10; g <- 1
 
-parameter <- c(eps = eps, M = M, k = k, L = L, L0 = L0, 
+parameter <- c(eps = eps, M = M, k = k, L = L, L0 = L0,
                r = r, w = w, g = g)
 
-yini <- c(xl = 0, yl = L0, xr = L, yr = L0, ul = -L0/L, vl = 0, 
+yini <- c(xl = 0, yl = L0, xr = L, yr = L0, ul = -L0/L, vl = 0,
           ur = -L0/L, vr = 0, lam1 = 0, lam2 = 0)
 
 # the mass matrix
@@ -813,36 +812,36 @@ c----------------------------------------------------------------
       double precision yb, xb, Ll, Lr, dxl, dyl, dxr, dyr
       double precision dul, dvl, dur, dvr, c1, c2
 
-c expand state variables 
+c expand state variables
        xl = y(1)
        yl = y(2)
-       xr = y(3) 
-       yr = y(4) 
-       ul = y(5) 
-       vl = y(6) 
-       ur = y(7) 
-       vr = y(8) 
-       lam1 = y(9) 
+       xr = y(3)
+       yr = y(4)
+       ul = y(5)
+       vl = y(6)
+       ur = y(7)
+       vr = y(8)
+       lam1 = y(9)
        lam2 = y(10)
 
        yb = r * sin(w * t)
        xb = sqrt(L * L - yb * yb)
        Ll = sqrt(xl**2 + yl**2)
        Lr = sqrt((xr - xb)**2 + (yr - yb)**2)
-        
+
        dxl = ul
        dyl = vl
        dxr = ur
        dyr = vr
-        
+
        dul = (L0-Ll) * xl/Ll      + 2 * lam2 * (xl-xr) + lam1*xb
        dvl = (L0-Ll) * yl/Ll      + 2 * lam2 * (yl-yr) + lam1*yb - k*g
        dur = (L0-Lr) * (xr-xb)/Lr - 2 * lam2 * (xl-xr)
        dvr = (L0-Lr) * (yr-yb)/Lr - 2 * lam2 * (yl-yr) - k*g
-        
+
        c1  = xb * xl + yb * yl
        c2  = (xl - xr)**2 + (yl - yr)**2 - L * L
-        
+
 c function values in ydot
        ydot(1)  = dxl
        ydot(2)  = dyl
@@ -858,14 +857,14 @@ c function values in ydot
       end
 \end{verbatim}
 
-Assuming that the code is in file ``radaudae.f'', this model is compiled, 
+Assuming that the code is in file ``radaudae.f'', this model is compiled,
 loaded and solved in R as:
 \begin{verbatim}
 system("R CMD SHLIB radaudae.f")
 dyn.load(paste("radaudae", .Platform$dynlib.ext, sep = ""))
 
 outDLL <- radau(y = yini, mass = Mass, times = times, func = "caraxis",
-                initfunc = "initcaraxis", parms = parameter, 
+                initfunc = "initcaraxis", parms = parameter,
                 dllname = "radaudae", nind = index)
 
 dyn.unload(paste("radaudae", .Platform$dynlib.ext, sep = ""))
@@ -927,7 +926,7 @@ INTEGER NEQ, J, IP(*)
 
 \subsection{Banded jacobians in compiled code}\label{band}
 
-In the call of the jacobian function, the number of bands below and above the 
+In the call of the jacobian function, the number of bands below and above the
 diagonal (\code{ml, mu}) and the number of rows of the Jacobian matrix,
 \code{nrowPD} is specified, e.g. for \proglang{FORTRAN} code:
 \begin{verbatim}
@@ -935,17 +934,17 @@ diagonal (\code{ml, mu}) and the number of rows of the Jacobian matrix,
 \end{verbatim}
 The jacobian matrix to be returned should have dimension \code{nrowPD, neq}.
 
-In case the Jacobian is banded, the size of \code{nrowPD} depends on the 
-  integrator. If the method is one of \code{lsode, lsoda, vode}, or related, 
-  then \code{nrowPD}  will be equal to \code{mu + 2 * ml + 1}, where the 
+In case the Jacobian is banded, the size of \code{nrowPD} depends on the
+  integrator. If the method is one of \code{lsode, lsoda, vode}, or related,
+  then \code{nrowPD}  will be equal to \code{mu + 2 * ml + 1}, where the
   last ml rows should be filled with $0$s.
-  
+
   For \code{radau}, \code{nrowpd} will be equal to \code{mu + ml + 1}
-  
-  Thus, it is important to write the FORTRAN or C-code in such a way that 
+
+  Thus, it is important to write the FORTRAN or C-code in such a way that
   it can be used with both types of integrators - else it is likely that
   R will freeze if the wrong integrator is used.
-  
+
 We implement in FORTRAN, the example of the \code{lsode} help file.
 The R-code reads:
 <<>>=
@@ -982,7 +981,7 @@ out  <- lsode(yini, times, f1, parms = 0, jactype = "bandusr",
 
 In FORTRAN, the code might look like this:
 \begin{verbatim}
-c Rate of change  
+c Rate of change
       subroutine derivsband (neq, t, y, ydot,out,IP)
       integer           neq, IP(*)
       DOUBLE PRECISION  T, Y(5), YDOT(5), out(*)
@@ -995,7 +994,7 @@ c Rate of change
       RETURN
       END
 
-c The banded jacobian 
+c The banded jacobian
       subroutine jacband (neq, t, y, ml, mu, pd, nrowpd, RP, IP)
       INTEGER           neq, ml, mu, nrowpd, ip(*)
       DOUBLE PRECISION  T, Y(5), PD(nrowpd,5), rp(*)
@@ -1018,8 +1017,8 @@ c The banded jacobian
       RETURN
       END
 \end{verbatim}
-Assuming that this code is in file \code{"odeband.f"}, we compile from within 
-R and load the shared library (assuming the working directory holds the 
+Assuming that this code is in file \code{"odeband.f"}, we compile from within
+R and load the shared library (assuming the working directory holds the
 source file) with:
 \begin{verbatim}
 system("R CMD SHLIB odeband.f")
@@ -1034,7 +1033,7 @@ out2 <- radau(yini, times, "derivsband", parms = 0, jactype = "bandusr",
       jacfunc = "jacband", bandup = 1, banddown = 1, dllname = "odeband")
 \end{verbatim}
 
-This will work both for the \code{lsode} family as for \code{radau}. 
+This will work both for the \code{lsode} family as for \code{radau}.
 In the first case, when entering subroutine \code{jacband}, \code{nrowpd} will
 have the value $5$, in the second case, it will be equal to $4$.
 \section{Testing functions written in compiled code}
@@ -1412,8 +1411,8 @@ consumer (C) model with time-variable input (signal) - see text for R-code}
 \end{figure}
 
 The C-code, in file \url{Forcing\_lv.c}, can be found in the packages
-\url{/doc/examples/dynload} subdirectory\footnote{this can be opened by typing  
-\code{browseURL(paste(system.file(package = "deSolve"), "/doc/examples/dynload", sep = ""))}}. 
+\url{/doc/examples/dynload} subdirectory\footnote{this can be opened by typing
+\code{browseURL(paste(system.file(package = "deSolve"), "/doc/examples/dynload", sep = ""))}}.
 It can be compiled, from within R by
 
 \begin{verbatim}

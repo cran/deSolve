@@ -27,7 +27,7 @@
   kept.
 }
 
-\usage{vode(y, times, func, parms, rtol = 1e-6, atol = 1e-8,  
+\usage{vode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,  
   jacfunc = NULL, jactype = "fullint", mf = NULL, verbose = FALSE,   
   tcrit = NULL, hmin = 0, hmax = NULL, hini = 0, ynames = TRUE,
   maxord = NULL, bandup = NULL, banddown = NULL, maxsteps = 5000,
@@ -218,7 +218,7 @@
   returns with an unrecoverable error. If \code{y} has a names
   attribute, it will be used to label the columns of the output value.
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## ex. 1
@@ -447,6 +447,10 @@ plot(out, out2, out3)
   }
 
   \code{\link{diagnostics}} to print diagnostic messages.
+}
+\note{
+From version 1.10.4, the default of \code{atol} was changed from 1e-8 to 1e-6,
+    to be consistent with the other solvers.
 }
 \keyword{math}
 

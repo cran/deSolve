@@ -78,6 +78,9 @@ radau(y, times, func, parms, nind = c(length(y), 0, 0),
     the index 2 variables which in turn precede the index 3 variables.
     The sum of the variables of different index should equal N,
     the total number of variables.
+	This has implications on the scaling of the variables,
+	i.e. index 2 variables are scaled by 1/h,
+	index 3 variables are scaled by 1/h^2. 
   }
   \item{rtol }{relative error tolerance, either a
     scalar or an array as long as \code{y}. See details.
@@ -334,7 +337,7 @@ plot(out, log = "x", type = "l", lwd = 2)
 ## Available at http://www.dm.uniba.it/~testset.
 ## =============================================================================
 
-## Problem is written as M*y = f(t,y,p).
+## Problem is written as M*y' = f(t,y,p).
 ## caraxisfun implements the right-hand side:
 
 caraxisfun <- function(t, y, parms) {

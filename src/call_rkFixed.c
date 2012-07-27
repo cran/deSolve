@@ -212,7 +212,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
          maxsteps, nt,
   	     &iknots, &it, &it_ext, &it_tot,
          istate, ipar,
-  	     t, tmax, fmin(hini, dt),
+  	     t, tmax, fmin(hini, fabs(dt)) * sign(dt),      // <----- hini for backward steps
   	     &dt,
   	     tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
   	     out, bb1, cc, yknots,  yout,

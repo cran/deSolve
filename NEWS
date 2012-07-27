@@ -1,7 +1,20 @@
+Changes version 1.10-4 (Thomas, Karline)
+================================
+ o allow reverted time vector for fixed step solvers
+   - todo: find solution for dense output methods, and Livermore solvers
+ o all solvers now have default atol = 1e-6; before this daspk and vode had 1e-8.
+ o multiple warnings from daspk if num steps = 500 toggled off.
+ o added input argument "nind" to daspk, to make it compatible with radau.
+   this also changes the way the variables are weighed, 
+   hence this differs from the original daspk 2.0 code.
+ o improved warning printing in daspk and vode 
+ o extended sparse Jacobian input in lsodes. (2-D and 3-D sparsity
+   with mapping var and arbitrary sparsity in ian/jan format).
+
 Changes version 1.10-3 (Karline)
 ================================
- o rwork and iwrk in lsodes from Fortran -> C (to remove compiler warnings)
- o roots + events - now certain roots can stop simulation + fixed bug in radau root
+ o rwork and iwork in lsodes from Fortran -> C (to remove compiler warnings)
+ o roots + events:  now certain roots can stop simulation + fixed bug in radau root
  o improved events\roots help file
  o diagnostics(out) gave error in case method=iteration (no rstate) now fixed
  o the package authors agreed to assign the maintainer role to T.P.,

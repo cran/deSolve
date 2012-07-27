@@ -9,8 +9,9 @@
 ###          change during the integration.
 ### ============================================================================
 
-daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
-    nalg=0, rtol=1e-6, atol=1e-8, jacfunc=NULL, jacres=NULL,
+daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0), 
+    dy = NULL, res = NULL,
+    nalg=0, rtol=1e-6, atol=1e-6, jacfunc=NULL, jacres=NULL,
     jactype = "fullint", mass = NULL, estini = NULL, verbose=FALSE, tcrit = NULL,
     hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord =5, bandup=NULL,
     banddown=NULL, maxsteps=5000, dllname=NULL, initfunc=dllname,
@@ -338,7 +339,7 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
 ### work arrays INFO, iwork, rwork
 
 ## the INFO vector
-  info   <- vector("integer",20)
+  info   <- vector("integer", 25)   # Changed to account for the index of variables
   info[] <- 0
   info[20] <- funtype   # 1 for a res in DLL, 2 for func in DLL
   if (length(atol)==n) {
@@ -396,6 +397,12 @@ daspk   <- function(y, times, func=NULL, parms, dy=NULL, res=NULL,
                   lrw <- lrw+ (2*banddown+bandup+1)*n  }
   liw <- 40+n
 
+### index
+  if (length(nind) != 3)
+    stop("length of `nind' must be = 3")
+  if (sum(nind) != n)
+    stop("sum of of `nind' must equal n, the number of equations")
+  info[21:23] <- nind
 #    } else {
 #     maxl <- krylpar[1]
 #     kmp  <- krylpar[2]

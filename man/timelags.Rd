@@ -39,7 +39,7 @@ timestep(prev = TRUE)
 \value{
  a scalar (or vector) with the lagged value(s).
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 
 \details{
   The \code{lagvalue} and \code{lagderiv} can only be called during the

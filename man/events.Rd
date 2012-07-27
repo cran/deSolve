@@ -92,7 +92,7 @@
    setting \code{events$root} equal to \code{TRUE}.
  
   
-   If the evenst are specified by a \bold{data frame}
+   If the events are specified by a \bold{data frame}
    (argument \code{events$data}), this should
    contain the following columns (and in that order):
   \enumerate{

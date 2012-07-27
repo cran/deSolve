@@ -72,7 +72,7 @@
   to be used to solve ordinary differential equations (ODE) in packages
   \code{deSolve} and/or \code{rootSolve}.
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## ==========================================================================
 ## ex. 1

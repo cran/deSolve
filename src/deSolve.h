@@ -107,7 +107,9 @@ void initOutC(int isDll, int *nout, int *ntot, int neq, SEXP nOut, SEXP Rpar, SE
 void sparsity1D(SEXP Type, int* iwork, int neq, int liw);
 void sparsity2D(SEXP Type, int* iwork, int neq, int liw);
 void sparsity3D(SEXP Type, int* iwork, int neq, int liw);
-
+void sparsity2Dmap(SEXP Type, int* iwork, int neq, int liw);  /* testing, since version 1.10.4*/
+void sparsity3Dmap(SEXP Type, int* iwork, int neq, int liw);  /* testing, since version 1.10.4*/
+void interactmap (int *ij, int nnz, int *iwork, int *ipres, int ival);
 void initglobals(int, int);
 void initdaeglobals(int, int);
 

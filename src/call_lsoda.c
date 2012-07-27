@@ -28,6 +28,7 @@
                       3. output variables now in C-code -> lsodeSr (fortran code)
             improving names
    karline: version 1.9.1: root finding in lsodes
+            version 1.10.4: 2D with mapping - still in testing phase, undocumented
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /* definition of the calls to the FORTRAN functions - in file opkdmain.f
@@ -123,7 +124,7 @@ static void C_deriv_func (int *neq, double *t, double *y,
 
   for (i = 0; i < *neq; i++)   ydot[i] = REAL(ans)[i];
 
-  my_unprotect(2);
+  my_unprotect(2);  
 }
 
 /* deriv output function  */
@@ -305,8 +306,12 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
        sparsity1D( Type, iwork, n_eq, liw) ;
     else if (type == 3)  /* 2-D problem */
        sparsity2D( Type, iwork, n_eq, liw);
+    else if (type == 30)  /* 2-D problem with map */
+       sparsity2Dmap( Type, iwork, n_eq, liw);
     else if (type == 4)  /* 3-D problem */
-     sparsity3D (Type, iwork, n_eq, liw);
+       sparsity3D (Type, iwork, n_eq, liw);
+    else if (type == 40)  /* 3-D problem with map */
+       sparsity3Dmap( Type, iwork, n_eq, liw);
   }
 
 /* initialise global R-variables...  */

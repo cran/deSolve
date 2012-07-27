@@ -298,7 +298,7 @@ ode.2D    <- function (y, times, func, parms, nspec=NULL, dimens,
   Bnd <- c(0,0)
   if (! is.null(cyclicBnd)) {
     if (max(cyclicBnd) > 2 )
-      stop ("cannot run steady.2D: cyclicBnd should be a vector or number not exceeding 2")
+      stop ("cannot run ode.2D: cyclicBnd should be a vector or number not exceeding 2")
     Bnd[cyclicBnd[cyclicBnd>0]]<-1
   }
 
@@ -377,7 +377,7 @@ ode.3D    <- function (y, times, func, parms, nspec=NULL, dimens,
   Bnd <- c(0,0,0)    #  cyclicBnd not included
   if (! is.null(cyclicBnd)) {
     if (max(cyclicBnd) > 3 )
-      stop ("cannot run steady.3D: cyclicBnd should be a vector or number not exceeding 3")
+      stop ("cannot run ode.3D: cyclicBnd should be a vector or number not exceeding 3")
     Bnd[cyclicBnd[cyclicBnd>0]]<-1
   }
 

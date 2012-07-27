@@ -5,7 +5,7 @@
 ### This is vode for complex numbers
 ### ============================================================================
 
-zvode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-8,
+zvode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   jacfunc=NULL, jactype = "fullint", mf = NULL, verbose=FALSE,
   tcrit = NULL, hmin=0, hmax=NULL, hini=0, ynames=TRUE, maxord=NULL,
   bandup=NULL, banddown=NULL, maxsteps=5000, dllname=NULL, 

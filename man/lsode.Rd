@@ -237,7 +237,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   attribute, it will be used to label the columns of the output value.
 
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 ## =======================================================================
 ## Example 1:

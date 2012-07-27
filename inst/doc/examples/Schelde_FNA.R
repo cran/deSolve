@@ -7,7 +7,7 @@
 #                               STEP 2 - FNA                                   #
 #  Full numerical approach - pH model written as a set of                      #
 #  differential algebraic equations, solved with DAE solver daspk              #
-#  Implementation: Andreas Hofmann, Karline Soetaert - NIOO-CEME               #
+#  Implementation: Andreas Hofmann, Karline Soetaert - NIOZ                    #
 ################################################################################
 
 # load parameters, dissociation constants, initial conditions,

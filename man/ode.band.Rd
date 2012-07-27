@@ -80,7 +80,7 @@
   \code{istate = 2}.  If \code{verbose = TRUE}, the settings of
   \code{istate} and \code{rstate} will be written to the screen.
 }
-\author{Karline Soetaert <k.soetaert@nioo.knaw.nl>}
+\author{Karline Soetaert <karline.soetaert@nioz.nl>}
 \examples{
 
 ## =======================================================================
