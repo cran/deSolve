@@ -54,7 +54,7 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
     that are required at each point in \code{times}.  The derivatives
-    should be specified in the same order as the state variables \code{y}.
+    must be specified in the \bold{same order} as the state variables \code{y}.
 
     If \code{func} is
     a string, then \code{dllname} must give the name of the shared
@@ -90,15 +90,17 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{sparsetype }{the sparsity structure of the Jacobian, one of
     "sparseint" or "sparseusr", "sparsejan", ..., 
-    The sparsity can be estimated internally by lsodes
-    or given by the user.
+    The sparsity can be estimated internally by lsodes (first option)
+    or given by the user (last two). See details.
   }
   \item{nnz }{the number of nonzero elements in the sparse Jacobian (if
     this is unknown, use an estimate).
   }
-  \item{inz }{(row,column) indices to the nonzero elements in the sparse
-    Jacobian. Necessary if \code{sparsetype} = "sparseusr"; else
-    ignored.
+  \item{inz }{if \code{sparsetype} equal to "sparseusr", a two-columned matrix
+    with the (row, column) indices to the nonzero elements in the sparse
+    Jacobian. If \code{sparsetype} = "sparsejan", a vecotr with the elements 
+    ian followed by he elements jan as used in the lsodes code. See details.
+    In all other cases, ignored.
   }
   \item{rootfunc }{if not \code{NULL}, an \R function that computes the
     function whose root has to be estimated or a string giving the name

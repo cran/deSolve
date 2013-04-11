@@ -8,7 +8,7 @@
 SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   SEXP Parms, SEXP eventfunc, SEXP elist, SEXP Nout, SEXP Rho,
   SEXP Tcrit, SEXP Verbose, SEXP Hini, SEXP Rpar, SEXP Ipar,
-		  SEXP Method, SEXP Maxsteps, SEXP Flist) {
+      SEXP Method, SEXP Maxsteps, SEXP Flist) {
 
   /**  Initialization **/
   long int old_N_Protect = save_N_Protected();
@@ -190,13 +190,13 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     rk_fixed(
          fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
          maxsteps, nt,
-  	     &iknots, &it, &it_ext, &it_tot,
+         &iknots, &it, &it_ext, &it_tot,
          istate, ipar,
-  	     t, tmax, hini,
-  	     &dt,
-  	     tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
-  	     out, bb1, cc, yknots,  yout,
-  	     Func, Parms, Rho
+         t, tmax, hini,
+         &dt,
+         tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
+         out, bb1, cc, yknots,  yout,
+         Func, Parms, Rho
     );
   } else {
   /* integrate until next time step and return */
@@ -210,13 +210,13 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
        rk_fixed(
          fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
          maxsteps, nt,
-  	     &iknots, &it, &it_ext, &it_tot,
+         &iknots, &it, &it_ext, &it_tot,
          istate, ipar,
-  	     t, tmax, fmin(hini, fabs(dt)) * sign(dt),      // <----- hini for backward steps
-  	     &dt,
-  	     tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
-  	     out, bb1, cc, yknots,  yout,
-  	     Func, Parms, Rho
+         t, tmax, fmin(hini, fabs(dt)) * sign(dt),      // <----- hini for backward steps
+         &dt,
+         tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
+         out, bb1, cc, yknots,  yout,
+         Func, Parms, Rho
       );
       /* in this mode, internal interpolation is skipped,
          so we can simply store the results at the end of each call */

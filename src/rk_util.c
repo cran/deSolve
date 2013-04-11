@@ -115,7 +115,7 @@ double maxerr(double *y0, double *y1, double *y2, double *Atol, double *Rtol, in
 void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
 	    double *ydot, double *yout, int j, int neq, int *ipar, int isDll,
             int isForcing) {
-  SEXP Val, R_fcall;
+  SEXP Val, rVal, R_fcall;
   SEXP R_t;
   SEXP R_y;
   int i = 0;
@@ -158,7 +158,11 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
         if (ii == l) {
 	        ii = 0; elt++;
 	      }
-        yout[i] = REAL(VECTOR_ELT(Val, elt))[ii];
+        //yout[i] = REAL(VECTOR_ELT(Val, elt))[ii];
+        // thpe 2012-08-04: make sure the return value is double and not int
+        PROTECT(rVal = coerceVector(VECTOR_ELT(Val, elt), REALSXP));
+        yout[i] = REAL(rVal)[ii];
+        UNPROTECT(1);
         ii++;
       }
     }

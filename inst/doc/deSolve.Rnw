@@ -79,7 +79,7 @@ initial value problems, R}
   library (DLL) and loaded into \proglang{R} \citep{Rcore}.
 
   Note that another package, \bs provides methods to solve boundary
-  values problems \citep{bvpSolve}.
+  value problems \citep{bvpSolve}.
 }
 
 %% The address of (at least) one author should be given
@@ -108,6 +108,7 @@ initial value problems, R}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% R/Sweave specific LaTeX commands.
 %% need no \usepackage{Sweave}
+
 %\VignetteIndexEntry{Solving Initial Value Differential Equations in R}
 %\VignetteKeywords{differential equations, ordinary differential equations, differential algebraic equations, partial differential equations, initial value problems, R}
 %\VignettePackage{deSolve}
@@ -212,9 +213,9 @@ the names of this list.
 
 The main part of the model calculates the rate of change of the state
 variables. At the end of the function, these rates of change are
-returned, packed as a list. Note that it is necessary to return the
+returned, packed as a list. Note that it is necessary \textbf{to return the
 rate of change in the same ordering as the specification of the state
-variables (this is very important).  In this case, as state variables
+variables. This is very important.}  In this case, as state variables
 are specified $X$ first, then $Y$ and $Z$, the rates of changes are
 returned as $dX, dY, dZ$.
 
@@ -418,9 +419,9 @@ They are implemented in two ways:
   increment in the \code{times} argument.
 
 \end{itemize}
-For example, the next two statements both trigger the Euler method, the former
-using the ``special'' code with a time step = 1, as imposed by the \code{times} argument, the latter
-using the generalized method with a time step set by \code{hini}. Unsurprisingly, the former solution method
+For example, the next two statements both trigger the Euler method, the first
+using the ``special'' code with a time step = 1, as imposed by the \code{times} argument, the second
+using the generalized method with a time step set by \code{hini}. Unsurprisingly, the first solution method
 completely fails (the time step $= 1$ is much too large for this problem).
 
 \begin{verbatim}
@@ -432,7 +433,7 @@ outb <- ode(y = state, times = 0:40, func = Lorenz, parms = parameters,
 \subsection{Model diagnostics and summaries}
 
 Function \code{diagnostics} prints several diagnostics of the simulation
-to the screen. For the Runge-Kutta and \code{lsode} routine they are:
+to the screen. For the Runge-Kutta and \code{lsode} routine called above they are:
 
 <<>>=
 diagnostics(out1)
@@ -698,7 +699,7 @@ matplot(out[,1], out[,2:3], type = "l", lwd = 2,
 \end{center}
 \caption{Solution of the differential algebraic equation model -
   see text for R-code}
-\label{fig:dae}
+\label{fig:dae2}
 \end{figure}
 
 \subsection{DAEs of index up to three}
@@ -1052,8 +1053,8 @@ if necessary also fixed) automatically by the solver functions. A
 warning is issued to inform the user about possible problems,
 especially that the output time steps were now adjusted and therefore
 different from the ones originally specified by the user. This means
-that all values of eventtimes are now contained but only the subset of
-times that have no exact or ``rather close'' neighbors in eventtimes.
+that all values of \code{eventtimes} are now contained but only the subset of
+times that have no exact or ``rather close'' neighbors in \code{eventtimes}.
 
 Instead of relying on this automatism, matching times and eventtimes
 can also be managed by the user, either by appropriate rounding or by
@@ -1083,8 +1084,9 @@ times - times2
 @
 
 The last line shows us that the error was always smaller than, say
-$10^{-15}$\footnote{The accuracy of the machine can be determined with
-\code{.Machine\$double.eps}.}
+$10^{-15}$, what is typical for ordinary double precision arithmetics.
+The accuracy of the machine can be determined with
+\code{.Machine\$double.eps}.
 
 To check if all \code{eventtimes} are now contained in the new times
 vector \code{times2}, we use:
@@ -1159,7 +1161,7 @@ derivs <- function(t, y, parms) {
   else
     lag <- lagvalue(t - 0.74)
 
-  dy <- r * y* (1 - lag/m)
+  dy <- r * y * (1 - lag/m)
   list(dy, dy = dy)
 }
 
@@ -1185,7 +1187,8 @@ yout <- dede(y = yinit, times = times, func = derivs,
 @
 
 <<label=dde,include=FALSE>>=
-plot(yout, which = 1, type = "l", lwd = 2, main = "Lemming model", mfrow = c(1,2))
+plot(yout, which = 1, type = "l", lwd = 2,
+     main = "Lemming model", mfrow = c(1,2))
 plot(yout[,2], yout[,3], xlab = "y", ylab = "dy", type = "l", lwd = 2)
 @
 \setkeys{Gin}{width=\textwidth}
@@ -1204,7 +1207,7 @@ plot(yout[,2], yout[,3], xlab = "y", ylab = "dy", type = "l", lwd = 2)
 
 There is one special-purpose solver, triggered with \code{method = "iteration"}
 which can be used in cases where the new values of the state variables are
-estimated by the user, and need not be found by integration.
+directly estimated by the user, and need not be found by numerical integration.
 
 This is for instance useful when the model consists of difference equations,
 or for 1-D models when transport is implemented by an implicit or a
@@ -1279,7 +1282,7 @@ As an example we implement the simple combustion model, which can be found on
 \url{http://www.scholarpedia.org/article/Stiff_systems}:
 
 \[
-y' = y^2 * (1-y)
+y' = y^2 \cdot (1-y)
 \]
 
 The model is run with 4 different values of the initial conditions:
@@ -1375,7 +1378,7 @@ legend("topright", lty = c(1,2,3,NA), pch = c(NA, NA, NA, 18),
 <<plotobs>>
 @
 \end{center}
-\caption{Plotting output and obs in one figure}
+\caption{Plotting output and observations in one figure}
 \label{fig:plotobs}
 \end{figure}
 
@@ -1517,7 +1520,7 @@ while the S3-method \code{subset} can be used to extract only specific values
 of the variables:
 <<>>=
 p10 <- subset(out, select = "PREY", subset = time == 10)
-head(p10)
+head(p10, n = 5)
 @
 
 We first plot both 1-dimensional state variables at once; we specify that
@@ -1638,7 +1641,7 @@ and with the following (biologically not very realistic)%
   a high rate and consumers with 100 \% efficiency} parameter values:
 
 <<>>=
-parms  <- c(c = 5, d = 0.1, e = 0.1, f = 0.1)
+parms  <- c(c = 10, d = 0.1, e = 0.1, f = 0.1)
 @
 
 After specification of initial conditions and output times, the model
@@ -1646,20 +1649,21 @@ is solved -- using \code{lsoda}:
 
 <<>>=
 xstart <- c(P = 0.5, C = 1)
-times  <- seq(0, 190, 0.1)
+times  <- seq(0, 200, 0.1)
 
 out <- ode(y = xstart, times = times,
   func = PCmod, parms = parms)
 tail(out)
 @
 
-At the end of the simulation, both producers and consumer values are
-Not-A-Numbers!
+We see that the simulation was stopped before reaching the final simulation
+time and both producers and consumer values may have negative values.
 
 What has happened? Being an implicit method, \code{lsoda} generates
 very small negative values for producers, from day 40 on; these
 negative values, small at first grow in magnitude until they become
-NaNs.  This is because the model equations are not intended to be used
+infinite or even NaNs (not a number).
+This is because the model equations are not intended to be used
 with negative numbers, as negative concentrations are not realistic.
 
 A quick-and-dirty solution is to reduce the maximum time step to a
@@ -1673,7 +1677,8 @@ very small number or even to zero:
 <<>>=
 out <- ode(y = xstart,times = times, func = PCmod,
                          parms = parms, atol = 0)
-matplot(out[,1], out[,2:3], type = "l", ylab="Producer, Consumer", xlab="time")
+matplot(out[,1], out[,2:3], type = "l",
+        xlab = "time", ylab = "Producer, Consumer")
 @
 
 It is, of course, not possible to set both, \code{atol} and
@@ -1712,7 +1717,7 @@ in our models and the codes of our students:
 \end{itemize}
 
 The solvers included in package \ds are thorougly tested, however they
-come with no warranty and the user is solely responsible for their
+come with \textbf{no warranty} and the user is solely responsible for their
 correct application. If you encounter unexpected behavior, first check
 your model and read the documentation. If this doesn't help, feel free
 to ask a question to an appropriate mailing list,
@@ -1773,33 +1778,38 @@ out2 <- ode(func = LVmod, y = yini,
 
 A lot of seemingly incomprehensible messages will be written to the screen.
 We repeat the latter part of them:
+
 \begin{verbatim}
 DLSODA-  Warning..Internal T (=R1) and H (=R2) are
       such that in the machine, T + H = T on the next step
      (H = step size). Solver will continue anyway.
-      In above,  R1 =  0.8562448350331D+02   R2 =  0.3273781304624D-17
+In above message, R1 = 53.4272, R2 = 2.44876e-15
+
 DLSODA-  Above warning has been issued I1 times.
      It will not be issued again for this problem.
-      In above message,  I1 =        10
+In above message, I1 = 10
+
 DLSODA-  At current T (=R1), MXSTEP (=I1) steps
       taken on this call before reaching TOUT
-      In above message,  I1 =      5000
-      In above message,  R1 =  0.8562448350331D+02
+In above message, I1 = 5000
+In above message, R1 = 53.4272
+
 Warning messages:
 1: In lsoda(y, times, func, parms, ...) :
-  an excessive amount of work (> maxsteps ) was done, but integration was not successful - increase maxsteps
+  an excessive amount of work (> maxsteps ) was done,
+  but integration was not successful - increase maxsteps
 2: In lsoda(y, times, func, parms, ...) :
   Returning early. Results are accurate, as far as they go
 \end{verbatim}
 
-The first sentence tells us that at T = 0.8562448350331e+02, the solver used a step size H = 0.3273781304624e-17.
+The first sentence tells us that at T = 53.4272, the solver used a step size H = 2.44876e-15.
 This step size is so small that it cannot tell the difference between T and T + H. Nevertheless, the solver tried again.
 
 The second sentence tells that, as this warning has been occurring 10 times, it will not be outputted again.
 
 As expected, this error did not go away, so soon the maximal number of steps (5000) has been exceeded. This is indeed what the next message is about:
 
-The third sentence tells that at T = 0.8562448350331e+02, maxstep = 5000 steps have been done.
+The third sentence tells that at T = 53.4272, maxstep = 5000 steps have been done.
 
 The one before last message tells why the solver returned prematurely, and suggests a solution.
 
@@ -1818,7 +1828,9 @@ out3 <- ode(func = LVmod, y = yini, parms = pars,
           times = times, method = "ode45", atol = 1e-14, rtol = 1e-14)
 @
 
-but don't forget to think about this too. We leave this open as an exercise to the reader.
+but don't forget to think about this too and, for example, increase simulation
+time to 1000 and try different values of \code{atol} and \code{rtol}.
+We leave this open as an exercise to the reader.
 
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}

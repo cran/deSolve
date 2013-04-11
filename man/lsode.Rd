@@ -67,7 +67,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
     that are required at each point in \code{times}.  The derivatives
-    should be specified in the same order as the state variables \code{y}.
+    must be specified in the \bold{same order} as the state variables \code{y}.
 
     If \code{func} is
     a string, then \code{dllname} must give the name of the shared
@@ -102,7 +102,7 @@ lsode(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     or a vector containing the matrix elements by columns (the way \R
     and FORTRAN store matrices).  \cr If the Jacobian is banded,
     \code{jacfunc} should return a matrix containing only the nonzero
-    bands of the Jacobian, rotated row-wise. See first example of \code{lsode}.
+    bands of the Jacobian, rotated row-wise. See first example of \link{lsode}.
   }
   \item{jactype }{the structure of the Jacobian, one of
     \code{"fullint"}, \code{"fullusr"}, \code{"bandusr"} or

@@ -408,7 +408,10 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   REAL(YOUT)[0] = tin;
   for (j = 0; j < n_eq; j++) REAL(YOUT)[j+1] = REAL(y)[j];
   if (islag == 1) {
-    C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
+    if (isDll == 1)   /* function in DLL and output */         // + thpe
+      deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);          // + thpe
+    else                                                       // + thpe
+      C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
     updatehistini(tin, xytmp, dy, rwork, iwork);
   }
   if (nout>0)   {
@@ -473,10 +476,10 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
         F77_CALL(dlsodesr) (deriv_func, &n_eq, xytmp, &tin, &tout,
                &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
                &lrw, iwork, &liw, rwork, jac_vec, &jt, root_func, &nroot, jroot, /*rwork: iwk in fortran*/
-			         out, ipar);
-			  lyh = iwork[21];
+               out, ipar);
+        lyh = iwork[21];
       }
-	  /* in case size of timesteps is called for */
+    /* in case size of timesteps is called for */
       timesteps [0] = rwork[10];
       timesteps [1] = rwork[11];
 
@@ -529,7 +532,10 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
         warning("Error term became zero for some i: pure relative error control (ATOL(i)=0.0) for a variable which is now vanished");
       }
     if (islag == 1) {
-      C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
+      if (isDll == 1)   /* function in DLL and output */         // + thpe
+        deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);          // + thpe
+      else                                                       // + thpe
+        C_deriv_func (&n_eq, &tin, xytmp, dy, out, ipar);
       updatehist(tin, xytmp, dy, rwork, iwork);    
       repcount = 0;
     }

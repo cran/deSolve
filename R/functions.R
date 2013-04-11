@@ -77,13 +77,15 @@ checkFunc<- function (Func2, times, y, rho) {
                  length(tmp[[1]]),
                  ") must equal the length of the initial conditions vector (",
                  length(y), ")", sep = ""))
-    # use "unlist" here because some output variables are vectors/arrays
+
+    ## use "unlist" here because some output variables are vectors/arrays
     Nglobal <- if (length(tmp) > 1)
       length(unlist(tmp[-1]))  else 0
-    # Karline: changed this: Nmtot is now a list with names, dimensions,... for 1-D, 2-D vars
-    Nmtot <- list()  
+    ## Karline: changed this:
+    ##  Nmtot is now a list with names, dimensions,... for 1-D, 2-D vars
+    Nmtot <- list()
     Nmtot$colnames <- attr(unlist(tmp[-1]), "names")
-    
+
     Nmtot$lengthvar <- unlist(lapply(tmp, length))
     if (length(Nmtot$lengthvar) < Nglobal+1){
       Nmtot$dimvar <- lapply(tmp[-1], dim)
@@ -121,7 +123,8 @@ checkFuncEuler<- function (Func, times, y, parms, rho, Nstates) {
                    length(tmp[[1]]),
                    "must equal the length of the initial conditions vector (",
                    Nstates, ")", sep=""))
-      ## use "unlist" here because some output variables are vectors/arrays
+
+      ## use "unlist" because output variables can be vectors/arrays
       Nglobal <- if (length(tmp) > 1)
         length(unlist(tmp[-1])) else 0
       Nmtot <- list()
@@ -151,7 +154,7 @@ checkDLL <- function (func, jacfunc, dllname,
       } else if (initfunc != dllname && ! is.null(initfunc))
         stop(paste("'initfunc' not loaded ", initfunc))
 
-    # Easier to deal with NA in C-code
+    ## Easier to deal with NA in C-code
     if (is.null(initfunc)) ModelInit <- NA
 
     ## copy value of func to funcname
@@ -185,7 +188,7 @@ checkDLL <- function (func, jacfunc, dllname,
     if (length(outnames) > nout)
       Nmtot$colnames <- outnames[1:nout] else
     Nmtot$colnames <- c(outnames,(length(outnames)+1):nout)
-    
+
     cnames <- outnames
     unames <- unique(outnames)
     if (length(cnames) > length(unames))
@@ -258,15 +261,15 @@ saveOut <- function (out, y, n, Nglobal, Nmtot, func, Func2,
   attr(out,"istate") <- istate
   attr(out, "rstate") <- rstate
   if (! is.null(Nmtot$lengthvar))
-    if (is.na(Nmtot$lengthvar[1]))Nmtot$lengthvar[1] <- length(y) 
+    if (is.na(Nmtot$lengthvar[1]))Nmtot$lengthvar[1] <- length(y)
   attr(out, "lengthvar") <- Nmtot$lengthvar
   if (! is.null(troot)) attr(out, "troot") <-  troot
   if (! is.null(valroot)) attr(out, "valroot") <- matrix(nrow = n, valroot)
   if (! is.null(indroot)) attr(out, "indroot") <- indroot
 
-  ii <- if (is.null(Nmtot$dimvar)) 
+  ii <- if (is.null(Nmtot$dimvar))
     NULL else !(unlist(lapply(Nmtot$dimvar, is.null))) # variables with dimension
-  if (sum(ii) >0) 
+  if (sum(ii) >0)
     attr(out, "dimvar") <- Nmtot$dimvar[ii]     # dimensions that are not null
   class(out) <- c("deSolve", "matrix")          # a differential equation
   dimnames(out) <- list(nm, NULL)
@@ -285,7 +288,7 @@ saveOutrk <- function(out, y, n, Nglobal, Nmtot, iin, iout, transpose = FALSE)  
   ## Global outputs
   if (Nglobal > 0) {
     nm  <- c(nm,
-      if (!is.null(Nmtot$colnames)) 
+      if (!is.null(Nmtot$colnames))
         Nmtot$colnames else as.character((n + 1) : (n + Nglobal))
     )
   }
@@ -297,10 +300,10 @@ saveOutrk <- function(out, y, n, Nglobal, Nmtot, iin, iout, transpose = FALSE)  
   if (! is.null(Nmtot$lengthvar))
     if (is.na(Nmtot$lengthvar[1])) Nmtot$lengthvar[1] <- length(y)
   attr(out, "lengthvar") <- Nmtot$lengthvar
-  
-  ii <- if (is.null(Nmtot$dimvar)) 
+
+  ii <- if (is.null(Nmtot$dimvar))
     NULL else !(unlist(lapply(Nmtot$dimvar, is.null))) # variables with dimension
-  if (sum(ii) >0) 
+  if (sum(ii) >0)
     attr(out, "dimvar") <- Nmtot$dimvar[ii] # only those which are not null
   class(out) <- c("deSolve", "matrix")      # output of a differential equation
   if (transpose)
