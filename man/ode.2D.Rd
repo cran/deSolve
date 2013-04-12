@@ -39,7 +39,7 @@ ode.2D(y, times, func, parms, nspec = NULL, dimens,
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
     that are required at each point in \code{times}. The derivatives
-    should be specified in the same order as the state variables \code{y}.
+    must be specified in the \bold{same order} as the state variables \code{y}.
 
   }
   \item{parms }{parameters passed to \code{func}.}
@@ -173,17 +173,29 @@ out <- ode.2D(y = yini, times = times, func = lvmod2D, parms = pars,
 diagnostics(out)
 summary(out)
 
+# Mean of prey concentration at each time step
+Prey <- subset(out, select = "Prey", arr = TRUE)
+dim(Prey)
+MeanPrey <- apply(Prey, MARGIN = 3, FUN = mean)
+plot(times, MeanPrey)
+
 \dontrun{
 ## plot results
 Col <- colorRampPalette(c("#00007F", "blue", "#007FFF", "cyan",
                           "#7FFF7F", "yellow", "#FF7F00", "red", "#7F0000"))
+
 for (i in seq(1, length(times), by = 1))
-   image(matrix(nrow = N, ncol = N, out[i, 2:(NN+1)]),
+   image(Prey[ , ,i],
    col = Col(100), xlab = , zlim = range(out[,2:(NN+1)]))
 
-## similar:
-image(out, xlab = "x", ylab = "y")
+## similar, plotting both and adding a margin text with times:
+image(out, xlab = "x", ylab = "y", mtext = paste("time = ", times))
 }
+
+select <- c(1, 40)
+image(out, xlab = "x", ylab = "y", mtext = "Lotka-Volterra in 2-D",
+      subset = select, mfrow = c(2,2), legend =  TRUE)
+
 
 # plot prey and pred at t = 10; first use subset to select data
 prey10 <-  matrix (nrow = N, ncol = N, 
@@ -191,7 +203,7 @@ prey10 <-  matrix (nrow = N, ncol = N,
 pred10 <-  matrix (nrow = N, ncol = N, 
      data = subset(out, select = "Pred", subset = (time == 10)))
 
-mf <- par(mfrow = c(1,2))
+mf <- par(mfrow = c(1, 2))
 image(prey10)
 image(pred10)
 par (mfrow = mf)
@@ -283,21 +295,9 @@ image(ST3, method = "filled.contour")
   is only occurring between adjacent layers. Then \code{lsodes} is
   called to solve the problem.
   
-  If \code{lsodes} is used to integrate, it will probably be necessary
-  to specify the length of the real work array, \code{lrw}.
+  If the model is not stiff, then it is more efficient to use one of the 
+  explicit integration routines
 
-  Although a reasonable guess of \code{lrw} is made, it is likely that
-  this will be too low.  In this case, \code{ode.2D} will return with an
-  error message telling the size of the work array actually needed. In
-  the second try then, set \code{lrw} equal to this number.
-
-  For instance, if you get the error:
-\preformatted{   
-DLSODES- RWORK length is insufficient to proceed.                               
-  Length needed is .ge. LENRW (=I1), exceeds LRW (=I2)                    
-  In above message,  I1 =     27627   I2 =     25932 
-}      
-  set \code{lrw} equal to 27627 or a higher value
 
   In some cases, a cyclic boundary condition exists. This is when the first
   boxes in x-or y-direction interact with the last boxes. In this case, there
@@ -308,10 +308,25 @@ DLSODES- RWORK length is insufficient to proceed.
   the x-direction, whereas \code{cyclicBnd = c(1,2)} imposes a cyclic boundary
   for both x- and y-direction. The default is no cyclic boundaries.
 
-  See \code{lsodes} for the additional options.
+  If \code{lsodes} is used to integrate, it will probably be necessary
+  to specify the length of the real work array, \code{lrw}.
+
+  Although a reasonable guess of \code{lrw} is made, it is likely that
+  this will be too low.  In this case, \code{ode.2D} will return with an
+  error message telling the size of the work array actually needed. In
+  the second try then, set \code{lrw} equal to this number.
+
+  For instance, if you get the error:
   
-  If the model is not stiff, then it is more efficient to use one of the 
-  explicit integration routines
+\preformatted{   
+DLSODES- RWORK length is insufficient to proceed.                               
+  Length needed is .ge. LENRW (=I1), exceeds LRW (=I2)                    
+  In above message,  I1 =     27627   I2 =     25932 
+}      
+  set \code{lrw} equal to 27627 or a higher value.
+
+  See \link{lsodes} for the additional options.
+  
 }
 \seealso{
   \itemize{

@@ -1,7 +1,7 @@
 /*==========================================================================*/
 /* Runge-Kutta Solvers, (C) Th. Petzoldt, License: GPL >=2                  */
 /*  rk4 Fixed Step Integrator                                               */
-/*    (special version with less overhead than the general solution)         */
+/*    (special version with less overhead than the general solution)        */
 /*==========================================================================*/
 
 #include "rk_util.h"

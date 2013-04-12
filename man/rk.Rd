@@ -55,7 +55,7 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
     that are required at each point in \code{times}.  The derivatives
-    should be specified in the same order as the state variables \code{y}.
+    must be specified in the \bold{same order} as the state variables \code{y}.
 
     If \code{func} is
     a string, then \code{dllname} must give the name of the shared
@@ -334,6 +334,7 @@ plot(out1, out2, out3, which = c("S", "P", "C"),
      main = c ("Substrate", "Producer", "Consumer"),
      col =c("black", "red", "green"), 
      lty = c("solid", "dotted", "dotted"), lwd = c(1, 2, 1))
+
 ## user-specified plot function
 plot (out1[,"P"], out1[,"C"], type = "l", xlab = "Producer", ylab = "Consumer")
 lines(out2[,"P"], out2[,"C"], col = "red",   lty = "dotted", lwd = 2)

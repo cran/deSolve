@@ -77,6 +77,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     events <- checkevents(events, times, Ynames, dllname)
     if (! is.null(events$newTimes)) times <- events$newTimes    
 
+    ## dummy forcings
     flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
 
@@ -105,7 +106,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
       ## func is overruled, either including ynames, or not
       ## This allows to pass the "..." arguments and the parameters
       if(ynames) {
-        Func   <- function(time,state,parms){
+        Func   <- function(time, state, parms){
           attr(state, "names") <- Ynames
           func(time, state, parms, ...)}
         if (! is.null(events$Type))

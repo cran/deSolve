@@ -3668,7 +3668,7 @@ C-----------------------------------------------------------------------
       GO TO 700
  617  MSG = 'DLSODES- RWORK length is insufficient to proceed. '
       CALL XERRWD (MSG, 50, 17, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      MSG='        Length needed is .ge. LENRW (=I1), exceeds LRW (=I2)'
+      MSG=' set argument lrw larger than LENRW (=I1), is now: LRW (=I2)'
       CALL XERRWD (MSG, 60, 17, 0, 2, LENRW, LRW, 0, 0.0D0, 0.0D0)
       GO TO 700
  618  MSG = 'DLSODES- IWORK length is insufficient to proceed. '
@@ -5143,15 +5143,17 @@ C-----------------------------------------------------------------------
       JSTART = -1
       IF (IXPR .EQ. 0) GO TO 310
       IF (METH .EQ. 2) THEN
-       CALL rprintd2(
-     &      'Switch to bdf   at T (=R1), new step (=R2)', TN,H)
+        MSG = 'Switch to BDF   at T (=R1), new step (=R2): %g, %g'
+        MSG = MSG // char(0)
+        CALL rprintfd2(MSG, TN, H)
       ENDIF
       IF (METH .EQ. 1) THEN
 C      MSG='DLSODA- A switch to the Adams (nonstiff) method has occurred'
 C KS      CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
 C      CALL DBLEPR(MSG, 60, 0, 0)
-       CALL rprintd2(
-     &      'Switch to adams at T (=R1), new step (=R2)', TN,H)
+       MSG = 'Switch to Adams at T (=R1), new step (=R2): %g, %g'
+       MSG = MSG // char(0)
+       CALL rprintfd2(MSG, TN, H)
       ENDIF
 c	    write(msg,'(A4,D18.10,A9,D18.10)') 
 c     &      'at T',TN,' new step', H
@@ -6964,15 +6966,20 @@ C-----------------------------------------------------------------------
       IF (METH .EQ. 2) THEN
       MSG='DLSODAR- A switch to the BDF (stiff) method has occurred    '
 C KS      CALL XERRWD (MSG, 60, 105, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      CALL DBLEPR(MSG, 60, 0, 0)
+C      CALL DBLEPR(MSG, 60, 0, 0)
+      MSG = MSG // char(0)
+      CALL rprintf(MSG)
       ENDIF
       IF (METH .EQ. 1) THEN
       MSG='DLSODAR- A switch to the Adams (nonstiff) method occurred   '
 C      CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
-      CALL DBLEPR(MSG, 60, 0, 0)
+C      CALL DBLEPR(MSG, 60, 0, 0)
+      MSG = MSG // char(0)
+      CALL rprintf(MSG)
       ENDIF
-      call rprintd2 (
-     &      'at T (R1), the new step size is (R2) ',TN, H)
+      MSG = 'at T (R1), the new step size is (R2): %g, %g '
+      MSG = MSG // char(0)
+      call rprintfd2 (MSG, TN, H)
  310  CONTINUE
 C
       IF (NGC .EQ. 0) GO TO 315

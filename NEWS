@@ -1,3 +1,18 @@
+Changes version 1.10.5 (Karline, Thomas)
+================================
+ o extended subset.deSolve with argument arr, when TRUE returns an array for >2-D output
+ o fixed the R compiler notes
+ o plot.ode.2D now has an mtext argument, via the ..., to label multiple 
+    figures in margin... CHECK - see ode.2D
+ o subset can also be a vector with indices in addition to logical
+ o image with legend = TRUE changed size of plot in different layouts - now solved
+   (by adding par(mar = par("mar")) )
+ o new method to output warnings and error messages 
+ o add data type check for external outputs in rk_util.c
+ o add interface for compiled dede models
+ o emphasize consistent order of states in y and return value of func
+ o changes of Fortran error messages (to be continued)
+
 Changes version 1.10-4 (Thomas, Karline)
 ================================
  o allow reverted time vector for fixed step solvers

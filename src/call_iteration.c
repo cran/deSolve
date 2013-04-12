@@ -14,7 +14,7 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
   double *tt = NULL, *xs = NULL;
   double *ytmp, *out;
 
-  SEXP R_y0, R_yout, R_t=NULL, R_y=NULL;
+  SEXP R_y0, R_yout, R_t = NULL, R_y = NULL;
   SEXP Val, R_fcall;
 
   double *y0, *yout, *yy;

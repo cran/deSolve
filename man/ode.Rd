@@ -41,7 +41,7 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
     that are required at each point in \code{times}. The derivatives
-    should be specified in the same order as the state variables \code{y}.
+    must be specified in the \bold{same order} as the state variables \code{y}.
 
     If \code{func} is a string, then \code{dllname} must give the name
     of the shared library (without extension) which must be loaded
@@ -284,5 +284,46 @@ outb <- ode(func = Parasite, y = c(P = 0.5, H = 0.5),
             times = seq(0, 50, 2), hini = 1, parms = ks,
             method = "iteration")
 plot(out, outb, type = c("l", "p"))
+
+## =======================================================================
+## Example4: Playing with the Jacobian options - see e.g. lsoda help page
+## =======================================================================
+
+# a stiff equation, exponential decay, run 500 times
+stiff <- function(t, y, p) {   # y and r are a 500-valued vector
+  list(- r * y)
+}
+
+N    <- 500
+r    <- runif(N, 15, 20)
+yini <- runif(N, 1, 40)
+
+times <- 0:10
+
+# Using the default
+print(system.time(
+  out <- ode(y = yini, parms = NULL, times = times, func = stiff)
+))
+# diagnostics(out) shows that the method used = bdf (2), so it it stiff
+
+# Specify that the jacobian is banded, with nonzero values on the 
+# diagonal, i.e. the bandwidth up and down = 0 
+
+print(system.time(
+  out2 <- ode(y = yini, parms = NULL, times = times, func = stiff,
+              jactype = "bandint", bandup = 0, banddown = 0)
+))
+
+# Now we also specify the jacobian function
+
+jacob <- function(t, y, p) -r
+
+print(system.time(
+  out3 <- ode(y = yini, parms = NULL, times = times, func = stiff, 
+              jacfunc = jacob, jactype = "bandusr", 
+              bandup = 0, banddown = 0)
+))
+# The larger the value of N, the larger the time gain...
+
 }
 

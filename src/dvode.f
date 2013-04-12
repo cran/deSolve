@@ -516,18 +516,23 @@ C-----------------------------------------------------------------------
  280  IF ((TN + H) .NE. TN) GO TO 290
       NHNIL = NHNIL + 1
       IF (NHNIL .GT. MXHNIL) GO TO 290
-      call rprint2(
-     1 'dvode -- warning.. internal T(=R1) and H (=R2) are            ')
-       call rprint2(
-     2  '      such that in the machine, T + H = T on the next step   ')
-       call rprintd2(
-     3  '      (H = step size). solver will continue anyway           ',
-     4  TN,H) 
+      call rprintf(
+     & 'dvode -- Warning.. Internal T (=R1) and H (=R2) are' // char(0))
+      call rprintf(
+     &  '      such that in the machine, T + H = T on the next step'
+     &   // char(0))
+      call rprintf(
+     &  '      (H = step size). Solver will continue anyway.'
+     &  // char(0))
+      call rprintfd2('In above message, R1 = %g, R2 = %g' // char(0),
+     & TN, H)
       IF (NHNIL .LT. MXHNIL) GO TO 290
-      call rprint2(
-     1 'dvode -- Above warning has been issued I1 times.              ')
-       call rprinti1(
-     2  '      it will not be issued again for this problem ',  MXHNIL )
+      call rprintf(
+     & 'dvode -- Above warning has been issued I1 times.              ')
+      call rprintf(
+     &  '      it will not be issued again for this problem.'
+     &  // char(0))
+      call rprintfi1('In above message, I1 = %i' // char(0), MXHNIL)
  290  CONTINUE
 C-----------------------------------------------------------------------
 C CALL DVSTEP (Y, YH, NYH, YH, EWT, SAVF, VSAV, ACOR,
@@ -627,42 +632,50 @@ C Then Y is loaded from YH, T is set to TN, and the illegal input
 C The optional output is loaded into the work arrays before returning.
 C-----------------------------------------------------------------------
 C The maximum number of steps was taken before reaching TOUT. ----------
- 500  call rprint2(
-     1 'dvode -- At current T (=R1), MXSTEP (=I1) steps               ')
-       call rprintid(
-     2  '      taken on this call before reaching TOUT                ',
-     3  MXSTEP,TN  )
+ 500  call rprintf(
+     1 'dvode -- At current T (=R1), MXSTEP (=I1) steps' // char(0))
+       call rprintf(
+     2 '      taken on this call before reaching TOUT'  // char(0))
+       call rprintfdi(
+     & '      with: R1 = %g, I1=%i' // char(0), TN, MXSTEP)
       ISTATE = -1
       GO TO 580
 C EWT(i) .le. 0.0 for some i (not at start of problem). ----------------
  510  EWTI = RWORK(LEWT+I-1)
-      call rprintid(
-     1 'dvode -- At T (=R1), EWT(I1) has become < 0 ',  I, TN)
+      call rprintf(
+     1 'dvode -- At T (=R1), EWT(=I1) has become < 0 ' // char(0))
+      call rprintfdi(
+     & '      with R1 = %g, I1 = %i' //char(0), TN,  I)
       ISTATE = -6
       GO TO 580
 C Too much accuracy requested for machine precision. -------------------
- 520  call rprint2(
-     1 'dvode -- At T (=R1), too much accuracy requested              ')
-       call rprintd2(
-     2  '      for precision of machine.. see TOLSF (=R2)             ',
-     3  TN , TOLSF )
+ 520  call rprintf(
+     1 'dvode -- At T (=R1), too much accuracy requested' // char(0))
+      call rprintf(
+     2  '      for precision of machine.. see TOLSF (=R2)' // char(0))
+      call rprintfd2(
+     & '      with R1 = %g, R2 = %g' //char(0), TN , TOLSF )
       RWORK(14) = TOLSF
       ISTATE = -2
       GO TO 580
 C KFLAG = -1.  Error test failed repeatedly or with ABS(H) = HMIN. -----
- 530  call rprint2(
-     1 'dvode -- At T (=R1), and step size H (=R2) the error          ')
-       call rprintd2(
-     2  '      test failed repeatedly or with abs(H) = HMIN', TN,H )
+ 530  call rprintf(
+     1 'dvode -- At T (=R1), and step size H (=R2) the error'//char(0))
+      call rprintf(
+     2 '      test failed repeatedly or with abs(H) = HMIN' //char(0))
+      call rprintfd2(
+     & '      with R1 = %g, R2 = %g' //char(0), TN, H )
       ISTATE = -4
       GO TO 560
 C KFLAG = -2.  Convergence failed repeatedly or with abs(H) = HMIN. ----
- 540  call rprint2(
-     1 'dvode -- At T (=R1), and step size H (=R2) the                ')
-       call rprint2(
-     2  '      corrector converged failed repeatedly                  ')
-       call rprintd2(
-     3  '      or with abs(H) = HMIN  ',  TN,H )
+ 540  call rprintf(
+     1 'dvode -- At T (=R1), and step size H (=R2) the' // char(0))
+      call rprintf(
+     2 '      corrector converged failed repeatedly' // char(0))
+      call rprintf(
+     3 '      or with abs(H) = HMIN  ' // char(0))
+       call rprintfd2(
+     & '      with: R1= %g, R2 = %g' // char(0), TN, H)
       ISTATE = -5
 C Compute IMXER if relevant. -------------------------------------------
  560  BIG = ZERO
@@ -698,114 +711,120 @@ C (ISTATE = -3), as detected before calling the core integrator.
 C First the error message routine is called.   If the illegal input
 C is a negative ISTATE, the run is aborted (apparent infinite loop).
 C-----------------------------------------------------------------------
- 601  call rprinti1(
-     1 'dvode -- ISTATE (=I1) illegal ',  ISTATE)
+ 601  call rprintfi1(
+     1 'dvode -- ISTATE (=I1) illegal %i' // char(0),  ISTATE)
       IF (ISTATE .LT. 0) GO TO 800
       GO TO 700
- 602  call rprinti1(
-     1 'dvode -- ITASK (=I1) illegal ', ITASK)
+ 602  call rprintfi1(
+     1 'dvode -- ITASK (=I1) illegal %i' // char(0), ITASK)
       GO TO 700
- 603  call rprinti1(
-     1 'dvode -- ISTATE (=I1) >1 but dvode not initialised ', ISTATE)
+ 603  call rprintfi1(
+     1 'dvode -- ISTATE (=I1) >1 but dvode not initialised %i'
+     & // char(0), ISTATE)
       GO TO 700
- 604  call rprinti1(
-     1 'dvode -- NEQ (=I1) <1 ', NEQ)
+ 604  call rprintfi1(
+     1 'dvode -- NEQ (=I1) <1 %i' // char(0), NEQ)
       GO TO 700
- 605  call rprinti2(
-     1 'dvode -- ISTATE =3 and NEQ increased (I1 to I2)', N,NEQ)
+ 605  call rprintfi2(
+     1 'dvode -- ISTATE =3 and NEQ increased (I1 to I2), %i, %i'
+     & // char(0), N, NEQ)
       GO TO 700
- 606  call rprinti1(
-     1 'dvode -- ITOL (=I1) illegal ', ITOL)
+ 606  call rprintfi1(
+     1 'dvode -- ITOL (=I1) illegal %i' // char(0), ITOL)
       GO TO 700
- 607  call rprinti1(
-     1 'dvode -- IOPT (=I1) illegal ', IOPT)
+ 607  call rprintfi1(
+     1 'dvode -- IOPT (=I1) illegal %i' // char(0), IOPT)
       GO TO 700
- 608  call rprinti1(
-     1 'dvode -- MF (=I1) illegal ', MF)
+ 608  call rprintfi1(
+     1 'dvode -- MF (=I1) illegal %i' // char(0), MF)
       GO TO 700
- 609  call rprinti2(
-     1 'dvode -- ML (=I1) illegal: <0 or >=neq (+I2) ', ML,NEQ)
+ 609  call rprintfi2(
+     1 'dvode -- ML (=I1) illegal: <0 or >=neq (+I2) %i, %i'
+     & // char(0), ML,NEQ)
       GO TO 700
- 610  call rprinti2(
-     1 'dvode -- MU (=I1) illegal: <= 0 or > neq (=I2) ', MU,NEQ)
+ 610  call rprintfi2(
+     1 'dvode -- MU (=I1) illegal: <= 0 or > neq (=I2) %i, %i'
+     & // char(0), MU,NEQ)
       GO TO 700
- 611  call rprinti1(
-     1 'dvode -- MAXORD (=I1) < 0 ',  MAXORD)
+ 611  call rprintfi1(
+     1 'dvode -- MAXORD (=I1) < 0 %i' // char(0),  MAXORD)
       GO TO 700
- 612  call rprinti1(
-     1 'dvode -- MXSTEP (=I1) < 0 ',  MXSTEP)
+ 612  call rprintfi1(
+     1 'dvode -- MXSTEP (=I1) < 0 %i' // char(0),  MXSTEP)
       GO TO 700
- 613  call rprinti1(
-     1 'dvode -- MXHNIL (=I1) < 0 ', MXHNIL)
+ 613  call rprintfi1(
+     1 'dvode -- MXHNIL (=I1) < 0 %i' // char(0), MXHNIL)
       GO TO 700
- 614  call rprintd2(
-     1 'dvode -- TOUT (=R1) behind T (=R2) ', TOUT, T )
+ 614  call rprintfd2(
+     1 'dvode -- TOUT (=R1) behind T (=R2) %g, %g'
+     & // char(0), TOUT, T )
       GO TO 700
- 615  call rprintd1(
-     1 'dvode -- HMAX (=R1) <= 0 ', HMAX)
+ 615  call rprintfd1(
+     1 'dvode -- HMAX (=R1) <= 0 %g' // char(0), HMAX)
       GO TO 700
- 616  call rprintd1(
-     1 'dvode -- HMIN (=R1) <=0 ', HMIN)
+ 616  call rprintfd1(
+     1 'dvode -- HMIN (=R1) <=0 %g' // char(0), HMIN)
       GO TO 700
  617  CONTINUE
-      call rprinti2(
-     1 'dvode -- RWORK length needed, LENRW (=I1) exceeds LRW (=I2)   ',
-     2   LENRW,LRW)
+      call rprintfi2(
+     1 'dvode -- RWORK length needed, LENRW (=I1) exceeds LRW (=I2)
+     &  %i, %i' // char(0), LENRW, LRW)
       GO TO 700
  618  CONTINUE
-      call rprinti2(
-     1 'dvode -- IWORK length needed, LENIW (=I1) exceeds LIW (=I2)   ',
-     2 LENIW,LIW)
+      call rprintfi2(
+     1 'dvode -- IWORK length needed, LENIW (=I1) exceeds LIW (=I2)
+     &  %i, %i' // char(0), LENIW, LIW)
       GO TO 700
- 619  call rprintid(
-     1 'dvode -- RTOL(I1) is R1 < 0 ', I, RTOLI)
+ 619  call rprintfid(
+     1 'dvode -- RTOL(I1) is R1 < 0 %i, %g' // char(0), I, RTOLI)
       GO TO 700
- 620  call rprintid(
-     1 'dvode -- ATOL (I1) is R1 < 0 ', I, ATOLI )
+ 620  call rprintfid(
+     1 'dvode -- ATOL (I1) is R1 < 0 %i, %g' // char(0), I, ATOLI )
       GO TO 700
  621  EWTI = RWORK(LEWT+I-1)
-      call rprintid(
-     1 'dvode -- EWT (I1) is R1 <= 0  ', I, EWTI) 
+      call rprintfid(
+     1 'dvode -- EWT (I1) is R1 <= 0  %i, %g' // char(0), I, EWTI)
       GO TO 700
  622  CONTINUE
-      call rprintd2(
-     1 'dvode -- TOUT (=R1) too close to T (=R2) to start integration ',
-     2  TOUT, T )
+      call rprintfd2(
+     1 'dvode -- TOUT (=R1) too close to T (=R2) to start integration'
+     &  // '%g, %g' // char(0), TOUT, T )
       GO TO 700
  623  CONTINUE
-      call rprinti1(
-     1 'dvode -- ITASK = I1', ITASK)
-      call rprintd2(
-     2 'and TOUT (=R1) behind TCUR-HU (=R2)       ', TOUT,TP)
+      call rprintfi1(
+     1 'dvode -- ITASK = I1 %i', ITASK)
+      call rprintfd2(
+     2 'and TOUT (=R1) behind TCUR-HU (=R2) %g, %g'
+     & // char(0), TOUT, TP)
       GO TO 700
  624  CONTINUE
-       call rprintd2(
-     1 'dvode -- ITASK = 4 or 5 and TCRIT (=R1) behind TCUR (=R2) ',
-     2    TCRIT,TN)
+       call rprintfd2(
+     1 'dvode -- ITASK = 4 or 5 and TCRIT (=R1) behind TCUR (=R2)'
+     &   // ' &g, %g' // char(0), TCRIT, TN)
       GO TO 700
  625  CONTINUE
-       call rprintd2(
-     1 'dvode -- ITASK = 4 or 5 and TCRIT (=R1) behind TOUT (=R2) ',
-     2 TCRIT,TOUT)
+       call rprintfd2(
+     1 'dvode -- ITASK = 4 or 5 and TCRIT (=R1) behind TOUT (=R2)'
+     &   // ' %g, %g' // char(0), TCRIT, TOUT)
       GO TO 700
- 626  call rprint2(
-     1 'dvode -- at start of problem, too much accuracy               ')
-       call rprintd1(
-     2 '        requested for precision of machine.. see TOLSF (=R1)  ',
-     3  TOLSF)
+ 626  call rprintf(
+     1 'dvode -- at start of problem, too much accuracy' // char(0))
+       call rprintfd1(
+     2 '        requested for precision of machine..
+     &  see TOLSF (=R1) %g' // char(0), TOLSF)
       RWORK(14) = TOLSF
       GO TO 700
- 627   call rprintid(
-     1 'dvode -- trouble from DVINDY. ITASK = I1, TOUT = R1           ',
-     2   ITASK,TOUT )
+ 627   call rprintfid(
+     1 'dvode -- trouble from DVINDY. ITASK = I1, TOUT = R1 %i, %g'
+     &  // char(0), ITASK, TOUT)
 
 C
  700  CONTINUE
       ISTATE = -3
       RETURN
 C
- 800    call rprint2(
-     1 'dvode -- run aborted.. apparent infinite loop')
+ 800    call rprintf(
+     1 'dvode -- run aborted.. apparent infinite loop' // char(0))
       RETURN
 C----------------------- End of Subroutine DVODE -----------------------
       END

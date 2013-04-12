@@ -30,6 +30,7 @@
    
    
    to do: make lags callable from external C/Fortran function 
+   (thpe: availale since v 1.10-5; tested for C only; todo: Fortran example)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /*=========================================================================== 
@@ -79,8 +80,8 @@ double Hermite (double t0, double t1, double y0, double y1, double dy0,
   hh   = t1-t0;
   if (hh)
     res=( dy0* tt0* tt12 + dy1* tt1* tt02
-		   + ( y0* (2.0* tt0 + hh)* tt12 
-			   	-y1* (2.0* tt1 - hh)* tt02 )/hh) / (hh * hh);
+       + ( y0* (2.0* tt0 + hh)* tt12 
+           -y1* (2.0* tt1 - hh)* tt02 )/hh) / (hh * hh);
   else
     res=y0;
   return(res);
@@ -94,7 +95,7 @@ double dHermite (double t0, double t1, double y0, double y1, double dy0,
                 double dy1, double t) {
   double tt0, tt1, tt12, tt02, hh, res;
   
-	tt0 = t-t0;
+  tt0 = t-t0;
   tt1 = t-t1;
   tt12 = tt1*tt1;
   tt02 = tt0*tt0;
@@ -102,8 +103,8 @@ double dHermite (double t0, double t1, double y0, double y1, double dy0,
 
   if (hh)
     res=( dy0 * (tt12+2.0* tt0* tt1) + dy1 * ( tt02+2.0* tt0* tt1)
-			 + ( y0 *2.0* tt1*(2.0* tt0+ hh +  tt1)
-				  -y1 *2.0* tt0*(2.0* tt1- hh +  tt0))/ hh ) / ( hh* hh) ;
+       + ( y0 *2.0* tt1*(2.0* tt0+ hh +  tt1)
+          -y1 *2.0* tt0*(2.0* tt1- hh +  tt0))/ hh ) / ( hh* hh) ;
   else
     res= dy0;
   return(res);
@@ -191,7 +192,7 @@ void updatehistini(double t, double *y, double *dY, double *rwork, int *iwork){
 void updatehist(double t, double *y, double *dY, double *rwork, int *iwork) {
   int j, ii;
   double ss[2];
-
+  
   indexhist = nexthist(indexhist);
   ii = indexhist * offset;     
 
@@ -234,7 +235,7 @@ void updatehist(double t, double *y, double *dY, double *rwork, int *iwork) {
 
 double past(int i, int interval, double t, int val)
 
-	/* finds past values (val=1) or past derivatives (val=2)*/
+  /* finds past values (val=1) or past derivatives (val=2)*/
 
 { int j, jn, nq, ip;
   double t0, t1, y0, y1, dy0, dy1, res, hh;
@@ -323,8 +324,8 @@ int findHistInt2 (double t) {
   
   if ( t >= histtime[indexhist]) 
     return(indexhist);
-	if ( t < histtime[starthist])
-	  error("illegal input in lagvalue - lag, %g, too large, at time = %g\n",
+  if ( t < histtime[starthist])
+    error("illegal input in lagvalue - lag, %g, too large, at time = %g\n",
       t, histtime[indexhist]);
  
    /* find embracing time starting from beginning  */
@@ -344,37 +345,37 @@ int findHistInt (double t) {
   
   if ( t >= histtime[indexhist]) 
     return(indexhist);
-	if ( t < histtime[starthist])
-	  error("illegal input in lagvalue - lag, %g, too large, at time = %g\n",
+  if ( t < histtime[starthist])
+    error("illegal input in lagvalue - lag, %g, too large, at time = %g\n",
       t, histtime[indexhist]);
 
   if (endreached == 0) {  /* still filling buffer; not yet wrapped */
     ilo = 0;
     ihi = indexhist;
     for(;;) {
-   	  imid = (ilo + ihi) / 2;
-	    if (imid == ilo) return ilo;
+       imid = (ilo + ihi) / 2;
+      if (imid == ilo) return ilo;
       if (t >= histtime[imid])
-	      ilo = imid;
-    	else
-	      ihi = imid;
+        ilo = imid;
+      else
+        ihi = imid;
      }
   }
   n = histsize -1;
   ilo = 0;
   ihi = n;
   for(;;) {
-   	imid = (ilo + ihi) / 2;
-	
+     imid = (ilo + ihi) / 2;
+  
     ii = imid + starthist;
     if (ii > n) ii = ii - n - 1;
 
-	  if (imid == ilo) return ii;
+    if (imid == ilo) return ii;
 
     if (t >= histtime[ii])
-	    ilo = imid;
-	  else
-	    ihi = imid;
+      ilo = imid;
+    else
+      ihi = imid;
   }
 }
 
@@ -383,31 +384,32 @@ int findHistInt (double t) {
   =========================================================================== */
 SEXP getLagValue(SEXP T, SEXP nr)
 {
-	SEXP value;
-	int i, ilen, interval;
-	double t;
+  SEXP value;
+  int i, ilen, interval;
+  double t;
 
   ilen = LENGTH(nr);
-	if (initialisehist == 0)
+  if (initialisehist == 0)
     error("pastvalue can only be called from `func` or 'res' when triggered by appropriate integrator.");
-	if (!isNumeric(T)) error("‘t’ should be numeric");
+  if (!isNumeric(T)) error("‘t’ should be numeric");
 
   t = *NUMERIC_POINTER(T);
   interval = findHistInt (t);
 
   if ((ilen ==1) && (INTEGER(nr)[0] == 0)) {
-  	PROTECT(value=NEW_NUMERIC(n_eq));
-  	for(i=0; i<n_eq; i++) {
-	  	NUMERIC_POINTER(value)[i] = past(i, interval, t, 1);
+    PROTECT(value=NEW_NUMERIC(n_eq));
+    for(i=0; i<n_eq; i++) {
+      NUMERIC_POINTER(value)[i] = past(i, interval, t, 1);
     }
   } else {
-	  PROTECT(value=NEW_NUMERIC(ilen));
-  	for(i=0; i<ilen; i++) {
-		NUMERIC_POINTER(value)[i] = past(INTEGER(nr)[i]-1, interval, t, 1);
-	  }
-	}
-	UNPROTECT(1);
-	return(value);
+    PROTECT(value=NEW_NUMERIC(ilen));
+    for(i=0; i<ilen; i++) {
+    NUMERIC_POINTER(value)[i] = past(INTEGER(nr)[i]-1, interval, t, 1);
+    }
+  }
+  
+  UNPROTECT(1);
+  return(value);
 }
 
 /*===========================================================================
@@ -415,31 +417,31 @@ SEXP getLagValue(SEXP T, SEXP nr)
   =========================================================================== */
 SEXP getLagDeriv(SEXP T, SEXP nr)
 {
-	SEXP value;
-	int i, ilen, interval;
-	double t;
+  SEXP value;
+  int i, ilen, interval;
+  double t;
 
   ilen = LENGTH(nr);
-	if (initialisehist == 0)
+  if (initialisehist == 0)
     error("pastgradient can only be called from `func` or 'res' when triggered by appropriate integrator.");
-	if (!isNumeric(T)) error("‘t’ should be numeric");
+  if (!isNumeric(T)) error("‘t’ should be numeric");
 
   t = *NUMERIC_POINTER(T);
   interval = findHistInt (t);
 
   if ((ilen ==1) && (INTEGER(nr)[0] == 0)) {
-  	PROTECT(value=NEW_NUMERIC(n_eq));
-  	for(i=0; i<n_eq; i++) {
-	  	NUMERIC_POINTER(value)[i] = past(i, interval, t, 2);
-	  }
+    PROTECT(value=NEW_NUMERIC(n_eq));
+    for(i=0; i<n_eq; i++) {
+      NUMERIC_POINTER(value)[i] = past(i, interval, t, 2);
+    }
   } else {
-	  PROTECT(value=NEW_NUMERIC(ilen));
-  	for(i=0; i<ilen; i++) {                                              
-	  	NUMERIC_POINTER(value)[i] = past(INTEGER(nr)[i]-1, interval, t, 2);
-	  }
-	}
+    PROTECT(value=NEW_NUMERIC(ilen));
+    for(i=0; i<ilen; i++) {                                              
+      NUMERIC_POINTER(value)[i] = past(INTEGER(nr)[i]-1, interval, t, 2);
+    }
+  }
   UNPROTECT(1);
-	return(value);
+  return(value);
 }
 
 
@@ -471,8 +473,32 @@ int initLags(SEXP elag, int solver, int nroot) {
   }  
   return(islag);
 }
-/* =========================================================================== */
 
+/*===========================================================================
+  lagderiv and lagderiv versions for use in compiled (.so/.dll) models
+  see interface in R_init_deSolve.c
+  tested with C , but not yet with Fortran
+  thpe 2013-03-21
+  =========================================================================== */
 
+void lagvalue(double T, int *nr, int N, double *ytau) {
+  int i, interval;
 
+  if (initialisehist == 0)
+    error("pastvalue can only be called from 'func' or 'res' when triggered by appropriate integrator.");
+
+  interval = findHistInt(T);
+  for(i = 0; i < N; i++)  ytau[i] = past(nr[i], interval, T, 1);
+}
+
+void lagderiv(double T, int *nr, int N, double *ytau) {
+  int i, interval;
+
+  if (initialisehist == 0)
+    error("pastvalue can only be called from 'func' or 'res' when triggered by appropriate integrator.");
+
+  interval = findHistInt(T);
+
+  for(i = 0; i < N; i++)  ytau[i] = past(nr[i], interval, T, 2);
+}
 

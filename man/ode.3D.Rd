@@ -37,7 +37,7 @@
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
     that are required at each point in \code{times}. The derivatives
-    should be specified in the same order as the state variables \code{y}.
+    must be specified in the \bold{same order} as the state variables \code{y}.
 
   }
   \item{parms }{parameters passed to \code{func}.}
@@ -192,7 +192,7 @@ DLSODES- RWORK length is insufficient to proceed.
 }      
   set \code{lrw} equal to 27627 or a higher value.
     
-  See \code{lsodes} for the additional options.
+  See \link{lsodes} for the additional options.
 }
 \seealso{
   \itemize{

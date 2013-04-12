@@ -423,8 +423,8 @@ C -------- UROUND   SMALLEST NUMBER SATISFYING 1.0D0+UROUND>1.0D0
       ELSE
          UROUND=WORK(1)
          IF (UROUND.LE.1.0D-19.OR.UROUND.GE.1.0D0) THEN
-           CALL rprintd1(
-     & ' COEFFICIENTS HAVE 20 DIGITS, UROUND=',WORK(1))
+           CALL rprintfd1(
+     & ' COEFFICIENTS HAVE 20 DIGITS, UROUND= %g'//char(0), WORK(1))
             ARRET=.TRUE.
          END IF
       END IF
@@ -432,7 +432,7 @@ C -------- CHECK AND CHANGE THE TOLERANCES
       EXPM=2.0D0/3.0D0
       IF (ITOL.EQ.0) THEN
           IF (ATOL(1).LE.0.D0.OR.RTOL(1).LE.10.D0*UROUND) THEN
-             CALL rprint( ' TOLERANCES ARE TOO SMALL')
+             CALL rprintf( ' TOLERANCES ARE TOO SMALL'//char(0))
               ARRET=.TRUE.
           ELSE
               QUOT=ATOL(1)/RTOL(1)
@@ -442,7 +442,8 @@ C -------- CHECK AND CHANGE THE TOLERANCES
       ELSE
           DO I=1,N
           IF (ATOL(I).LE.0.D0.OR.RTOL(I).LE.10.D0*UROUND) THEN
-              CALL rprint ( ' TOLERANCES(',I,') ARE TOO SMALL')
+              CALL rprintfi1( ' TOLERANCES (%i) ARE TOO SMALL'
+     &          //char(0), I)
               ARRET=.TRUE.
           ELSE
               QUOT=ATOL(I)/RTOL(I)
@@ -457,7 +458,8 @@ C -------- NMAX , THE MAXIMAL NUMBER OF STEPS -----
       ELSE
          NMAX=IWORK(2)
          IF (NMAX.LE.0) THEN
-           CALL Rprinti1(' WRONG INPUT IWORK(2)=',IWORK(2))
+           CALL rprintfi1(' WRONG INPUT IWORK(2)= %i'
+     &       // char(0), IWORK(2))
             ARRET=.TRUE.
          END IF
       END IF
@@ -467,7 +469,8 @@ C -------- NIT    MAXIMAL NUMBER OF NEWTON ITERATIONS
       ELSE
          NIT=IWORK(3)
          IF (NIT.LE.0) THEN
-           CALL rprinti1(' CURIOUS INPUT IWORK(3)=',IWORK(3))
+           CALL rprintfi1(' CURIOUS INPUT IWORK(3)= %i'
+     &       // char(0), IWORK(3))
             ARRET=.TRUE.
          END IF
       END IF
@@ -483,8 +486,9 @@ C -------- PARAMETER FOR DIFFERENTIAL-ALGEBRAIC COMPONENTS
       NIND3=IWORK(7)
       IF (NIND1.EQ.0) NIND1=N
       IF (NIND1+NIND2+NIND3.NE.N) THEN
-       call rprinti3(
-     &' CURIOUS INPUT FOR IWORK(5,6,7)=',NIND1,NIND2,NIND3)
+       call rprintfi3(
+     &'  CURIOUS INPUT FOR IWORK(5,6,7)= %i, %i, %i' //char(0),
+     &   NIND1, NIND2, NIND3)
        ARRET=.TRUE.
       END IF
 C -------- PRED   STEP SIZE CONTROL
@@ -500,7 +504,8 @@ C -------- PARAMETER FOR SECOND ORDER EQUATIONS
       IF (M1.EQ.0) M2=N
       IF (M2.EQ.0) M2=M1
       IF (M1.LT.0.OR.M2.LT.0.OR.M1+M2.GT.N) THEN
-       CALL rprinti2(' CURIOUS INPUT FOR IWORK(9,10)=',M1,M2)
+       CALL rprintfi2(' CURIOUS INPUT FOR IWORK(9,10)= %i, %i'
+     &   // char(0), M1, M2)
        ARRET=.TRUE.
       END IF
 C --------- SAFE     SAFETY FACTOR IN STEP SIZE PREDICTION
@@ -509,7 +514,8 @@ C --------- SAFE     SAFETY FACTOR IN STEP SIZE PREDICTION
       ELSE
          SAFE=WORK(2)
          IF (SAFE.LE.0.001D0.OR.SAFE.GE.1.0D0) THEN
-            Call rprintd1(' CURIOUS INPUT FOR WORK(2)=',WORK(2))
+            Call rprintfd1(' CURIOUS INPUT FOR WORK(2)= %g'
+     &        // char(0), WORK(2))
             ARRET=.TRUE.
          END IF
       END IF
@@ -519,7 +525,8 @@ C ------ THET     DECIDES WHETHER THE JACOBIAN SHOULD BE RECOMPUTED;
       ELSE
          THET=WORK(3)
          IF (THET.GE.1.0D0) THEN
-            Call rprintd1(' CURIOUS INPUT FOR WORK(3)=',WORK(3))
+            Call rprintfd1(' CURIOUS INPUT FOR WORK(3)= %g'
+     &        // char(0), WORK(3))
             ARRET=.TRUE.
          END IF
       END IF
@@ -530,7 +537,8 @@ C --- FNEWT   STOPPING CRITERION FOR NEWTON'S METHOD, USUALLY CHOSEN <1.
       ELSE
          FNEWT=WORK(4)
          IF (FNEWT.LE.UROUND/TOLST) THEN
-            Call rprintd1(' CURIOUS INPUT FOR WORK(4)=',WORK(4))
+            Call rprintfd1(' CURIOUS INPUT FOR WORK(4)= %g'
+     &        // char(0), WORK(4))
             ARRET=.TRUE.
          END IF
       END IF
@@ -546,7 +554,8 @@ C --- QUOT1 AND QUOT2: IF QUOT1 < HNEW/HOLD < QUOT2, STEP SIZE = CONST.
          QUOT2=WORK(6)
       END IF
       IF (QUOT1.GT.1.0D0.OR.QUOT2.LT.1.0D0) THEN
-         CALL rprintd2(' CURIOUS INPUT FOR WORK(5,6)=',QUOT1,QUOT2)
+         CALL rprintfd2(' CURIOUS INPUT FOR WORK(5,6)= %g, %g'
+     &     // char(0), QUOT1, QUOT2)
          ARRET=.TRUE.
       END IF
 C -------- MAXIMAL STEP SIZE
@@ -567,7 +576,8 @@ C -------  FACL,FACR     PARAMETERS FOR STEP SIZE SELECTION
          FACR=1.D0/WORK(9)
       END IF
       IF (FACL.LT.1.0D0.OR.FACR.GT.1.0D0) THEN
-         CALL rprintd2(' CURIOUS INPUT WORK(8,9)=',WORK(8),WORK(9))
+         CALL rprintfd2(' CURIOUS INPUT WORK(8,9)= %g, %g'
+     &    // char(0), WORK(8), WORK(9))
          ARRET=.TRUE.
       END IF
 C *** *** *** *** *** *** *** *** *** *** *** *** ***
@@ -603,8 +613,9 @@ C -- MASS MATRIX
           END IF
 C ------ BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"
           IF (MLMAS.GT.MLJAC.OR.MUMAS.GT.MUJAC) THEN
-      CALL rprint(
-     &'BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"')
+      CALL rprintf(
+     &  'BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"'
+     &  // char(0))
             ARRET=.TRUE.
           END IF
       ELSE
@@ -619,9 +630,9 @@ C ------ BANDWITH OF "MAS" NOT SMALLER THAN BANDWITH OF "JAC"
       LDMAS2=MAX(1,LDMAS)
 C ------ HESSENBERG OPTION ONLY FOR EXPLICIT EQU. WITH FULL JACOBIAN
       IF ((IMPLCT.OR.JBAND).AND.IJOB.EQ.7) THEN
-       CALL rprint(
+       CALL rprintf(
      &'  HESSENBERG OPTION ONLY FOR EXPLICIT EQUATIONS 
-     &   WITH FULL JACOBIAN')
+     &   WITH FULL JACOBIAN' // char(0))
          ARRET=.TRUE.
       END IF
 C ------- PREPARE THE ENTRY-POINTS FOR THE ARRAYS IN WORK -----
@@ -642,8 +653,9 @@ C ------- PREPARE THE ENTRY-POINTS FOR THE ARRAYS IN WORK -----
 C ------ TOTAL STORAGE REQUIREMENT -----------
       ISTORE=IEE2I+NM1*LDE1-1
       IF(ISTORE.GT.LWORK)THEN
-        CALL rprinti1(
-     &' INSUFFICIENT STORAGE FOR WORK, MIN. LWORK=',ISTORE)
+        CALL rprintfi1(
+     &    ' INSUFFICIENT STORAGE FOR WORK, MIN. LWORK= %i'
+     &    // char(0), ISTORE)
         ARRET=.TRUE.
       END IF
 C ------- ENTRY POINTS FOR INTEGER WORKSPACE -----
@@ -653,8 +665,9 @@ C ------- ENTRY POINTS FOR INTEGER WORKSPACE -----
 C --------- TOTAL REQUIREMENT ---------------
       ISTORE=IEIPH+NM1-1
       IF (ISTORE.GT.LIWORK) THEN
-        CALL rprinti1(
-     &' INSUFF. STORAGE FOR IWORK, MIN. LIWORK=',ISTORE)
+        CALL rprintfi1(
+     &    ' INSUFF. STORAGE FOR IWORK, MIN. LIWORK= %i'
+     &    // char(0), ISTORE)
          ARRET=.TRUE.
       END IF
 C ------ WHEN A FAIL HAS OCCURED, WE RETURN WITH IDID=-1
@@ -1145,18 +1158,20 @@ C --- UNEXPECTED STEP-REJECTION
       GOTO 10
 C --- FAIL EXIT
  176  CONTINUE
-      CALL rprintd1(' EXIT OF RADAU5 AT X=', X   )
-      CALL rprinti1(' MATRIX IS REPEATEDLY SINGULAR, IER=',IER)
+      CALL rprintfd1(' EXIT OF RADAU5 AT X= %g' // char(0), X)
+      CALL rprintfi1(' MATRIX IS REPEATEDLY SINGULAR, IER= %i'
+     &    //char(0), IER)
       IDID=-4
       RETURN
  177  CONTINUE
-      CALL rprintd1(' EXIT OF RADAU5 AT X=', X   )
-      CALL rprintd1(' STEP SIZE T0O SMALL, H=', H)
+      CALL rprintfd1(' EXIT OF RADAU5 AT X= %g' // char(0), X)
+      CALL rprintfd1(' STEP SIZE T0O SMALL, H= %g' // char(0), H)
       IDID=-3
       RETURN
  178  CONTINUE
-      CALL rprintd1(' EXIT OF RADAU5 AT X=', X   )
-      CALL rprinti1(' MORE THAN NMAX (I1),STEPS ARE NEEDED',NMAX )
+      CALL rprintfd1(' EXIT OF RADAU5 AT X= %g'//char(0), X )
+      CALL rprintfi1(' MORE THAN NMAX (I1),STEPS ARE NEEDED %i'
+     &  //char(0), NMAX)
       IDID=-2
       RETURN
 C --- EXIT CAUSED BY SOLOUT
@@ -1164,7 +1179,7 @@ C --- EXIT CAUSED BY SOLOUT
 C karline: toggled this off
 C      WRITE(MSG,979)X
 C      CALL rprint(MSG)
- 979  FORMAT(' EXIT OF RADAU5 AT X=',E18.4) 
+ 979  FORMAT(' EXIT OF RADAU5 AT X=',E18.4)
       IDID=2
       RETURN
       END
