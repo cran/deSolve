@@ -15,9 +15,9 @@
 ## =============================================================================
 
 Range <- function(Range, x, log) {
-   if (log)
-      x[x <= 0] <- min(x[x>0])  # remove zeros
-   return( range(Range, x, na.rm = TRUE) )
+   if ((log) & (!is.null(x)))
+      x[x <= 0] <- min(x[x > 0])  # remove zeros
+   return(range(Range, x, na.rm = TRUE) )
 }
 
 ## =============================================================================

@@ -121,14 +121,19 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
   /* Main Loop                                                              */
   /*------------------------------------------------------------------------*/
   t = tt[0];
-  for (it = 0; it < nt ; it++) {
-    dt = (tt[it + 1] - t)/nsteps;
+  for (it = 0; it < nt; it++) {
+
+    if (it < nt - 1)
+      dt = (tt[it + 1] - t)/nsteps;
+    else
+      dt = 0;                       /* dt after final time is undefined*/
+
     timesteps[0] = timesteps[1];
     timesteps[1] = dt;
     if (verbose)
         Rprintf("Time steps = %d / %d time = %e\n", it + 1, nt, t);
 
-    if (it == (nt-1)) nsteps = 1;  /* to make sure last step is saved */
+    if (it == (nt - 1)) nsteps = 1;  /* to make sure last step is saved */
     
     for (nst = 0; nst < nsteps; nst++) {
 
@@ -144,7 +149,7 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
 
       } else {
         yy = REAL(R_y);
-        PROTECT(R_t = ScalarReal(t));                     incr_N_Protect();
+        PROTECT(R_t = ScalarReal(t));                    incr_N_Protect();
 
         for (i = 0; i < neq; i++) yy[i] = y0[i];
 
