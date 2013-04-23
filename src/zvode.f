@@ -3607,7 +3607,7 @@ C Code for both increments equal to 1
 
       subroutine zgesl(a,lda,n,ipvt,b,job)
       integer lda,n,ipvt(1),job
-      complex*16 a(lda,1),b(1)
+      complex*16 a(lda,*),b(*)
 c
 c     zgesl solves the complex*16 system
 c     a * x = b  or  ctrans(a) * x = b
@@ -3729,8 +3729,8 @@ c
       end
 
       subroutine zgbfa(abd,lda,n,ml,mu,ipvt,info)
-      integer lda,n,ml,mu,ipvt(1),info
-      complex*16 abd(lda,1)
+      integer lda,n,ml,mu,ipvt(*),info
+      complex*16 abd(lda,*)
 c
 c     zgbfa factors a complex*16 band matrix by elimination.
 c
@@ -3912,7 +3912,7 @@ c
 
       subroutine zgbsl(abd,lda,n,ml,mu,ipvt,b,job)
       integer lda,n,ml,mu,ipvt(1),job
-      complex*16 abd(lda,1),b(1)
+      complex*16 abd(lda,*),b(*)
 c
 c     zgbsl solves the complex*16 band system
 c     a * x = b  or  ctrans(a) * x = b
@@ -4051,8 +4051,8 @@ c
       end
 
       subroutine zgefa(a,lda,n,ipvt,info)
-      integer lda,n,ipvt(1),info
-      complex*16 a(lda,1)
+      integer lda,n,ipvt(*),info
+      complex*16 a(lda,*)
 c
 c     zgefa factors a complex*16 matrix by gaussian elimination.
 c

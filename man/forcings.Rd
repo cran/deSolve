@@ -98,7 +98,7 @@
   
   Thomas Petzoldt,
 
-  R. Woodrow Setzer (Maintainer)
+  R. Woodrow Setzer
 }
 \seealso{
   \code{\link{approx}} or \code{\link{approxfun}}, the \R function,

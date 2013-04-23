@@ -1,6 +1,17 @@
+Changes version 1.10.6 (Thomas) 
+================================
+ o change declaration of variable dimensions from (1) to (*) in legacy
+   Fortran code to pass automatic bounds check
+ o remove the Jacobian examples from ?ode because banddown=0 can
+   lead to problems on some systems; examples will come back in the
+   next release
+ o fixed bug in the "iteration" solver
+ o small documentation updates
+
 Changes version 1.10.5 (Karline, Thomas)
 ================================
- o extended subset.deSolve with argument arr, when TRUE returns an array for >2-D output
+ o extended subset.deSolve with argument arr, when TRUE returns an
+   array for >2-D output
  o fixed the R compiler notes
  o plot.ode.2D now has an mtext argument, via the ..., to label multiple 
     figures in margin... CHECK - see ode.2D

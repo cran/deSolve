@@ -29,8 +29,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.10-5\cr
-    Date:    \tab 2013-04-12\cr
+    Version: \tab 1.10-6\cr
+    Date:    \tab 2013-04-22\cr
     License: \tab GNU Public License 2 or above\cr
   }
 

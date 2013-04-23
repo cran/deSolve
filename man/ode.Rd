@@ -285,8 +285,13 @@ outb <- ode(func = Parasite, y = c(P = 0.5, H = 0.5),
             method = "iteration")
 plot(out, outb, type = c("l", "p"))
 
+\dontrun{
 ## =======================================================================
 ## Example4: Playing with the Jacobian options - see e.g. lsoda help page
+##
+## IMPORTANT: The following example is temporarily broken because of 
+##            incompatibility with R 3.0 on some systems.
+##            A fix is on the way.
 ## =======================================================================
 
 # a stiff equation, exponential decay, run 500 times
@@ -324,6 +329,6 @@ print(system.time(
               bandup = 0, banddown = 0)
 ))
 # The larger the value of N, the larger the time gain...
-
+}
 }
 

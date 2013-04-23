@@ -8,9 +8,10 @@ C*********************************************************************
       DOUBLE PRECISION Y, T, TOUT, RTOL, ATOL, RWORK, RPAR
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, IWORK, LIW,          &
      &        MF, IPAR
-C KARLINE: CHANGED RTOL(1),ATOL(1) : was: RTOL(LRW),ATOL(LIW)!!!     
-      DIMENSION Y(NEQ), RTOL(1), ATOL(1), RWORK(LRW), IWORK(LIW),       &      
-     &          RPAR(1), IPAR(1)
+C KARLINE: CHANGED RTOL(1),ATOL(1) : was: RTOL(LRW),ATOL(LIW)!!!
+C Thomas: changed (1) to (*)
+      DIMENSION Y(NEQ), RTOL(*), ATOL(*), RWORK(LRW), IWORK(LIW),       &
+     &          RPAR(*), IPAR(*)
 C-----------------------------------------------------------------------
 C Revision History (YYMMDD)
 C   890615  Date Written
