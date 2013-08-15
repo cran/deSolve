@@ -101,7 +101,7 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
     if (! is.null(forcings))
       flist <- checkforcings(forcings,times,dllname,initforc,verbose,fcontrol)
 
-    rho <- NULL
+    rho <- emptyenv()
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
     Eventfunc <- events$func
@@ -191,13 +191,13 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
   }
 
 ### The mass matrix
-   mlmas <- n
-   mumas <- n
-  if (is.null(mass)) {
-   imas  <- 0
-   lmas  <- n
-   MassFunc <- NULL
-  } else {
+    mlmas <- n
+    mumas <- n
+   if (is.null(mass)) {
+     imas  <- 0
+     lmas  <- n
+     MassFunc <- NULL
+   } else {
      imas  <- 1
 
      dimens <- dim(mass)
@@ -213,11 +213,11 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
        if (dimens[1] != mlmas + mumas +1)
        stop ("nr of rows in mass matrix should equal the number of variables in 'y' or 'massup'+'massdown'+1 ")
      }
-   MassFunc <- function (n,lm) {
-     if (nrow(mass) != lm || ncol(mass) != n)
-       stop ("dimensions of mass matrix not ok")
-     return(mass)
-   }
+     MassFunc <- function (n,lm) {
+       if (nrow(mass) != lm || ncol(mass) != n)
+         stop ("dimensions of mass matrix not ok")
+       return(mass)
+     }
   }
 
   lmas <- n

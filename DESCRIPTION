@@ -1,29 +1,35 @@
 Package: deSolve
-Version: 1.10-6
-Title: General solvers for initial value problems of ordinary
-        differential equations (ODE), partial differential equations
-        (PDE), differential algebraic equations (DAE), and delay
-        differential equations (DDE).
-Author: Karline Soetaert <karline.soetaert@nioz.nl>, Thomas Petzoldt
-        <thomas.petzoldt@tu-dresden.de>, R. Woodrow Setzer
-        <setzer.woodrow@epa.gov>
+Version: 1.10-7
+Title: General Solvers for Initial Value Problems of Ordinary
+        Differential Equations (ODE), Partial Differential Equations
+        (PDE), Differential Algebraic Equations (DAE), and Delay
+        Differential Equations (DDE)
+Authors@R: c(person("Karline","Soetaert", role = c("aut","cre"), 
+                     email = "karline.soetaert@nioz.nl"),
+             person("Thomas","Petzoldt", role = c("aut", "cre"),
+                     email = "Thomas.Petzoldt@TU-Dresden.de"),
+             person("Woodrow","Setzer", role = c("aut", "cre"),
+                     email = "setzer.woodrow@epa.gov"),
+             person("odepack authors", role = "cph"))
+Author: Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer
 Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
 Depends: R (>= 2.6.0)
-Description: Functions that solve initial value problems of a system of
-        first-order ordinary differential equations (ODE), of partial
-        differential equations (PDE), of differential algebraic
-        equations (DAE), and of delay differential equations.  The
-        functions provide an interface to the FORTRAN functions lsoda,
-        lsodar, lsode, lsodes of the ODEPACK collection, to the FORTRAN
-        functions dvode and daspk and a C-implementation of solvers of
-        the Runge-Kutta family with fixed or variable time steps.  The
-        package contains routines designed for solving ODEs resulting
-        from 1-D, 2-D and 3-D partial differential equations (PDE) that
-        have been converted to ODEs by numerical differencing.
+Description: Functions that solve initial value problems of a system
+        of first-order ordinary differential equations (ODE), of
+        partial differential equations (PDE), of differential
+        algebraic equations (DAE), and of delay differential
+        equations.  The functions provide an interface to the FORTRAN
+        functions lsoda, lsodar, lsode, lsodes of the ODEPACK
+        collection, to the FORTRAN functions dvode and daspk and a
+        C-implementation of solvers of the Runge-Kutta family with
+        fixed or variable time steps.  The package contains routines
+        designed for solving ODEs resulting from 1-D, 2-D and 3-D
+        partial differential equations (PDE) that have been converted
+        to ODEs by numerical differencing.
 License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
-Packaged: 2013-04-23 06:16:58 UTC; thpe
+Packaged: 2013-08-15 15:10:46 UTC; user
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-04-23 10:22:42
+Date/Publication: 2013-08-15 18:09:54

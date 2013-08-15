@@ -27,7 +27,7 @@
   Two uses of \code{lsodar} are: 
   \itemize{
     \item To stop the simulation when a certain condition is met
-    \item To trigger an \link{events}, i.e. a sudden change in one of the 
+    \item To trigger \link{events}, i.e. sudden changes in one of the 
       state variables when a certain condition is met.
   }
    when a particular condition is met. 

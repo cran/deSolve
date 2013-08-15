@@ -1,9 +1,18 @@
+Changes version 1.10.7
+================================
+ o Fortran examples of compiled dede models (Woody)
+ o vignettes moved to /vignettes
+ o roles of authors (Authors@R)
+ o function timestep is now internal
+ o small documentation updates
+
+
 Changes version 1.10.6 (Thomas) 
 ================================
  o change declaration of variable dimensions from (1) to (*) in legacy
    Fortran code to pass automatic bounds check
  o remove the Jacobian examples from ?ode because banddown=0 can
-   lead to problems on some systems; examples will come back in the
+   lead to problems on some systems; examples will come back in a
    next release
  o fixed bug in the "iteration" solver
  o small documentation updates
