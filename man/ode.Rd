@@ -50,7 +50,7 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
   }
   \item{parms }{parameters passed to \code{func}.}
   \item{method }{the integrator to use, either a \bold{function} that performs 
-    integration, or a \bold{list} of class \code{rkMethod}, or a \bold{string} 
+    integration, or a \bold{list} of class \code{\link{rkMethod}}, or a \bold{string} 
     (\code{"lsoda"},
     \code{"lsode"}, \code{"lsodes"},\code{"lsodar"},\code{"vode"},
     \code{"daspk"}, \code{"euler"}, \code{"rk4"},   \code{"ode23"},
@@ -153,9 +153,12 @@ method = c("lsoda", "lsode", "lsodes", "lsodar", "vode", "daspk",
     \item \code{\link{lsoda}}, \code{\link{lsode}},
       \code{\link{lsodes}}, \code{\link{lsodar}}, \code{\link{vode}},
       \code{\link{daspk}}, \code{\link{radau}},
-    \item  \code{\link{rk}}, \code{\link{rkMethod}},
+    \item  \code{\link{rk}}, \code{\link{rkMethod}} for additional
+       Runge-Kutta methods,
+    \item \code{\link{forcings}} and \code{\link{events}},
+    \item  \code{\link{diagnostics}} to print diagnostic messages.  
   }
-  \code{\link{diagnostics}} to print diagnostic messages.
+
 }
 \keyword{math}
 \examples{
@@ -294,7 +297,7 @@ plot(out, outb, type = c("l", "p"))
 ##            A fix is on the way.
 ## =======================================================================
 
-# a stiff equation, exponential decay, run 500 times
+## a stiff equation, exponential decay, run 500 times
 stiff <- function(t, y, p) {   # y and r are a 500-valued vector
   list(- r * y)
 }
@@ -305,21 +308,21 @@ yini <- runif(N, 1, 40)
 
 times <- 0:10
 
-# Using the default
+## Using the default
 print(system.time(
   out <- ode(y = yini, parms = NULL, times = times, func = stiff)
 ))
 # diagnostics(out) shows that the method used = bdf (2), so it it stiff
 
-# Specify that the jacobian is banded, with nonzero values on the 
-# diagonal, i.e. the bandwidth up and down = 0 
+## Specify that the Jacobian is banded, with nonzero values on the 
+## diagonal, i.e. the bandwidth up and down = 0 
 
 print(system.time(
   out2 <- ode(y = yini, parms = NULL, times = times, func = stiff,
               jactype = "bandint", bandup = 0, banddown = 0)
 ))
 
-# Now we also specify the jacobian function
+## Now we also specify the Jacobian function
 
 jacob <- function(t, y, p) -r
 
@@ -328,7 +331,7 @@ print(system.time(
               jacfunc = jacob, jactype = "bandusr", 
               bandup = 0, banddown = 0)
 ))
-# The larger the value of N, the larger the time gain...
+## The larger the value of N, the larger the time gain...
 }
 }
 

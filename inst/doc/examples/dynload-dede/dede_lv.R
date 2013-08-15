@@ -24,6 +24,8 @@ system.time(
   yout <- dede(y = yinit, times = times, func = derivs, parms = parms)
 )
 
+if(!interactive()) pdf(file="dede_lv.pdf")
+
 plot(yout)
 
 
@@ -40,4 +42,21 @@ dyn.unload(paste("dede_lv", .Platform$dynlib.ext, sep=""))
 
 plot(yout2, main=c("y", "ytau"))
 
-#summary(as.vector(yout)-as.vector(yout2))
+## Fortran models still need the c code in dedeUtils.c.
+## However, as long as you just use the lagvalue() and lagderiv()
+## supplied with deSolve, dedeUtils.c works as is.
+
+system("R CMD SHLIB dede_lvF.f dedeUtils.c")
+dyn.load(paste("dede_lvF", .Platform$dynlib.ext, sep=""))
+
+## 100 runs
+system.time( for (i in 1:100)
+  yout3 <- dede(yinit, times = times, func = "derivs", parms = parms,
+    dllname = "dede_lvF", initfunc = "initmod", nout = 2)
+)
+
+dyn.unload(paste("dede_lvF", .Platform$dynlib.ext, sep=""))
+
+plot(yout3, main=c("y", "ytau"))
+
+if(!interactive()) dev.off()

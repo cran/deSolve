@@ -2,7 +2,6 @@
 \alias{timelags}
 \alias{lagvalue}
 \alias{lagderiv}
-\alias{timestep}
 \title{
   Time Lagged Values of State Variables and Derivatives.
 }
@@ -12,15 +11,10 @@
   
   They are to be used with function \code{dede}, to solve delay differential 
   equations.
-  
-  Function \code{timestep} gives the current and next timestep of the 
-  integration.
 }
 \usage{
 lagvalue(t, nr)
 lagderiv(t, nr)
-timestep(prev = TRUE)
-
 }
 \arguments{
   \item{t }{the time for which the lagged value is wanted; this should
@@ -29,10 +23,6 @@ timestep(prev = TRUE)
   }
   \item{nr }{the number of the lagged value; if \code{NULL} then all state
     variables or derivatives are returned.
-  }
-  \item{prev }{if \code{TRUE} will return the timestep previously used;
-    when \code{FALSE} will return the time step to be currently tried by 
-    the integrator.
   }
 }
 
@@ -49,10 +39,6 @@ timestep(prev = TRUE)
    
   Cubic Hermite interpolation is used to obtain an accurate interpolant
   at the requested lagged time. 
-  
-  Function \code{timestep} returns the current simulation timestep; if the 
-  simulation has not yet started, will return 1. Use with care.
-  
 }
 \seealso{
   \link{dede}, for how to implement delay differential equations.

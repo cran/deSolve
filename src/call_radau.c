@@ -447,9 +447,12 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
 	    }
     }
   if (!isNull(masfunc))   {
-	      R_mas_func = masfunc;
-	      mas_func= C_mas_func_rad;
-    }
+	   R_mas_func = masfunc;
+	   mas_func= C_mas_func_rad;
+     if (isDll)       
+       R_envir = rho;
+
+  }
 
  	solout = C_soloutrad;
  
