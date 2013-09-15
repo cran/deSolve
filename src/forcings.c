@@ -267,7 +267,7 @@ void updateevent(double *t, double *y, int *istate) {
           else if (method == 3) 
             y[svar] = y[svar] * value;
           tEvent = timeevent[++iEvent]; 
-        } while ((tEvent == *t) && (iEvent <= nEvent));
+        } while ((tEvent == *t) && (iEvent < nEvent));
       } else {                  /* a root event or specific times */
         event_func(&n_eq, t, y);
         if (!rootevent)
