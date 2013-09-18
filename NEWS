@@ -1,3 +1,8 @@
+Changes version 1.10.8
+================================
+ o remove redundant .R files from inst/doc
+ o fixed bug in event code (patch contributed by Jonathan Stott)
+
 Changes version 1.10.7
 ================================
  o Fortran examples of compiled dede models (Woody)

@@ -1,5 +1,5 @@
 Package: deSolve
-Version: 1.10-7
+Version: 1.10-8
 Title: General Solvers for Initial Value Problems of Ordinary
         Differential Equations (ODE), Partial Differential Equations
         (PDE), Differential Algebraic Equations (DAE), and Delay
@@ -29,7 +29,10 @@ Description: Functions that solve initial value problems of a system
 License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
-Packaged: 2013-08-15 15:10:46 UTC; user
-NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-08-15 18:09:54
+Repository/R-Forge/Project: desolve
+Repository/R-Forge/Revision: 592
+Repository/R-Forge/DateTimeStamp: 2013-09-15 11:45:52
+Date/Publication: 2013-09-18 08:38:42
+Packaged: 2013-09-15 14:16:03 UTC; rforge
+NeedsCompilation: yes
