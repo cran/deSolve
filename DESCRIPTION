@@ -1,19 +1,23 @@
 Package: deSolve
-Version: 1.10-8
+Version: 1.10-9
 Title: General Solvers for Initial Value Problems of Ordinary
         Differential Equations (ODE), Partial Differential Equations
         (PDE), Differential Algebraic Equations (DAE), and Delay
         Differential Equations (DDE)
-Authors@R: c(person("Karline","Soetaert", role = c("aut","cre"), 
+Authors@R: c(person("Karline","Soetaert", role = c("aut"), 
                      email = "karline.soetaert@nioz.nl"),
              person("Thomas","Petzoldt", role = c("aut", "cre"),
-                     email = "Thomas.Petzoldt@TU-Dresden.de"),
-             person("Woodrow","Setzer", role = c("aut", "cre"),
+                     email = "thomas.petzoldt@tu-dresden.de"),
+             person("R. Woodrow","Setzer", role = c("aut"),
                      email = "setzer.woodrow@epa.gov"),
              person("odepack authors", role = "cph"))
-Author: Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer
+Author: Karline Soetaert [aut],  
+        Thomas Petzoldt [aut, cre],  
+        R. Woodrow Setzer [aut], 
+        odepack authors [cph]
 Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
-Depends: R (>= 2.6.0)
+Depends: R (>= 3.1.0)
+Suggests: scatterplot3d
 Description: Functions that solve initial value problems of a system
         of first-order ordinary differential equations (ODE), of
         partial differential equations (PDE), of differential
@@ -29,10 +33,7 @@ Description: Functions that solve initial value problems of a system
 License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
-Repository: CRAN
-Repository/R-Forge/Project: desolve
-Repository/R-Forge/Revision: 592
-Repository/R-Forge/DateTimeStamp: 2013-09-15 11:45:52
-Date/Publication: 2013-09-18 08:38:42
-Packaged: 2013-09-15 14:16:03 UTC; rforge
+Packaged: 2014-06-24 08:39:11 UTC; thpe
 NeedsCompilation: yes
+Repository: CRAN
+Date/Publication: 2014-06-25 23:55:41

@@ -51,7 +51,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
     }
     if (Root == 0) {
       if (is.null(events$time)) 
-        stop("'events$time' should be given and contain the times of the events, if 'events$func' is specified and no root function")
+        stop("either 'events$time' should be given and contain the times of the events, if 'events$func' is specified and no root function or your solver does not support root functions")
       eventtime <- as.double(events$time)
 
       if (any(!(eventtime %in% times))) {
@@ -118,7 +118,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
   if (length(ii) > 0) 
     eventdata <- eventdata [-ii,]
   if (any(!(eventdata[,2] %in% times))) {
-        warning("Not all event times 'events$times' where in output 'times' so they are automatically included.")
+        warning("Not all event times 'events$times' were in output 'times' so they are automatically included.")
         uniqueTimes <- cleanEventTimes(times, eventdata[,2])
         if (length(uniqueTimes) < length(times))
           warning("Some time steps were very close to events - only the event times are used in these cases.")

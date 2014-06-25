@@ -1163,11 +1163,12 @@ plot.ode1D <- function (x, which, ask, add.contour, grid,
          else
            dotmain$col <- dotscol
       if (is.null(dotmain$zlim)) dotmain$zlim <- range(out, na.rm=TRUE)
-
       drawlegend(parleg, dotmain)
+    }
+  }
+  if (legend) {
       par(plt = plt.or)
       par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
-    }
   }
 }
 

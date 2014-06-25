@@ -1,3 +1,8 @@
+Changes version 1.10.9
+================================
+ o documentation updates, hyperlinks to examples and vignettes
+ o moved example directories
+
 Changes version 1.10.8
 ================================
  o remove redundant .R files from inst/doc
@@ -10,7 +15,6 @@ Changes version 1.10.7
  o roles of authors (Authors@R)
  o function timestep is now internal
  o small documentation updates
-
 
 Changes version 1.10.6 (Thomas) 
 ================================

@@ -12,7 +12,7 @@
   first-order ordinary differential equations (ODE), of partial
   differential equations (PDE), of differential algebraic equations (DAE)
   and delay differential equations.
-
+  
   The functions provide an interface to the FORTRAN functions lsoda,
   lsodar, lsode, lsodes of the ODEPACK collection,
   to the FORTRAN functions dvode and daspk and a C-implementation of
@@ -21,7 +21,6 @@
   The package contains routines designed for solving ODEs
   resulting from 1-D, 2-D and 3-D partial differential equations (PDE)
   that have been converted to ODEs by numerical differencing.
-  
   It includes root-finding (or event location) and provides access to lagged
   variables and derivatives.
 }
@@ -29,51 +28,60 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.10-8\cr
-    Date:    \tab 2013-09-15\cr
+    Version: \tab 1.10-9\cr
+    Date:    \tab 2014-06-22\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
   The system of differential equations is written as an \R function or
   defined in compiled code that has been dynamically loaded, see
-  package vignette (\code{vignette(compiledCode)}) for details. The
+  package vignette \href{../doc/compiledCode.pdf}{compiledCode} for details. The
   solvers may be used as part of a modeling package for differential
   equations, or for parameter estimation using any appropriate
   modeling tool for non-linear models in \R such as
   \code{\link{optim}}, \code{\link{nls}}, \code{\link{nlm}} or
-  \code{\link[nlme]{nlme}}.
+  \code{\link[nlme]{nlme}} or \code{\link[FME]{FME}}.
+
   
+  \bold{Package Vignettes, Examples, Online Resources}
+
+  \itemize{
+    \item Solving Initial Value Differential Equations in R
+      (\href{../doc/deSolve.pdf}{pdf}, \href{../doc/deSolve.R}{R code})
+    \item Writing Code in Compiled Languages
+      (\href{../doc/compiledCode.pdf}{pdf}, \href{../doc/compiledCode.R}{R code})
+    \item Examples in R (\url{../doc/examples}), and in Fortran or C (\url{../doc/dynload}, \url{../doc/dynload-dede}) 
+    \item deSolve homepage: \url{http://desolve.r-forge.r-project.org} (Papers, Books, PDFs)
+    \item Mailing list: \url{mailto:r-sig-dynamic-models@r-project.org}
+   }
+    
 }
 \author{
-  Karline Soetaert,
-  
-  Thomas Petzoldt,
-
-  R. Woodrow Setzer
+  Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer
 }
 \references{
 
-  Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010).  Solving
+  Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010):  Solving
   Differential Equations in R: Package deSolve Journal of Statistical
   Software, 33(9), 1--25.  \url{http://www.jstatsoft.org/v33/i09/}
 
   Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer, (2010): Solving
   differential equations in R. The R Journal 2(2), 5-15.
-  \url{http://journal.r-project.org/archive/2010-2/RJournal_2010-2_Soetaert~et~al.pdf}
+  \href{http://journal.r-project.org/archive/2010-2/RJournal_2010-2_Soetaert~et~al.pdf}{pdf}
 
   Karline Soetaert, Thomas Petzoldt (2011): Solving ODEs, DAEs, DDEs and
   PDEs in R. Journal of Numerical Analysis, Industrial and Applied
-  Mathematics (JNAIAM) 6(1-2), 51-65.
+  Mathematics (JNAIAM) 6(1-2), 51-65. \href{http://jnaiam.org/uploads/jnaiam_6_4.pdf}{pdf}
   
-  Alan C. Hindmarsh, 1983. ODEPACK, A Systematized Collection of ODE
+  Alan C. Hindmarsh (1983): ODEPACK, A Systematized Collection of ODE
   Solvers, in Scientific Computing, R. S. Stepleman et al. (Eds.),
   North-Holland, Amsterdam, pp. 55-64.
 
-  L. R. Petzold, 1983.  A Description of DASSL: A Differential/Algebraic
+  L. R. Petzold, (1983):  A Description of DASSL: A Differential/Algebraic
   System Solver, in Scientific Computing, R. S. Stepleman et al. (Eds.),
   North-Holland, Amsterdam, pp. 65-68.
 
-  P. N. Brown, G. D. Byrne, and A. C. Hindmarsh, 1989.  VODE: A Variable
+  P. N. Brown, G. D. Byrne, A. C. Hindmarsh (1989):  VODE: A Variable
   Coefficient ODE Solver, SIAM J. Sci. Stat. Comput., 10, pp. 1038-1051.
 
   See also the references given on the specific help pages of the
@@ -111,44 +119,33 @@
   
   \code{\link{lagvalue}}, \code{\link{lagderiv}}, for how to get access to 
   lagged values of state variables and derivatives.
-  
+
 }
 
 \examples{
-\dontrun{
-## show examples (see respective help pages for details)
-example(aquaphy)
-example(lsoda)
-example(ode.band)
-example(ode.1D)
-example(ode.2D)
-example(ode.3D)
-example(dede)
+library(deSolve)
 
-## run demos
-demo("odedim")     # partial differential equations
-demo("CCL4model")  # a model fitting example (this will take some time)
-
-## open the directory with source code of demos
-browseURL(paste(system.file(package = "deSolve"), "/demo", sep = ""))
-
-## open the directory with R sourcecode examples
-browseURL(paste(system.file(package = "deSolve"), "/doc/examples", sep = ""))
-## open the directory with C and FORTRAN sourcecode examples
-browseURL(paste(system.file(package = "deSolve"), "/doc/examples/dynload", sep = ""))
-
-## show package vignette with how to use deSolve
-## + source code of the vignette
-vignette("deSolve")
-edit(vignette("deSolve"))
-
-## show package vignette with tutorial about how to use compiled models
-## + source code of the vignette
-## + directory with C and FORTRAN sources
-vignette("compiledCode")
-edit(vignette("compiledCode"))
-browseURL(paste(system.file(package = "deSolve"), "/doc", sep = ""))
-}
+## Chaos in the atmosphere
+Lorenz <- function(t, state, parameters) {
+  with(as.list(c(state, parameters)), {
+    dX <-  a * X + Y * Z
+    dY <-  b * (Y - Z)
+    dZ <- -X * Y + c * Y - Z
+    list(c(dX, dY, dZ))
+  })
 }
 
+parameters <- c(a = -8/3, b = -10, c = 28)
+state      <- c(X = 1, Y = 1, Z = 1)
+times      <- seq(0, 100, by = 0.01)
+
+out <- ode(y = state, times = times, func = Lorenz, parms = parameters)
+
+plot(out)
+
+## add a 3D figure if package scatterplot3D is available
+if (require(scatterplot3d))
+  scatterplot3d(out[,-1], type = "l")
+
+}
 \keyword{ package }

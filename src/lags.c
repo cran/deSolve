@@ -390,7 +390,7 @@ SEXP getLagValue(SEXP T, SEXP nr)
 
   ilen = LENGTH(nr);
   if (initialisehist == 0)
-    error("pastvalue can only be called from `func` or 'res' when triggered by appropriate integrator.");
+    error("pastvalue can only be called from 'func' or 'res' when triggered by appropriate integrator.");
   if (!isNumeric(T)) error("‘t’ should be numeric");
 
   t = *NUMERIC_POINTER(T);
@@ -423,8 +423,8 @@ SEXP getLagDeriv(SEXP T, SEXP nr)
 
   ilen = LENGTH(nr);
   if (initialisehist == 0)
-    error("pastgradient can only be called from `func` or 'res' when triggered by appropriate integrator.");
-  if (!isNumeric(T)) error("‘t’ should be numeric");
+    error("pastgradient can only be called from 'func' or 'res' when triggered by appropriate integrator.");
+  if (!isNumeric(T)) error("'t' should be numeric");
 
   t = *NUMERIC_POINTER(T);
   interval = findHistInt (t);
