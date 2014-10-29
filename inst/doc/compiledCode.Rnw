@@ -1555,6 +1555,204 @@ the consumer removed every 10 days - see text for R-code}
 \label{fig:lv2}
 \end{figure}
 
+\section{Delay differential equations}
+
+It is now also very simple to implement delay 
+differential equations in compiled code and solve them with \code{dede}.
+In order to do so, you need to get access to the R-functions \code{lagvalue} and \code{lagderiv}
+that will give you the past value of the state variable or its derivative 
+respectively.
+
+\subsection{Delays implemented in Fortran}
+
+If you use \proglang{Fortran}, then the easiest way is to link your code with a file called 
+\code{dedeUtils.c} that you will find in the packages subdirectory \code{inst/doc/dynload-dede}. 
+This file contains Fortran-callable interfaces to the delay-differential utility
+functions from package \pkg{deSolve}, and that are written in \proglang{C}.
+Its content is: 
+\begin{verbatim}
+void F77_SUB(lagvalue)(double *T, int *nr, int *N, double *ytau) {
+  static void(*fun)(double, int*, int, double*) = NULL;
+  if (fun == NULL)
+    fun =  (void(*)(double, int*, int, double*))R_GetCCallable("deSolve", "lagvalue");
+  fun(*T, nr, *N, ytau);
+  return;
+}
+
+void F77_SUB(lagderiv)(double *T, int *nr, int *N, double *ytau) {
+  static void(*fun)(double, int*, int, double*) = NULL;
+  if (fun == NULL)
+    fun =  (void(*)(double, int*, int, double*))R_GetCCallable("deSolve", "lagderiv");
+  fun(*T, nr, *N, ytau);
+  return;
+}
+\end{verbatim}
+
+Here \code{T} is the time at which the value needs to be retrieved, 
+\code{nr} is an integer that defines the number of the state variable or its
+derivative whose delay we want, \code{N} is the total number of state variabes 
+and \code{ytau} will have the result.
+
+We start with an example, a Lotka-Volterra system with delay, that we will implement
+ in \proglang{Fortran} (you will find this example in the package directory
+\code{inst/doc/dynload-dede}, in file \code{dede_lvF.f}
+
+The R-code would be:
+<<>>=
+derivs <- function(t, y, parms) {
+  with(as.list(c(y, parms)), {
+    if (t < tau)
+      ytau <- c(1, 1)
+    else
+      ytau <- lagvalue(t - tau, c(1, 2))
+
+    dN <- f * N - g * N * P
+    dP <- e * g * ytau[1] * ytau[2] - m * P
+    list(c(dN, dP), tau=ytau[1], tau=ytau[2])
+  })
+}
+
+yinit <- c(N = 1, P = 1)
+times <- seq(0, 500)
+parms <- c(f = 0.1, g = 0.2, e = 0.1, m = 0.1, tau = .2)
+yout <- dede(y = yinit, times = times, func = derivs, parms = parms)
+head(yout)
+@
+
+In Fortran the code looks like this:
+\begin{verbatim}
+!  file dede_lfF.f
+!  Initializer for parameter common block
+      subroutine initmod(odeparms)
+      external odeparms
+      double precision parms(5)
+      common /myparms/parms
+
+      call odeparms(5, parms)
+      return
+      end
+
+!  Derivatives and one output variable
+      subroutine derivs(neq, t, y, ydot, yout, ip)
+      integer neq, ip(*)
+      double precision t, y(neq), ydot(neq), yout(*)
+
+      double precision N, P, ytau(2), tlag
+      integer nr(2)
+
+      double precision f, g, e, m, tau
+      common /myparms/f, g, e, m, tau
+
+      if (ip(1) < 2) call rexit("nout should be at least 2")
+
+      N = y(1)
+      P = y(2)
+      nr(1) = 0
+      nr(2) = 1
+      ytau(1) = 1.0
+      ytau(2) = 1.0
+ 
+      tlag = t - tau
+      if (tlag .GT. 0.0) call lagvalue(tlag, nr, 2, ytau)
+
+      ydot(1) = f * N - g * N * P
+      ydot(2) = e * g * ytau(1) * ytau(2) - m * P
+
+      yout(1) = ytau(1)
+      yout(2) = ytau(2)
+
+      return
+      end
+\end{verbatim}
+
+During compilation, we need to also compile the file \code{dedeUtils.c}. Assuming that the
+above \proglang{Fortran} code is in file \code{dede_lvF.f}, which is found in the working directory that 
+also contains file \code{dedeUtils.c}, the problem is compiled and run as:
+\begin{verbatim}
+system("R CMD SHLIB dede_lvF.f dedeUtils.c")
+dyn.load(paste("dede_lvF", .Platform$dynlib.ext, sep=""))
+yout3 <- dede(yinit, times = times, func = "derivs", parms = parms,
+    dllname = "dede_lvF", initfunc = "initmod", nout = 2)
+\end{verbatim}
+
+\subsection{Delays implemented in C}
+
+We now give the same example in \proglang{C}-code (you will find this in directory \code{inst/doc/dynload-dede/dede_lv.c}).
+
+\begin{verbatim}
+#include <R.h>
+#include <Rinternals.h>
+#include <Rdefines.h>
+#include <R_ext/Rdynload.h>
+
+static double parms[5];
+#define f parms[0]
+#define g parms[1]
+#define e parms[2]
+#define m parms[3]
+#define tau parms[4]
+
+/* Interface to dede utility functions in package deSolve */
+void lagvalue(double T, int *nr, int N, double *ytau) {
+  static void(*fun)(double, int*, int, double*) = NULL;
+  if (fun == NULL)
+    fun =  (void(*)(double, int*, int, double*))R_GetCCallable("deSolve", "lagvalue");
+  return fun(T, nr, N, ytau);
+}
+
+void lagderiv(double T, int *nr, int N, double *ytau) {
+  static void(*fun)(double, int*, int, double*) = NULL;
+  if (fun == NULL)
+    fun =  (void(*)(double, int*, int, double*))R_GetCCallable("deSolve", "lagderiv");
+  return fun(T, nr, N, ytau);
+}
+
+/* Initializer  */
+void initmod(void (* odeparms)(int *, double *)) {
+  int N = 5;
+  odeparms(&N, parms);
+}
+
+/* Derivatives */
+void derivs (int *neq, double *t, double *y, double *ydot,
+             double *yout, int *ip) {
+
+  if (ip[0] < 2) error("nout should be at least 1");
+
+  double N = y[0];
+  double P = y[1];
+
+  int Nout  = 2;                  // number of returned lags  ( <= n_eq !!)
+  int nr[2] = {0, 1};             // which lags are needed? 
+                                  // numbering starts from zero !
+  double ytau[2] = {1.0, 1.0};    // array; initialize with default values !
+
+  double T = *t - tau;
+  
+  if (*t > tau) {
+    lagvalue(T, nr, Nout, ytau);
+  }
+
+  ydot[0] = f * N - g * N * P;
+  ydot[1] = e * g * ytau[0] * ytau[1] - m * P;
+
+  yout[0] = ytau[0];
+  yout[1] = ytau[1];
+
+}
+\end{verbatim}
+
+Assuming this code is in a file called \code{dede_lv.c}, which is in the working
+directory, this file is then compiled and run as:
+\begin{verbatim}
+system("R CMD SHLIB dede_lv.c")
+dyn.load(paste("dede_lv", .Platform$dynlib.ext, sep=""))
+yout2 <- dede(yinit, times = times, func = "derivs", parms = parms,
+    dllname = "dede_lv", initfunc = "initmod", nout = 2)
+dyn.unload(paste("dede_lv", .Platform$dynlib.ext, sep=""))
+\end{verbatim}
+
+
 \section{Difference equations in compiled code}
 There is one special-purpose solver, triggered with \code{method = "iteration"}
 which can be used in cases where the new values of the state variables are

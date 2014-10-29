@@ -81,12 +81,12 @@ C  Declare arguments.
 C
       DOUBLE PRECISION R1, R2, RVEC(2), Dummy
       INTEGER I, NMES, NERR, LEVEL, NI, I1, I2, NR, Ivec(2)
-      CHARACTER(LEN=80) MSG
+      CHARACTER(LEN=*) MSG
       INTEGER LUNIT, IXSAV, MESFLG
-      
+
       dummy = 0.d0
 C      call dblepr(MSG, NMES, dummy, 0)
-      MSG = MSG(1:len_trim(MSG)) // char(0)
+      MSG = MSG(1:NMES) // char(0)
       call rprintf(MSG)
 
 
@@ -127,7 +127,7 @@ C       call dblepr('In above message, R1 = ', 22, RVEC, 2)
       ENDIF
 
 C  Abort the run if LEVEL = 2.
-       if (level .eq. 2) call rexit ("fatal error")
+       if (LEVEL .eq. 2) call rexit ("fatal error")
  100  RETURN
 
       END

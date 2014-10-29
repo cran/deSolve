@@ -9,6 +9,16 @@ iteration <- function(y, times, func, parms, hini = NULL,
   rpar = NULL,  ipar = NULL, nout = 0, outnames = NULL, forcings = NULL,
   initforc = NULL, fcontrol = NULL, ...) {
 
+    if (is.list(func)) {            ### IF a list
+      if (!is.null(initfunc) & "initfunc" %in% names(func))
+         stop("If 'func' is a list that contains initfunc, argument 'initfunc' should be NULL")
+      if (!is.null(initforc) & "initforc" %in% names(func))
+         stop("If 'func' is a list that contains initforc, argument 'initforc' should be NULL")
+     initfunc <- func$initfunc
+     initforc <- func$initforc
+     func <- func$func
+  }
+
     if (abs(diff(range(diff(times)))) > 1e-10)
       stop (" times should be equally spaced")
     dt <- diff(times[1:2])
@@ -30,7 +40,7 @@ iteration <- function(y, times, func, parms, hini = NULL,
     flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
 
-    if (is.character(func)) {
+    if (is.character(func) | class(func) == "CFunc")  {
       DLL <- checkDLL(func, NULL, dllname,
                     initfunc, verbose, nout, outnames)
 

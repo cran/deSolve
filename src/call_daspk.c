@@ -96,20 +96,20 @@ static void C_res_func (double *t, double *y, double *yprime, double *cj,
                        double *delta, int *ires, double *yout, int *iout)
 {                             
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
 
-  REAL(Time)[0] = *t;
   for (i = 0; i < n_eq; i++)
     {
       REAL(Y)[i] = y[i];
       REAL (YPRIME)[i] = yprime[i];
     }
-  PROTECT(R_fcall = lang4(R_res_func,Time, Y, YPRIME));   incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, R_envir));                  incr_N_Protect();
+  PROTECT(Time = ScalarReal(*t));                       incr_N_Protect();
+  PROTECT(R_fcall = lang4(R_res_func,Time, Y, YPRIME)); incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_envir));                incr_N_Protect();
 
   for (i = 0; i < n_eq; i++)  	delta[i] = REAL(ans)[i];
 
-  my_unprotect(2);
+  my_unprotect(3);
 }
 
 /* deriv output function  */
@@ -118,21 +118,21 @@ static void C_out (int *nout, double *t, double *y,
                        double *yprime, double *yout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
 
-  REAL(Time)[0] = *t;
   for (i = 0; i < n_eq; i++)  
     {
       REAL(Y)[i] = y[i];
       REAL (YPRIME)[i] = yprime[i];      
     }
      
-  PROTECT(R_fcall = lang4(R_res_func,Time, Y, YPRIME));   incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, R_envir));                  incr_N_Protect();
+  PROTECT(Time = ScalarReal(*t));                       incr_N_Protect();
+  PROTECT(R_fcall = lang4(R_res_func,Time, Y, YPRIME)); incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_envir));                incr_N_Protect();
 
   for (i = 0; i < *nout; i++) yout[i] = REAL(ans)[i + n_eq];
 
-  my_unprotect(2);
+  my_unprotect(3);
 }      
 
 /* interface between FORTRAN call to jacobian and R function */
@@ -184,8 +184,8 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
   int    j, nt, ny, repcount, latol, lrtol, lrw, liw, isDll;
   int    maxit, isForcing, isEvent, islag, istate;
   double *xytmp,  *xdytmp, tin, tout, *Atol, *Rtol;
-  double *delta=NULL, cj;
-  int    *Info,  ninfo, idid, mflag, ires;
+  double *delta=NULL, cj = 0.;
+  int    *Info,  ninfo, idid, mflag, ires = 0;
   int    *iwork, it, ntot= 0, nout, funtype;
   double *rwork;
   

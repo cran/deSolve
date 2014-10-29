@@ -28,8 +28,36 @@ lsodes <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   initforc = NULL, fcontrol = NULL, events = NULL, lags = NULL, ...)  {
 
 ### check input
+  if (is.list(func)) {            ### IF a list
+      if (!is.null(jacvec) & "jacvec" %in% names(func))
+         stop("If 'func' is a list that contains jacvec, argument 'jacvec' should be NULL")
+      if (!is.null(rootfunc) & "rootfunc" %in% names(func))
+         stop("If 'func' is a list that contains rootfunc, argument 'rootfunc' should be NULL")         
+      if (!is.null(initfunc) & "initfunc" %in% names(func))
+         stop("If 'func' is a list that contains initfunc, argument 'initfunc' should be NULL")
+      if (!is.null(dllname) & "dllname" %in% names(func))
+         stop("If 'func' is a list that contains dllname, argument 'dllname' should be NULL")
+      if (!is.null(initforc) & "initforc" %in% names(func))
+         stop("If 'func' is a list that contains initforc, argument 'initforc' should be NULL")
+      if (!is.null(events$func) & "eventfunc" %in% names(func))
+         stop("If 'func' is a list that contains eventfunc, argument 'events$func' should be NULL")
+      if ("eventfunc" %in% names(func)) {
+         if (! is.null(events))
+           events$func <- func$eventfunc
+         else
+           events <- list(func = func$eventfunc)  
+      }
+     if (!is.null(func$jacvec))   jacvec <- func$jacvec
+     if (!is.null(func$rootfunc)) rootfunc <- func$rootfunc
+     if (!is.null(func$initfunc)) initfunc <- func$initfunc
+     if (!is.null(func$dllname))  dllname <- func$dllname
+     if (!is.null(func$initforc)) initforc <- func$initforc
+     func <- func$func
+  }
+
   hmax <- checkInput (y, times, func, rtol, atol,
     jacvec, tcrit, hmin, hmax, hini, dllname,"jacvec")
+
 
   n <- length(y)
 
@@ -141,16 +169,19 @@ lsodes <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   events <- checkevents(events, times, Ynames, dllname,TRUE)
   if (! is.null(events$newTimes)) times <- events$newTimes  
 
-  if (is.character(func)) {   # function specified in a DLL
+  if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
     DLL <- checkDLL(func,jacvec,dllname,
                     initfunc,verbose,nout, outnames, JT=2)
 
     ## Is there a root function?
     if (!is.null(rootfunc)) {
-      if (!is.character(rootfunc))
+      if (!is.character(rootfunc) & class(rootfunc) != "CFunc")
         stop("If 'func' is dynloaded, so must 'rootfunc' be")
       rootfuncname <- rootfunc
-      if (is.loaded(rootfuncname, PACKAGE = dllname))  {
+      if (class(rootfunc) == "CFunc")
+        RootFunc <- body(rootfunc)[[2]]
+
+      else if (is.loaded(rootfuncname, PACKAGE = dllname))  {
         RootFunc <- getNativeSymbolInfo(rootfuncname, PACKAGE = dllname)$address
       } else
         stop(paste("root function not loaded in DLL",rootfunc))
@@ -260,11 +291,12 @@ lsodes <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     if (sparsetype == "1D") lrw <- lrw*1.2 # increase to be sure it is enough...
   }
 
-  if (is.null(liw)) {         # make a guess of itneger work space needed
-    if (moss == 0 && miter %in% c(1,2)) liw <- 31+n+nnz +30 else  # extra 30
-                                        liw <- 30
-  }
-  lrw <- lrw + 3*nroot
+#  if (is.null(liw)) {         # make a guess of integer work space needed   KS->THOMAS: if not NULL, should be large enough!
+    if (moss == 0 && miter %in% c(1,2)) liw <- max(liw, 31+n+nnz +30) else  # extra 30
+                                        liw <- max(liw, 30)
+#  }
+  
+  lrw <- max(20, lrw) + 3*nroot
   # 2. Allocate and set values
   # only first 20 elements of rwork passed to solver;
   # other elements will be allocated in C-code
@@ -330,6 +362,7 @@ lsodes <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     printM("\n--------------------")
     printM("Integration method")
     printM("--------------------\n")
+    txt <- ""    # to avoid txt being not defined...
     if (imp == 21)
       txt <- "  The user has supplied indices to nonzero elements of Jacobian,
       and a Jacobian function"  else

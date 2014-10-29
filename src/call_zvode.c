@@ -43,17 +43,17 @@ static void C_zderiv_func (int *neq, double *t, Rcomplex *y,
                          Rcomplex *ydot, Rcomplex *yout, int *iout)
 {
   int i;
-  SEXP R_fcall, ans;     
+  SEXP R_fcall, Time, ans;     
 
-  REAL(Time)[0]   = *t;
   for (i = 0; i < *neq; i++)  COMPLEX(cY)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                  incr_N_Protect();
   PROTECT(R_fcall = lang3(R_zderiv_func,Time,cY)) ;incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_vode_envir))           ;incr_N_Protect();
 
   for (i = 0; i < *neq; i++)	ydot[i] = COMPLEX(VECTOR_ELT(ans,0))[i];
 
-  my_unprotect(2);      
+  my_unprotect(3);      
 }
 
 /* interface between FORTRAN call to jacobian and R function */
@@ -62,17 +62,17 @@ static void C_zjac_func (int *neq, double *t, Rcomplex *y, int *ml,
 		    int *mu, Rcomplex *pd, int *nrowpd, Rcomplex *yout, int *iout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
 
-                              REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  COMPLEX(cY)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                 incr_N_Protect();
   PROTECT(R_fcall = lang3(R_zjac_func,Time,cY));  incr_N_Protect();
-  PROTECT(ans = eval(R_fcall, R_vode_envir));        incr_N_Protect();
+  PROTECT(ans = eval(R_fcall, R_vode_envir));     incr_N_Protect();
 
   for (i = 0; i < *neq * *nrowpd; i++)  pd[i ] = COMPLEX(ans)[i ];
 
-  my_unprotect(2);
+  my_unprotect(3);
 }
 
 /* wrapper above the derivate function that first estimates the
@@ -176,7 +176,6 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   /* initialise global R-variables... */
   
-  PROTECT(Time = NEW_NUMERIC(1))                  ;incr_N_Protect(); 
   PROTECT(cY = allocVector(CPLXSXP , neq) )       ;incr_N_Protect();        
   PROTECT(YOUT = allocMatrix(CPLXSXP,ntot+1,nt))  ;incr_N_Protect();
   

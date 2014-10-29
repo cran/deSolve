@@ -83,7 +83,7 @@ void rk_fixed(
       /* "Neville-Aitken-Interpolation";                                  */
       /* the fixed step integrators have no dense output                  */
       /*------------------------------------------------------------------*/
-      /* (1) collect number "nknots" of knots in advanve */
+      /* (1) collect number "nknots" of knots in advance */
       yknots[iknots] = t + dt;   /* time in first column */
       for (i = 0; i < neq; i++) yknots[iknots + nknots * (1 + i)] = y1[i];
       if (iknots < (nknots - 1)) {
@@ -124,8 +124,7 @@ void rk_fixed(
       break;
     }
     /* tolerance to avoid rounding errors */
-  } //while (fabs(t - tmax) > 100.0 * DBL_EPSILON * dt); /* end of rk main loop */
-  while (fabs(t - tmax) > 100.0 * DBL_EPSILON); /* end of rk main loop */
+  } while (fabs(t - tmax) > 100.0 * DBL_EPSILON); /* end of rk main loop */
   
   /* return reference values */
   *_iknots = iknots; *_it = it; *_it_ext = it_ext; *_it_tot = it_tot;

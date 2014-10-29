@@ -93,7 +93,7 @@ zvode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
   ModelInit <- NULL
 
-  if (is.character(func)) {   # function specified in a DLL
+  if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
 

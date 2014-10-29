@@ -72,17 +72,17 @@ static void C_deriv_func_rad (int *neq, double *t, double *y,
                           double *ydot, double *yout, int *iout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
 
-                              REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                  incr_N_Protect();
   PROTECT(R_fcall = lang3(R_deriv_func,Time,Y));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));           incr_N_Protect();
 
   for (i = 0; i < *neq; i++)   ydot[i] = REAL(ans)[i];
 
-  my_unprotect(2);
+  my_unprotect(3);
 }
 
 /* mass matrix function                                                       */
@@ -112,18 +112,18 @@ static void C_deriv_out_rad (int *nOut, double *t, double *y,
                        double *ydot, double *yout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
   
-  REAL(Time)[0] = *t;
   for (i = 0; i < n_eq; i++)  
       REAL(Y)[i] = y[i];
      
+  PROTECT(Time = ScalarReal(*t));                   incr_N_Protect();
   PROTECT(R_fcall = lang3(R_deriv_func,Time, Y));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));            incr_N_Protect();
 
   for (i = 0; i < *nOut; i++) yout[i] = REAL(ans)[i + n_eq];
 
-  my_unprotect(2);                                  
+  my_unprotect(3);                                  
 }      
 
 /* save output in R-variables                                                 */
@@ -167,16 +167,17 @@ static void C_saveLag(int ini, double *t, double *y, double *con, int *lrc,
 static void C_root_radau (int *neq, double *t, double *y, int *ng, double *gout)
 {
   int i;
-  SEXP R_fcall, ans;
-                              REAL(Time)[0] = *t;
+  SEXP R_fcall, Time, ans;
+
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                 incr_N_Protect();
   PROTECT(R_fcall = lang3(R_root_func,Time,Y));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));          incr_N_Protect();
 
   for (i = 0; i < *ng; i++)   gout[i] = REAL(ans)[i];
 
-  my_unprotect(2);
+  my_unprotect(3);
 }
 /* function for brent's root finding algorithm                                */
 
@@ -290,11 +291,11 @@ static void C_jac_func_rad(int *neq, double *t, double *y, int *ml,
 		    int *mu, double *pd, int *nrowpd, double *yout, int *iout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
 
-                             REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++) REAL(Y)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                 incr_N_Protect();
   PROTECT(R_fcall = lang3(R_jac_func,Time,Y));    incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));          incr_N_Protect();
 

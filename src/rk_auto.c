@@ -159,7 +159,7 @@ void rk_auto(
           }
           if(it_ext < nt-1) t_ext = tt[++it_ext]; else break;
        }
-       /* fsal trick for Cash-Karp */
+       /* FSAL (first same as last) for Cash-Karp */
        for (i = 0; i < neq; i++) FF[i + neq * (stage - 1)] = dy2[i] ;
 
         /*--------------------------------------------------------------------*/

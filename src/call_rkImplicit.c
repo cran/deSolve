@@ -157,7 +157,6 @@ SEXP call_rkImplicit(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
-  PROTECT(Time = NEW_NUMERIC(1));                 incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,(neq)));        incr_N_Protect(); 
   
   initParms(Initfunc, Parms);

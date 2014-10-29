@@ -77,13 +77,13 @@ SEXP initialisation functions
 =======================================================*/
 
 void initglobals(int nt, int ntot) {
-  PROTECT(Time = NEW_NUMERIC(1));                  incr_N_Protect();
+/*  PROTECT(Time = NEW_NUMERIC(1));                  incr_N_Protect(); */
   PROTECT(Y = allocVector(REALSXP,(n_eq)));        incr_N_Protect();
   PROTECT(YOUT = allocMatrix(REALSXP,ntot+1,nt));  incr_N_Protect();
 }
 
 void initdaeglobals(int nt, int ntot) {
-  PROTECT(Time = NEW_NUMERIC(1));                    incr_N_Protect();
+/*  PROTECT(Time = NEW_NUMERIC(1));                    incr_N_Protect(); */
   PROTECT(Rin  = NEW_NUMERIC(2));                    incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,n_eq));            incr_N_Protect();
   PROTECT(YPRIME = allocVector(REALSXP,n_eq));       incr_N_Protect();

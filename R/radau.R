@@ -14,6 +14,30 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
 {
 
 ### check input
+  if (is.list(func)) {            ### IF a list
+      if (!is.null(jacfunc) & "jacfunc" %in% names(func))
+         stop("If 'func' is a list that contains jacfunc, argument 'jacfunc' should be NULL")
+      if (!is.null(rootfunc) & "rootfunc" %in% names(func))
+         stop("If 'func' is a list that contains rootfunc, argument 'rootfunc' should be NULL")         
+      if (!is.null(initfunc) & "initfunc" %in% names(func))
+         stop("If 'func' is a list that contains initfunc, argument 'initfunc' should be NULL")
+      if (!is.null(initforc) & "initforc" %in% names(func))
+         stop("If 'func' is a list that contains initforc, argument 'initforc' should be NULL")
+      if (!is.null(events$func) & "eventfunc" %in% names(func))
+         stop("If 'func' is a list that contains eventfunc, argument 'events$func' should be NULL")
+      if ("eventfunc" %in% names(func)) {
+         if (! is.null(events))
+           events$func <- func$eventfunc
+         else
+           events <- list(func = func$eventfunc)  
+      }
+     jacfunc <- func$jacfunc
+     rootfunc <- func$rootfunc
+     initfunc <- func$initfunc
+     initforc <- func$initforc
+     func <- func$func
+  }
+
   hmax <- checkInput (y, times, func, rtol, atol,
     NULL, NULL, 0, hmax, hini, dllname)
   n <- length(y)
@@ -75,16 +99,19 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
   events <- checkevents(events, times, Ynames, dllname, TRUE)
   if (! is.null(events$newTimes)) times <- events$newTimes
   
-  if (is.character(func)) {   # function specified in a DLL
+  if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
 
     ## Is there a root function?
     if (!is.null(rootfunc)) {
-      if (!is.character(rootfunc))
+      if (!is.character(rootfunc) & class(rootfunc) != "CFunc")
         stop("If 'func' is dynloaded, so must 'rootfunc' be")
       rootfuncname <- rootfunc
-      if (is.loaded(rootfuncname, PACKAGE = dllname))  {
+      if (class(rootfunc) == "CFunc")
+        RootFunc <- body(rootfunc)[[2]]
+
+      else if (is.loaded(rootfuncname, PACKAGE = dllname))  {
         RootFunc <- getNativeSymbolInfo(rootfuncname, PACKAGE = dllname)$address
       } else
         stop(paste("root function not loaded in DLL",rootfunc))

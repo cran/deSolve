@@ -98,7 +98,7 @@ lsodes(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   }
   \item{inz }{if \code{sparsetype} equal to "sparseusr", a two-columned matrix
     with the (row, column) indices to the nonzero elements in the sparse
-    Jacobian. If \code{sparsetype} = "sparsejan", a vecotr with the elements 
+    Jacobian. If \code{sparsetype} = "sparsejan", a vector with the elements 
     ian followed by he elements jan as used in the lsodes code. See details.
     In all other cases, ignored.
   }
@@ -314,7 +314,7 @@ nonzero <-  matrix(nc = 2, byrow = TRUE, data = c(
   3, 6,   6, 6,   9, 6,  10, 6,
   7, 7,   9, 7,  10, 7,  12, 7,
   8, 8,  10, 8,  11, 8,
-  3,10,   6,10,   7,10,  10,10,  12,10,
+  3,10,   6,10,   7,10,   8,10,  10,10,  12,10,
   2,12,   5,12,   7,12,  10,12,  12,12)
 )
 
@@ -324,7 +324,7 @@ nonzero <-  matrix(nc = 2, byrow = TRUE, data = c(
 #              inz = nonzero, atol = atol,rtol = rtol)  #gives warning
 out2 <- lsodes(func = chemistry, y = y, parms = parms, times = times, 
             sparsetype = "sparseusr", inz = nonzero,   
-             atol = atol, rtol = rtol, verbose = TRUE, lrw = 351)
+             atol = atol, rtol = rtol, verbose = TRUE, lrw = 353)
                             
 ## =======================================================================
 ## application 3. lsodes estimates the structure of the Jacobian
@@ -397,12 +397,20 @@ out3 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
 ## =======================================================================
 ## application 4. The structure of the Jacobian (nonzero elements) AND
 ##                the Jacobian (vector) function is input
-##                not very efficient...
 ## =======================================================================
 out4 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
                lrw = 351, sparsetype = "sparseusr", inz = nonzero,
                jacvec = chemjac, atol = atol, rtol = rtol,
                verbose = TRUE)
+               
+# The sparsejan variant 
+# note: errors in inz may cause R to break, so this is not without danger...
+# out5 <- lsodes(func = chemistry, y = y, parms = parms, times = times,
+#               jacvec = chemjac, atol = atol, rtol = rtol, sparsetype = "sparsejan",
+#               inz = c(1,3,8,13,17,21,25,29,32,32,38,38,43,                   # ian
+#               1,2, 2,3,4,5,12, 2,3,4,6,10, 2,3,4,9, 2,5,9,12, 3,6,9,10,      # jan 
+#               7,9,10,12, 8,10,11, 3,6,7,8,10,12, 2,5,7,10,12), lrw = 343) 
+
 }
 \references{
   Alan C. Hindmarsh, ODEPACK, A Systematized Collection of ODE Solvers,

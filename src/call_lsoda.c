@@ -114,17 +114,18 @@ static void C_deriv_func (int *neq, double *t, double *y,
                           double *ydot, double *yout, int *iout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, ans, Time;
 
-                              REAL(Time)[0] = *t;
+
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                  incr_N_Protect();
   PROTECT(R_fcall = lang3(R_deriv_func,Time,Y));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));           incr_N_Protect();
 
   for (i = 0; i < *neq; i++)   ydot[i] = REAL(ans)[i];
 
-  my_unprotect(2);  
+  my_unprotect(3);  
 }
 
 /* deriv output function  */
@@ -133,19 +134,19 @@ static void C_deriv_out (int *nOut, double *t, double *y,
                        double *ydot, double *yout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
   
-  REAL(Time)[0] = *t;
   for (i = 0; i < n_eq; i++)  
       REAL(Y)[i] = y[i];
      
+  PROTECT(Time = ScalarReal(*t));                   incr_N_Protect();
   PROTECT(R_fcall = lang3(R_deriv_func,Time, Y));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));            incr_N_Protect();
 
   for (i = 0; i < n_eq; i++)  ydot[i] = REAL (ans)[i] ;      
   for (i = 0; i < *nOut; i++) yout[i] = REAL(ans)[i + n_eq];
 
-  my_unprotect(2);                                  
+  my_unprotect(3);                                  
 }      
 
 /* only if lsodar, lsoder, lsodesr:
@@ -154,16 +155,16 @@ static void C_deriv_out (int *nOut, double *t, double *y,
 static void C_root_func (int *neq, double *t, double *y, int *ng, double *gout)
 {
   int i;
-  SEXP R_fcall, ans;
-                              REAL(Time)[0] = *t;
+  SEXP R_fcall, Time, ans;
   for (i = 0; i < *neq; i++)  REAL(Y)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                 incr_N_Protect();
   PROTECT(R_fcall = lang3(R_root_func,Time,Y));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));          incr_N_Protect();
 
   for (i = 0; i < *ng; i++)   gout[i] = REAL(ans)[i];
 
-  my_unprotect(2);
+  my_unprotect(3);
 }
 
 /* interface between FORTRAN call to jacobian and R function */
@@ -172,17 +173,17 @@ static void C_jac_func (int *neq, double *t, double *y, int *ml,
             int *mu, double *pd, int *nrowpd, double *yout, int *iout)
 {
   int i;
-  SEXP R_fcall, ans;
+  SEXP R_fcall, Time, ans;
 
-                             REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++) REAL(Y)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                 incr_N_Protect();
   PROTECT(R_fcall = lang3(R_jac_func,Time,Y));    incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));          incr_N_Protect();
 
   for (i = 0; i < *neq * *nrowpd; i++)  pd[i] = REAL(ans)[i];
 
-  my_unprotect(2);
+  my_unprotect(3);
 }
 
 /* only if lsodes: 
@@ -192,18 +193,18 @@ static void C_jac_vec (int *neq, double *t, double *y, int *j,
             int *ian, int *jan, double *pdj, double *yout, int *iout)
 {
   int i;
-  SEXP R_fcall, ans, J;
+  SEXP R_fcall, ans, Time, J;
   PROTECT(J = NEW_INTEGER(1));                    incr_N_Protect();
                              INTEGER(J)[0] = *j;
-                             REAL(Time)[0] = *t;
   for (i = 0; i < *neq; i++) REAL(Y)[i] = y[i];
 
+  PROTECT(Time = ScalarReal(*t));                 incr_N_Protect();
   PROTECT(R_fcall = lang4(R_jac_vec,Time,Y,J));   incr_N_Protect();
   PROTECT(ans = eval(R_fcall, R_envir));          incr_N_Protect();
 
   for (i = 0; i < *neq ; i++)  pdj[i] = REAL(ans)[i];
 
-  my_unprotect(3);
+  my_unprotect(4);
 }
 
 
@@ -239,7 +240,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   SEXP TROOT, NROOT, VROOT; /* IROOT is in deSolve.h*/
   
   /* pointers to functions passed to FORTRAN */
-  C_deriv_func_type *deriv_func;
+  C_deriv_func_type *deriv_func;    
   C_jac_func_type   *jac_func=NULL;
   C_jac_vec_type    *jac_vec=NULL;
   C_root_func_type  *root_func=NULL;

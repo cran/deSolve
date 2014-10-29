@@ -109,7 +109,6 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* DLL, ipar, rpar (for compatibility with lsoda)                         */
   /*------------------------------------------------------------------------*/
   int isDll = FALSE;
-  //int ntot  =  0;
   int lrpar= 0, lipar = 0;
   int *ipar = NULL;
 
@@ -191,13 +190,13 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
-  PROTECT(Time = NEW_NUMERIC(1));                 incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,(neq)));        incr_N_Protect(); 
   
   initParms(Initfunc, Parms);
   isForcing = initForcings(Flist);
   isEvent = initEvents(elist, eventfunc, 0);
   if (isEvent) interpolate = FALSE;
+
   /*------------------------------------------------------------------------*/
   /* Initialization of Integration Loop                                     */
   /*------------------------------------------------------------------------*/
@@ -293,10 +292,11 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr, it_rej);
   if (densetype == 2)   istate[12] = it_tot * stage + 2; /* number of function evaluations */
 
-  /* release R resources */
+  /* verbose printing in debugging mode*/
   if (verbose) 
     Rprintf("\nNumber of time steps it = %d, it_ext = %d, it_tot = %d it_rej %d\n", 
       it, it_ext, it_tot, it_rej);
+
   /* release R resources */
   timesteps[0] = 0;
   timesteps[1] = 0;

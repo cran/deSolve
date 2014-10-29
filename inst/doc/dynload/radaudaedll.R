@@ -73,7 +73,7 @@ plot(out, which = 1:4, type = "l", lwd = 2)
 # system("R CMD SHLIB radaudae.f")
 dyn.load(paste("radaudae", .Platform$dynlib.ext, sep = ""))
 
-outDLL <- radau(y = yini, mass = Mass, times = times, func = "caraxis",
+outDLL <- daspk(y = yini, mass = Mass, times = times, func = "caraxis",
                 initfunc = "initcaraxis", parms = parameter, 
                 dllname = "radaudae", nind = index)
 

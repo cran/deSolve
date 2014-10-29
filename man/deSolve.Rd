@@ -28,8 +28,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.10-9\cr
-    Date:    \tab 2014-06-22\cr
+    Version: \tab 1.10-10\cr
+    Date:    \tab 2014-09-01\cr
     License: \tab GNU Public License 2 or above\cr
   }
 

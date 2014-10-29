@@ -35,7 +35,10 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
 ## event in a function
 ## ----------------------
   if (!is.null(funevent)) {
-    if (is.character(funevent)){ 
+    if (class (funevent) == "CFunc") {
+      funevent <- body(funevent)[[2]]
+      Type <- 3
+    } else if (is.character(funevent)){ 
       if (is.null(dllname))
         stop("'dllname' should be given if 'events$func' is a string")
       if (is.loaded(funevent, PACKAGE = dllname, type = "") ||

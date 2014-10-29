@@ -79,7 +79,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   if (inherits(Func, "NativeSymbol")) { /* function is a dll */
     isDll = TRUE;
     if (nout > 0) isOut = TRUE;
-    //ntot  = neq + nout;           /* length of yout */
+    //ntot  = neq + nout;         /* length of yout */
     lrpar = nout + LENGTH(Rpar);  /* length of rpar; LENGTH(Rpar) is always >0 */
     lipar = 3    + LENGTH(Ipar);  /* length of ipar */
 
@@ -146,7 +146,6 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
-  PROTECT(Time = NEW_NUMERIC(1));                 incr_N_Protect();
   PROTECT(Y = allocVector(REALSXP,(neq)));        incr_N_Protect(); 
   
   initParms(Initfunc, Parms);
@@ -212,7 +211,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
          maxsteps, nt,
          &iknots, &it, &it_ext, &it_tot,
          istate, ipar,
-         t, tmax, fmin(hini, fabs(dt)) * sign(dt),      // <----- hini for backward steps
+         t, tmax, fmin(hini, fabs(dt)) * sign(dt),      // <----- hini for backward steps (still experimental)
          &dt,
          tt, y0, y1, dy1, f, y, Fj, tmp, FF, rr, A,
          out, bb1, cc, yknots,  yout,
@@ -243,7 +242,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* attach diagnostic information (codes are compatible to lsoda) */
   setIstate(R_yout, R_istate, istate, it_tot, stage, fsal, qerr, 0);
 
-  /* release R resources */
+  /* verbose printing in debugging mode*/
   if (verbose) {
     Rprintf("Number of time steps it = %d, it_ext = %d, it_tot = %d\n", it, it_ext, it_tot);
     Rprintf("Maxsteps %d\n", maxsteps);
