@@ -69,7 +69,7 @@ DLLfunc <- function (func, times, y,
 
     out <- .Call("call_DLL", y, dy, as.double(times[1]), Func,  ModelInit, #Outinit,
                  as.double(parms),as.integer(nout),
-                 as.double(rpar),as.integer(ipar),as.integer(1),
+                 as.double(rpar),as.integer(ipar), 1L,
                  flist, PACKAGE = "deSolve")
     vout <- if (nout>0)
       out[(n + 1):(n + nout)]
@@ -152,7 +152,7 @@ DLLres <- function (res, times, y, dy, parms,
 
     out <- .Call("call_DLL", y, dy, as.double(times[1]), Res,  ModelInit, #Outinit,
                  as.double(parms),as.integer(nout),
-                 as.double(rpar),as.integer(ipar),as.integer(2),
+                 as.double(rpar),as.integer(ipar), 2L,
                  flist, PACKAGE = "deSolve")
 
     vout <- if (nout>0)

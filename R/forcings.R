@@ -141,7 +141,7 @@ checkforcings <- function (forcings, times, dllname,
 
 checklags <- function (lags, dllname) {
   if (!is.null(lags)) {
-    lags$islag = as.integer(1)
+    lags$islag = 1L
     if (is.null(lags$mxhist))
        lags$mxhist <- 1e4
     if (lags$mxhist <1)
@@ -150,8 +150,8 @@ checklags <- function (lags, dllname) {
     if (is.null(lags$interpol))   # 1= hermitian, 2 = higher order interpolation
        lags$interpol <- 1
     lags$interpol<-as.integer(lags$interpol)
-    lags$isfun <- as.integer(0)
+    lags$isfun <- 0L
   } else
-    lags$islag=as.integer(0)
+    lags$islag <- 0L
   return(lags)
 }

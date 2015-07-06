@@ -1,7 +1,10 @@
 \name{plot.deSolve}
 \alias{plot.deSolve}
 \alias{plot.1D}
+\alias{matplot}
+\alias{matplot.deSolve}
 \alias{matplot.1D}
+\alias{matplot,deSolve-method}
 \alias{hist.deSolve}
 \alias{image.deSolve}
 \alias{subset.deSolve}
@@ -14,6 +17,9 @@ Plot the output of numeric integration routines.
 \usage{
 \method{plot}{deSolve}(x, \dots, select = NULL, which = select, ask = NULL,
               obs = NULL, obspar = list(), subset = NULL)
+\method{matplot}{deSolve}(x, \dots, select = NULL, which = select,
+              obs = NULL, obspar = list(), subset = NULL,
+              legend = list(x = "topright"))
 \method{hist}{deSolve}(x, select = 1:(ncol(x)-1), which  = select, ask = NULL,
               subset = NULL, \dots)
 \method{image}{deSolve}(x, select = NULL, which = select, ask = NULL,
@@ -26,7 +32,7 @@ plot.1D (x, \dots, select = NULL, which = select, ask = NULL,
          obs = NULL, obspar = list(), grid = NULL,
          xyswap = FALSE, delay = 0, vertical = FALSE, subset = NULL)
 
-matplot.1D (x, select = NULL, which = select, ask = NULL,
+matplot.1D(x, select = NULL, which = select, ask = NULL,
          obs = NULL, obspar = list(), grid = NULL,
          xyswap = FALSE, vertical = FALSE, subset = NULL, \dots)
 }
@@ -39,8 +45,10 @@ matplot.1D (x, select = NULL, which = select, ask = NULL,
     \code{deSolve} after \code{x} (unnamed) - see second example.
   }
   \item{which }{the name(s) or the index to the variables that should be
-    plotted or selected.  Default = all variables, except \code{time}. }
-
+    plotted or selected.  Default = all variables, except \code{time}.
+    For use with \code{matplot}, \code{which} or \code{select} can be a list,
+    with vectors, each referring to a separate y-axis.
+  }
   \item{select }{which variable/columns to be selected.  This is added for
     consistency with the R-function \code{subset}.
   }
@@ -53,7 +61,6 @@ matplot.1D (x, select = NULL, which = select, ask = NULL,
     page of plots is necessary and the current graphics device is set
     interactive, see \code{\link{par}(ask)} and
     \code{\link{dev.interactive}}.}
-  
   \item{add.contour }{if \code{TRUE}, will add contours to the image plot.}
 
   \item{method }{the name of the plotting method to use, one of "image", 
@@ -99,6 +106,8 @@ matplot.1D (x, select = NULL, which = select, ask = NULL,
   }
   \item{legend }{if \code{TRUE}, a color legend will be drawn on the right 
     of each image.
+    For use with \code{matplot}:
+    a \code{list} with arguments passed to R-function \link{legend}.
   }
   \item{arr }{if \code{TRUE}, and the output is from a 2-D or 3-D model, 
     an array will be returned with dimension = 
@@ -173,16 +182,23 @@ matplot.1D (x, select = NULL, which = select, ask = NULL,
   "filled.contour", "contour" or "persp", in order to use the respective
   plotting method.
   
-  \code{plot} will always have \code{times} on the x-axis. For problems
-  solved with \code{ode.1D}, it may be more useful to use \code{plot.1D}
+  \code{plot} and \code{matplot} will always have \code{times} on the x-axis.
+  For problems solved with \code{ode.1D}, it may be more useful to use
+  \code{plot.1D} or \code{matplot.1D}
   which will plot how spatial variables change with time. These plots will
   have the \code{grid} on the x-axis.
 }
 
 \seealso{
- \code{\link{print.deSolve}}, \code{\link{ode}},  \code{\link{deSolve}}  
+ \code{\link{deSolve}}, \code{\link{ode}}, \code{\link{print.deSolve}},
 
- \code{\link{ode.2D}},  for an example of using \code{subset} with 
+ \code{\link[graphics]{hist}}
+ \code{\link[graphics]{image}}
+ \code{\link[graphics]{matplot}},
+ \code{\link[graphics]{plot}.default}
+ for the underlying functions from package \pkg{graphics},
+ 
+ \code{\link{ode.2D}}, for an example of using \code{subset} with
  \code{arr = TRUE}.  
 }
 \examples{
@@ -230,6 +246,12 @@ plot(out[,"prey2"], out[,"pred2"], xlab = "prey2",
 ## restore graphics parameters
 par ("mfrow" = pm)
 
+## Plot all in one figure, using matplot
+matplot(out, lwd = 2)
+
+## Split y-variables in two groups
+matplot(out, which = list(c(1,3), c(2,4)), lty = 1,
+  ylab = c("prey1,pred1", "prey2,pred2"))
 
 ## =======================================================================
 ## Example 2. Add second and third output, and observations
@@ -259,6 +281,8 @@ plot(out, which = "prey1", type = "l", obs = obs,
      obspar = list(pch = 18, cex = 2))
 
 plot(out, type = "l", obs = obs, col = "red")
+
+matplot(out, which = c("prey1", "pred1"), type = "l", obs = obs)
 
 ## second set of 'observed' data and two outputs
 obs2 <- as.data.frame(out2[out2[,1] \%in\% seq(10, 500, by = 50), ])

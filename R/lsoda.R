@@ -229,8 +229,8 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
                as.integer(verbose), as.integer(itask), as.double(rwork),
                as.integer(iwork), as.integer(jt), as.integer(Nglobal),
                as.integer(lrw),as.integer(liw), as.integer(IN),
-               NULL, as.integer(0), as.double(rpar), as.integer(ipar),
-               as.integer(0), flist, events, lags, PACKAGE="deSolve")
+               NULL, 0L, as.double(rpar), as.integer(ipar),
+               0L, flist, events, lags, PACKAGE="deSolve")
 
 ### saving results    
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,

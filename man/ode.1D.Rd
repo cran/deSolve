@@ -79,7 +79,7 @@
 }
 \value{
   
-  A matrix with up to as many rows as elements in times and as many
+  A matrix of class \code{deSolve} with up to as many rows as elements in times and as many
   columns as elements in \code{y} plus the number of "global" values
   returned in the second element of the return from \code{func}, plus an
   additional column (the first) for the time value.  There will be one

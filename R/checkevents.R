@@ -16,7 +16,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
     Root <- events$root
     if (is.null(Root)) Root <- 0
     Root <- as.integer(Root)
-  } else Root <- as.integer(0)
+  } else Root <- 0L
 
   maxroot <- events$maxroot
   if (is.null(maxroot)) maxroot <- 100  # number of roots to save.
@@ -178,7 +178,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
   return (list (Time = as.double(eventdata[,2]), SVar = as.integer(eventdata[,1]),
     Value = as.double(eventdata[,3]), Method = as.integer(eventdata[,4]),
     Rootsave = as.integer(maxroot),
-    Type = as.integer(1), Root = Root, 
+    Type = 1L, Root = Root,
     Terminalroot = as.integer(Terminalroot),
     newTimes = times))
 }

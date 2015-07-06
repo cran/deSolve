@@ -579,7 +579,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   if (isEvent && rootevent && iroot > 0)
     for (j=0; j<3; j++) iwork[10+j] = evals[j];
 
-  terminate(istate,iwork, 23,0, rwork, 5,10);    /* istate, iwork, rwork */
+  // thpe-test: reduce ilen from 23 to 21
+  terminate(istate, iwork, 21, 0, rwork, 5,10);    /* istate, iwork, rwork */
   
   if (istate <= -20) INTEGER(ISTATE)[0] = 3;      
 

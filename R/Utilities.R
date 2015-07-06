@@ -127,7 +127,7 @@ mergeObs <- function(obs, Newobs) {
 ## =============================================================================
 
 setplotpar <- function(ldots, nv, ask) {
-  nmdots <- names(ldots) 
+  nmdots <- names(ldots)
   # nv = number of variables to plot
   if (!any(match(nmdots, c("mfrow", "mfcol"), nomatch = 0))) {
      nc <- min(ceiling(sqrt(nv)), 3)
@@ -219,7 +219,7 @@ hist.deSolve <- function (x, select = 1:(ncol(x)-1), which = select, ask = NULL,
   if (!missing(subset)){
      e <- substitute(subset)
      r <- eval(e, as.data.frame(x), parent.frame())
-     if (is.numeric(r)) { 
+     if (is.numeric(r)) {
        isub <- r
      } else {
       if (!is.logical(r))
@@ -249,7 +249,7 @@ image.deSolve <- function (x, select = NULL, which = select, ask = NULL,
   if (!missing(subset)){
      e <- substitute(subset)
      r <- eval(e, as.data.frame(x), parent.frame())
-     if (is.numeric(r)) { 
+     if (is.numeric(r)) {
        isub <- r
      } else {
       if (!is.logical(r))
@@ -323,7 +323,7 @@ splitdots <- function(ldots, varnames){
   nd     <- 0
   nother <- 0
   ndots <- names(ldots)
-    
+
   if (length(ldots) > 0)
     for ( i in 1:length(ldots))
       if ("deSolve" %in% class(ldots[[i]])) { # a deSolve object
@@ -390,6 +390,9 @@ updateObs <- function (obs, varnames, xWhich) {
   if (obs$length > 0 ) {
     obs$Which <- selectvar(varnames[xWhich], obs$name, NAallowed = TRUE)
     obs$Which [ obs$Which > ncol(obs$dat)] <- NA
+    if (nrow(obs$pos) != length(obs$Which))
+      obs$pos <- matrix(nrow = length(obs$Which), ncol = ncol(obs$pos),
+        byrow = TRUE, data =obs$pos[1,])
   } else
     obs$Which <- rep(NA, length(xWhich))
   return(obs)
@@ -425,7 +428,7 @@ plotObs <- function (obs, io, xyswap = FALSE) {
       if (length (i.obs) > 0)
         do.call("points", c(alist(obs$dat[i.obs, 1], obs$dat[i.obs, io]),
                 extractdots(obs$par, j) ))
-       }         
+       }
   } else {
     for (j in 1: obs$length)
       if (length (i.obs <- obs$pos[j, 1]:obs$pos[j, 2]) > 0)
@@ -450,7 +453,7 @@ plot.deSolve <- function (x, ..., select = NULL, which = select, ask = NULL,
   # variables to be plotted
   varnames <- colnames(x)
   Which    <- WhichVarObs(which, obs, ncol(x) - 1, varnames)
-    
+
   # Position of variables to be plotted in "x"
   xWhich  <- selectvar(Which, varnames)
   np      <- length(xWhich)
@@ -458,12 +461,12 @@ plot.deSolve <- function (x, ..., select = NULL, which = select, ask = NULL,
   # Position of variables in "obs" (NA = not observed)
   obs <- updateObs(obs, varnames, xWhich)
   obs$par <- lapply(obspar, repdots, obs$length)
-  
+
   # The ellipsis
   ldots   <- list(...)
 
   # number of figures in a row and interactively wait if remaining figures
-  ask <- setplotpar(ldots, np, ask)                   
+  ask <- setplotpar(ldots, np, ask)
   if (ask) {
     oask <- devAskNewPage(TRUE)
     on.exit(devAskNewPage(oask))
@@ -498,7 +501,7 @@ plot.deSolve <- function (x, ..., select = NULL, which = select, ask = NULL,
   if (!missing(subset)){
     e <- substitute(subset)
     r <- eval(e, as.data.frame(x), parent.frame())
-    if (is.numeric(r)) { 
+    if (is.numeric(r)) {
       isub <- r
     } else {
       if (!is.logical(r))
@@ -510,7 +513,7 @@ plot.deSolve <- function (x, ..., select = NULL, which = select, ask = NULL,
   }
 
   # LOOP for each output variable (plot)
-   
+
   for (ip in 1 : np) {
 
     ix <- xWhich[ip]      # position of variable in 'x'
@@ -525,7 +528,7 @@ plot.deSolve <- function (x, ..., select = NULL, which = select, ask = NULL,
       Ylog  <- length(grep("y",dotmain$log))
       Xlog  <- length(grep("x",dotmain$log))
     }
-                                                           
+
     dotmain$ylim <- SetRange(yylim[[ip]], x, x2, isub, ix, obs, io, Ylog)
     dotmain$xlim <- SetRange(xxlim[[ip]], x, x2, isub,  t, obs,  1, Xlog)
 
@@ -540,6 +543,7 @@ plot.deSolve <- function (x, ..., select = NULL, which = select, ask = NULL,
     if (! is.na(io)) plotObs(obs, io)   # add observed variables
   }
 }
+
 
 ## =============================================================================
 ##  to draw a legend
@@ -603,8 +607,8 @@ select1dvar <- function (Which, var, att) {
 
   if (is.null(att$map))
     proddim <- prod(att$dimens)
-  else 
-    proddim <- sum(!is.na(att$map))  
+  else
+    proddim <- sum(!is.na(att$map))
 
   ln   <- length(Which)
   csum <- cumsum(att$lengthvar) + 2
@@ -653,8 +657,8 @@ select2dvar <- function (Which, var, att) {
 
   if (is.null(att$map))
     proddim <- prod(att$dimens)
-  else 
-    proddim <- sum(!is.na(att$map))  
+  else
+    proddim <- sum(!is.na(att$map))
   ln   <- length(Which)
   csum <- cumsum(att$lengthvar) + 2
 
@@ -715,161 +719,14 @@ DrawVerticalAxis <- function (dot, xmin) {
   axis(side = 3, mgp = c(3,0.5,0))
 }
 
-### ============================================================================
-### plotting 1-D variables as line plot, one for each time
-### ============================================================================
-
-matplot.1D <- function (x, select= NULL, which = select, ask = NULL,
-                        obs = NULL, obspar = list(), grid = NULL,
-                        xyswap = FALSE, vertical = FALSE, subset = NULL, ...) {
-
-  ## Check settings of x
-  att    <- attributes(x)
-  nspec  <- att$nspec
-  dimens <- att$dimens
-
-  proddim <- prod(dimens)
-  if (length(dimens) != 1)
-    stop ("matplot.1D only works for models solved with 'ode.1D'")
-
-  if ((ncol(x)- nspec*proddim) < 1)
-    stop("ncol of 'x' should be > 'nspec' * dimens if x is a vector")
-
-  # Set the observed data
-  obs <- SetData(obs)
-
-  # 1-D variable names
-  varnames <-  if (! is.null(att$ynames))
-    att$ynames else 1:nspec
-  if (! is.null(att$lengthvar))
-    varnames <- c(varnames, names(att$lengthvar)[-1])
-
-  # variables to be plotted, common between obs and x
-  Which <- WhichVarObs(which, obs, nspec, varnames, remove1st = FALSE)
-   
-  np <- length(Which)
-
-  # Position of variables to be plotted in "x"
-  Select <- select1dvar(Which, varnames, att)  # also start and end position
-  xWhich  <- Select$Which
-
-  # add Position of variables to be plotted in "obs"
-  obs <- updateObs (obs, varnames, xWhich)
-  obs$par <- lapply(obspar, repdots, obs$length)
-
-  # the ellipsis
-  ldots <- list(...)
-
-  # number of figures in a row and interactively wait if remaining figures
-  ask <- setplotpar(ldots, np, ask)
-  if (ask) {
-    oask <- devAskNewPage(TRUE)
-    on.exit(devAskNewPage(oask))
-  }
-    
-  Dots <- splitdots(ldots, varnames)
-
-  nother <- Dots$nother
-
-  Dotpoints <- Dots$points
-  Dotmain <- setdots(Dots$main, np) # expand all dots to np values (no defaults)
-
-  # These are different from defaulst
-  Dotmain$xlab <- expanddots(ldots$xlab,  "x", np)
-  Dotmain$ylab <- expanddots(ldots$ylab,  "", np)
-  Dotmain$main <- expanddots(ldots$main,  varnames[xWhich], np)
-
-  # xlim and ylim are special:
-  xxlim <- expanddotslist(ldots$xlim, np)
-  yylim <- expanddotslist(ldots$ylim, np)
-
-  xyswap <- rep(xyswap, length = np)
-  vertical <- rep(vertical, length = np)
-
-  if (!missing(subset)){
-
-  e <- substitute(subset)
-  r <- eval(e, as.data.frame(x), parent.frame())
-  if (is.numeric(r)) { 
-     isub <- r
-  } else {
-    if (!is.logical(r))
-      stop("'subset' must evaluate to logical or be a vector with integers")
-    isub <- r & !is.na(r)
-  }
-  } else isub <- 1:nrow(x)
-
-  grid <- expanddotslist(grid, np)
-
-  for (ip in 1:np) {
-    
-    istart <- Select$istart[ip]
-    istop  <- Select$istop[ip]
-    io <- obs$Which[ip]
-
-    out <- t(x[ isub, istart:istop])
-    if (length (isub) > 1 & sum (isub) == 1)
-      out <- matrix (out)
-
-    Grid <- grid[[ip]]
-    if (is.null(Grid))
-      Grid <- 1:nrow(out)
-    
-    dotmain      <- extractdots(Dotmain, ip)
-
-    Xlog <- Ylog <- FALSE
-    if (! is.null(dotmain$log)) {
-       Ylog  <- length(grep("y", dotmain$log))
-       Xlog  <- length(grep("x", dotmain$log))
-    }
-    if (vertical[ip])  {  # overrules other settings; vertical profiles
-      xyswap[ip] <- TRUE
-      dotmain$axes <- FALSE
-      dotmain$xlab <- ""
-      dotmain$xaxs <- "i"
-      dotmain$yaxs <- "i"
-    }
-
-    if (! xyswap[ip]) {
-      if (! is.null(xxlim[[ip]]))
-        dotmain$xlim <- xxlim[[ip]]
-      dotmain$ylim <- SetRange(yylim[[ip]], x, NULL, isub, istart:istop, obs, io, Ylog)
-    } else {
-      if (! is.null(yylim[[ip]]))
-        dotmain$ylim <- yylim[[ip]]
-      dotmain$xlim <- SetRange(xxlim[[ip]], x, NULL, isub, istart:istop, obs, io, Xlog)
-      if (is.null(yylim[[ip]]) & xyswap[ip])
-        dotmain$ylim <- rev(range(Grid))    # y-axis
-    }
-
-    if (! xyswap[ip]) {
-      do.call("matplot", c(alist(Grid, out), dotmain, Dotpoints))
-
-      if (! is.na(io))
-        plotObs(obs, io)
-    } else {
-      if (is.null(dotmain$xlab[ip]) | is.null(dotmain$ylab[ip])) {
-         dotmain$ylab <- dotmain$xlab[ip]
-         dotmain$xlab <- dotmain$ylab[ip]
-      }
-
-      do.call("matplot", c(alist(out, Grid), dotmain, Dotpoints))
-
-      if (vertical[ip])
-         DrawVerticalAxis(dotmain, min(out))
-      if (! is.na(io))
-         plotObs(obs, io, xyswap = TRUE)
-    }
-  }
-}
 
 ### ============================================================================
 ### plotting 1-D variables as line plot, one for each time
 ### ============================================================================
 
-plot.1D <- function (x, ... , select= NULL, which = select, ask = NULL, 
+plot.1D <- function (x, ... , select= NULL, which = select, ask = NULL,
                      obs = NULL, obspar = list(), grid = NULL,
-                     xyswap = FALSE, delay = 0, vertical = FALSE,  
+                     xyswap = FALSE, delay = 0, vertical = FALSE,
                      subset = NULL) {
 
 ## Check settings of x
@@ -894,11 +751,8 @@ plot.1D <- function (x, ... , select= NULL, which = select, ask = NULL,
 
   # variables to be plotted, common between obs and x
   Which <- WhichVarObs(which, obs, nspec, varnames, remove1st = FALSE)
-   
-  np <- length(Which)
 
-  if (! is.null(att$lengthvar))
-    varnames <- c(varnames, names(att$lengthvar)[-1])
+  np <- length(Which)
 
   Select <- select1dvar(Which, varnames, att)
   xWhich <- Select$Which
@@ -927,7 +781,7 @@ plot.1D <- function (x, ... , select= NULL, which = select, ask = NULL,
 
   Dotmain <- setdots(Dots$main, np)  # expand to np for each plot
   Dotpoints <- setdots(Dots$points, nx)
-    
+
   # These are different from defaulst
   Dotmain$xlab <- expanddots(ldots$xlab,  "x", np)
   Dotmain$ylab <- expanddots(ldots$ylab,  varnames[xWhich], np)
@@ -945,7 +799,7 @@ plot.1D <- function (x, ... , select= NULL, which = select, ask = NULL,
   if (!missing(subset)){
     e <- substitute(subset)
     r <- eval(e, as.data.frame(x), parent.frame())
-    if (is.numeric(r)) { 
+    if (is.numeric(r)) {
       isub <- r
     } else {
       if (!is.logical(r))
@@ -1023,7 +877,7 @@ plot.1D <- function (x, ... , select= NULL, which = select, ask = NULL,
         if (vertical[ip]) DrawVerticalAxis(dotmain,min(out))
         if (! is.na(io))
          plotObs(obs, io, xyswap = TRUE)
-          
+
       }
     } # end loop ip
       if (eplot > 0)
@@ -1109,7 +963,7 @@ plot.ode1D <- function (x, which, ask, add.contour, grid,
     parplt <- par("plt") - c(0,0.07,0,0)
     parleg <- c(parplt[2]+0.02, parplt[2]+0.05, parplt[3], parplt[4])
     plt.or <- par(plt = parplt)
-#    on.exit(par(plt = plt.or)) 
+#    on.exit(par(plt = plt.or))
   }
   # Check if grid is increasing...
   if (! is.null(grid))
@@ -1188,10 +1042,10 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
   nspec <- att$nspec
   dimens <- att$dimens
   proddim <- prod(dimens)
-  
-  Mask <- att$map 
-  map  <- (! is.null(Mask)) 
-  
+
+  Mask <- att$map
+  map  <- (! is.null(Mask))
+
   if (!map & (ncol(x) - nspec*proddim) < 1)
     stop("ncol of 'x' should be > 'nspec' * dimens if x is a vector")
 
@@ -1212,7 +1066,7 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
   ldots <- list(...)
   Mtext <- ldots$mtext
   ldots$mtext <- NULL
-  
+
 
   # number of figures in a row and interactively wait if remaining figures
   Ask <- setplotpar(ldots, np, ask)
@@ -1232,7 +1086,7 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
   }
   Dotmain  <- setdots(ldots, N)  # expand dots to np values (no defaults)
 
-  # different from the default 
+  # different from the default
   Dotmain$main <- expanddots(ldots$main, varnames[Which], N)
   Dotmain$xlab <- expanddots(ldots$xlab,  "x"  , N)
   Dotmain$ylab <- expanddots(ldots$ylab,  "y"  , N)
@@ -1278,10 +1132,10 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
       if (map) {
         out <- rep (NA, length = prod(Select$dim[[ip]]))
         ii <- which (! is.na(Mask))
-        out[ii] <- x[nt, istart:istop] 
-      } else 
+        out[ii] <- x[nt, istart:istop]
+      } else
         out <- x[nt, istart:istop]
-      
+
       dim(out) <- Select$dim[[ip]]
 
       dotmain    <- extractdots(Dotmain, i)
@@ -1300,7 +1154,7 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
           out[is.na(out)] <- dotmain$zlim[1] - 0.01*max(1e-18,diff(dotmain$zlim))
           dotmain$zlim [1] <- dotmain$zlim[1] - 0.01*max(1e-18,diff(dotmain$zlim))
         }
-      
+
       List <- alist(z = out)
       if (! is.null(grid)) {
         List$x <- grid$x
@@ -1337,16 +1191,18 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
           dotmain$zlim <- range(out, na.rm=TRUE)
 
         drawlegend(parleg, dotmain)
-        par(plt = plt.or)  
-        par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
       }
     }
     if (! is.null(Mtext))
       mtext(outer = TRUE, side = 3, Mtext[nt],
              cex = 1.5, line = par("oma")[3]-1.5)
 
-  } 
-  # karline: ???   removed that... make it an argument?                 
+  }
+  if (legend) {
+        par(plt = plt.or)
+        par(mar = par("mar")) # TRICK TO PREVENT R FROM SETTING DEFAULTPLOT = FALSE
+  }
+  # karline: ???   removed that... make it an argument?
 
   #  if (sum(par("mfrow") - c(1, 1)) == 0 )
   #   mtext(outer = TRUE, side = 3, paste("time ", x[nt, 1]),
@@ -1357,7 +1213,7 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
 ### Summaries of ode variables
 ### ============================================================================
 
-summary.deSolve <- function(object, select = NULL, which = select, 
+summary.deSolve <- function(object, select = NULL, which = select,
    subset = NULL, ...){
 
   att  <- attributes(object)
@@ -1394,7 +1250,7 @@ summary.deSolve <- function(object, select = NULL, which = select,
 
    e <- substitute(subset)
    r <- eval(e, as.data.frame(object), parent.frame())
-   if (is.numeric(r)) { 
+   if (is.numeric(r)) {
        isub <- r
    } else {
       if (!is.logical(r))
@@ -1402,8 +1258,8 @@ summary.deSolve <- function(object, select = NULL, which = select,
       isub <- r & !is.na(r)
       object <- object[isub,]
     }
-  } 
-  
+  }
+
   # summaries for all variables
   Summ <- NULL
   for (i in 1:length(lvar)) {
@@ -1441,13 +1297,13 @@ subset.deSolve  <- function(x, subset = NULL, select = NULL,
   else {
     e <- substitute(subset)
     r <- eval(e, as.data.frame(x), parent.frame())
-    if (is.numeric(r)) { 
+    if (is.numeric(r)) {
       isub <- r
     } else {
       if (!is.logical(r))
         stop("'subset' must evaluate to logical or be a vector with integers")
       r <- r & !is.na(r)
-    } 
+    }
   }
 
   if (is.numeric(Which))
@@ -1462,9 +1318,9 @@ subset.deSolve  <- function(x, subset = NULL, select = NULL,
   nspec <- att$nspec          # for models solved with ode.1D, ode.2D
 
   dimens <- att$dimens
-  if (arr & length(dimens) <= 1    ) 
+  if (arr & length(dimens) <= 1    )
     warning("does not make sense to have 'arr = TRUE' when output is not 2D or 3D")
-  
+
   if (is.null(svar)) svar <- att$dim[2]-1  # models solved as DLL
   if(is.null(nspec)) nspec <- svar
 
@@ -1514,7 +1370,7 @@ subset.deSolve  <- function(x, subset = NULL, select = NULL,
   OO    <- Out[r, ]
   if(is.vector(OO)) OO <- matrix(ncol = ncol(Out), data = OO)
   times <- x[r,1]
-  
+
   if (arr & length(dimens) > 1 & ncol(OO) == prod(dimens)) {
      Nr <- nrow(OO)
      OO <- array(dim = c(dimens, Nr) , data = t(OO))

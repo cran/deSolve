@@ -259,7 +259,7 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
                as.integer(iwork), as.integer(jt),as.integer(Nglobal),
                as.integer(lrw),as.integer(liw),as.integer(IN),RootFunc,
                as.integer(nroot), as.double (rpar), as.integer(ipar),
-               as.integer(0), flist, events, lags, PACKAGE="deSolve")
+               0L, flist, events, lags, PACKAGE="deSolve")
 
 ### saving results
   iroot  <- attr(out, "iroot")

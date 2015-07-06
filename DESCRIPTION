@@ -1,9 +1,7 @@
 Package: deSolve
-Version: 1.11
-Title: General Solvers for Initial Value Problems of Ordinary
-        Differential Equations (ODE), Partial Differential Equations
-        (PDE), Differential Algebraic Equations (DAE), and Delay
-        Differential Equations (DDE)
+Version: 1.12
+Title: Solvers for Initial Value Problems of Differential Equations
+        (ODE, DAE, DDE)
 Authors@R: c(person("Karline","Soetaert", role = c("aut"), 
                      email = "karline.soetaert@nioz.nl"),
              person("Thomas","Petzoldt", role = c("aut", "cre"),
@@ -17,6 +15,7 @@ Author: Karline Soetaert [aut],
         odepack authors [cph]
 Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
 Depends: R (>= 2.15.0)
+Imports: methods, graphics, grDevices, stats
 Suggests: scatterplot3d
 Description: Functions that solve initial value problems of a system
         of first-order ordinary differential equations (ODE), of
@@ -33,7 +32,7 @@ Description: Functions that solve initial value problems of a system
 License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
-Packaged: 2014-10-28 21:50:57 UTC; thpe
 NeedsCompilation: yes
+Packaged: 2015-07-04 13:09:17 UTC; thpe
 Repository: CRAN
-Date/Publication: 2014-10-29 07:59:44
+Date/Publication: 2015-07-06 19:00:29

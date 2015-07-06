@@ -1,3 +1,9 @@
+Changes version 1.12
+================================
+ o new functions matplot.deSolve and matplot.1D
+ o fix valgrind issue (detected by new compilers)
+ o small improvments of plotting functions
+
 Changes version 1.11
 ================================
  o compiledCode vignette now with dede example
