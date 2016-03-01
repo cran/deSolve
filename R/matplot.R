@@ -58,13 +58,13 @@ matplot.deSolve <- function(x, ..., select = NULL, which = select,
     nx <- length(unlist(xWhich))    # number of y-variables
 
     # add Position of variables to be plotted in "obs"
-    obs <- updateObs (obs, varnames, unlist(xWhich))
+    obs <- updateObs2 (obs, varnames, unlist(xWhich))
 
     # The ellipsis
     ldots  <- list(...)
     Dots   <- splitdots(ldots, varnames)
 
-    if (Dots$nother > 1)
+    if (Dots$nother > 1)                                             
       stop ("can plot only one deSolve output object at a time with matplot")
 
     Dotmain <- setdots(Dots$main, np)

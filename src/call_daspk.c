@@ -300,9 +300,9 @@ SEXP call_daspk(SEXP y, SEXP yprime, SEXP times, SEXP resfunc, SEXP parms,
       res_func = (C_res_func_type *) C_res_func;
       /* needed to communicate with R */      
       R_res_func = resfunc; 
-      R_envir = rho; 
-
     }
+    R_envir = rho;           /* karline: this to allow merging compiled and R-code (e.g. events)*/
+
   if (!isNull(jacfunc))
     {
       if (inherits(jacfunc,"NativeSymbol"))

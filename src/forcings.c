@@ -219,8 +219,9 @@ int initEvents(SEXP elist, SEXP eventfunc, int nroot) {
      i = LENGTH(Time);
      timeevent = (double *) R_alloc((int) i+1, sizeof(double));
      for (j = 0; j < i; j++) timeevent[j] = REAL(Time)[j];
-     timeevent[i] = 0;
-      
+     /* cap the event timer with an event that can't possibly be reached */
+     //timeevent[i] = timeevent[0] - 1; // J. Stott
+     timeevent[i] = DOUBLE_XMIN;        // thpe
      if (typeevent == 1) {  
        /* specified in a data.frame */
        SVar = getListElement(elist,"SVar");
@@ -267,7 +268,7 @@ void updateevent(double *t, double *y, int *istate) {
           else if (method == 3) 
             y[svar] = y[svar] * value;
           tEvent = timeevent[++iEvent]; 
-        } while ((tEvent == *t) && (iEvent < nEvent));
+        } while (tEvent == *t);
       } else {                  /* a root event or specific times */
         event_func(&n_eq, t, y);
         if (!rootevent)

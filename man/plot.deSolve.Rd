@@ -53,7 +53,7 @@ matplot.1D(x, select = NULL, which = select, ask = NULL,
     consistency with the R-function \code{subset}.
   }
   \item{subset }{either a logical expression indicating elements or rows to keep in 
-    \code{select}, or a vector or integers denoting the indices of the elements 
+    \code{select}, or a vector of integers denoting the indices of the elements
     over which to loop. Missing  values are taken as \code{FALSE}
   }
   \item{ask }{logical; if \code{TRUE}, the user is \emph{ask}ed before

@@ -30,7 +30,22 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
       cat("'hini' is not supported by this version of 'euler',\n")
       cat("but you can use ode(......, method = 'euler', hini= .....)\n")
       cat("to set internal time steps smaller than external steps.\n")
-    }    
+    }
+    if(any(c("events", "rootfunc") %in% nmdots)) {
+      warning("events and roots are not supported by this version of euler,\n",
+              "  but you can use ode(......, method = 'euler', .....)\n")
+    }
+    if(any(c("jacfunc", "jactype", "mf", "bandup", "banddown") %in% nmdots)) {
+      warning("Euler and Runge-Kutta solvers make no use of a Jacobian,\n",
+              "  ('jacfunc', 'jactype', 'mf', 'bandup' and 'banddown' are ignored).\n")
+    }
+    if(any(c("lags") %in% nmdots)) {
+      warning("lags are not yet implemented for Euler and Runge-Kutta solvers,\n",
+              "  (argument 'lags' is ignored).\n")
+    }
+
+
+
     ## check input
     checkInputEuler(y, times, func, dllname)
     n <- length(y)

@@ -134,10 +134,14 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (! is.null(forcings))
       flist <- checkforcings(forcings,times,dllname,initforc,verbose,fcontrol)
 
-    rho <- NULL
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
     Eventfunc <- events$func
+    if (is.function(Eventfunc))
+      rho <- environment(Eventfunc)
+    else
+      rho <- NULL
+    
 
   } else {
 

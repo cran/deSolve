@@ -1,8 +1,8 @@
-/* -------- scoc.f -> scoc.dll ------
-c compile in R with: system("g77 -shared -o scoc.dll SCOC.f")
-c or with system("R CMD SHLIB scoc.f")
+/* -------- ex_SCOC.c -> ex_SCOC.dll / ex_SCOC.so ------          */
+/* compile in R with: system("gcc -shared -o scoc.dll ex_SCOC.c") */
+/*                    or with system("R CMD SHLIB ex_SCOC.c")     */
     
-c Initialiser for parameter commons */
+/* Initialiser for parameter commons */
 #include <R.h>
 
 static double parms[1];

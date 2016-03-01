@@ -255,7 +255,6 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
      ## If we go this route, the number of "global" results is in nout
      ## and output variable names are in outnames
      Nglobal <- nout
-     rho     <- NULL
      if (is.null(outnames))
        { Nmtot   <- NULL} else
      if (length(outnames) == nout)
@@ -268,7 +267,10 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
      if (is.null(rpar))
        rpar<-0
      Eventfunc <- events$func
-
+     if (is.function(Eventfunc))
+       rho <- environment(Eventfunc)
+     else
+       rho <- NULL
 
   } else {
 

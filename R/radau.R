@@ -128,10 +128,13 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
     if (! is.null(forcings))
       flist <- checkforcings(forcings,times,dllname,initforc,verbose,fcontrol)
 
-    rho <- emptyenv()
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
     Eventfunc <- events$func
+    if (is.function(Eventfunc))
+      rho <- environment(Eventfunc)
+    else
+      rho <- emptyenv()
 
   } else {
 

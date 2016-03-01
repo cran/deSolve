@@ -28,8 +28,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.11-1\cr
-    Date:    \tab 2014-10-29\cr
+    Version: \tab 1.13\cr
+    Date:    \tab 2016-02-29\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
@@ -40,7 +40,7 @@
   equations, or for parameter estimation using any appropriate
   modeling tool for non-linear models in \R such as
   \code{\link{optim}}, \code{\link{nls}}, \code{\link{nlm}} or
-  \code{\link[nlme]{nlme}} or \code{\link[FME]{FME}}.
+  \code{\link[nlme]{nlme}}, or \code{\link[FME]{FME}}.
 
   
   \bold{Package Vignettes, Examples, Online Resources}
@@ -65,13 +65,17 @@
   Differential Equations in R: Package deSolve Journal of Statistical
   Software, 33(9), 1--25.  \url{http://www.jstatsoft.org/v33/i09/}
 
-  Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer, (2010): Solving
+  Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010): Solving
   differential equations in R. The R Journal 2(2), 5-15.
   \href{http://journal.r-project.org/archive/2010-2/RJournal_2010-2_Soetaert~et~al.pdf}{pdf}
 
   Karline Soetaert, Thomas Petzoldt (2011): Solving ODEs, DAEs, DDEs and
   PDEs in R. Journal of Numerical Analysis, Industrial and Applied
-  Mathematics (JNAIAM) 6(1-2), 51-65. \href{http://jnaiam.org/uploads/jnaiam_6_4.pdf}{pdf}
+  Mathematics (JNAIAM) 6(1-2),
+  51-65. %\href{http://jnaiam.org/uploads/jnaiam_6_4.pdf}{pdf}
+
+  Karline Soetaert, Jeff Cash, Francesca Mazzia, (2012):
+  Solving Differential Equations in R. Springer, 248 pp.
   
   Alan C. Hindmarsh (1983): ODEPACK, A Systematized Collection of ODE
   Solvers, in Scientific Computing, R. S. Stepleman et al. (Eds.),

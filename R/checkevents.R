@@ -55,7 +55,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
     if (Root == 0) {
       if (is.null(events$time)) 
         stop("either 'events$time' should be given and contain the times of the events, if 'events$func' is specified and no root function or your solver does not support root functions")
-      eventtime <- as.double(events$time)
+      eventtime <- sort(as.double(events$time)) # Karline: sorted that 4-01-2016
 
       if (any(!(eventtime %in% times))) {
         warning("Not all event times 'events$time' are in output 'times' so they are automatically included.")
@@ -68,7 +68,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
       return (list (Time = eventtime, SVar = NULL, Value = NULL,
         Method = NULL, Type = as.integer(Type), func = funevent,
         Rootsave = as.integer(maxroot), Root = Root,
-        Terminalroot = as.integer(Terminalroot)))
+        Terminalroot = as.integer(Terminalroot), newTimes = times))    # added newTimes - Karline 4-01-2016
 
   }
 ## ----------------------

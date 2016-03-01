@@ -390,6 +390,17 @@ updateObs <- function (obs, varnames, xWhich) {
   if (obs$length > 0 ) {
     obs$Which <- selectvar(varnames[xWhich], obs$name, NAallowed = TRUE)
     obs$Which [ obs$Which > ncol(obs$dat)] <- NA
+#    if (nrow(obs$pos) != length(obs$Which))
+#      obs$pos <- matrix(nrow = length(obs$Which), ncol = ncol(obs$pos),
+#        byrow = TRUE, data =obs$pos[1,])
+  } else
+    obs$Which <- rep(NA, length(xWhich))
+  return(obs)
+}
+updateObs2 <- function (obs, varnames, xWhich) {
+  if (obs$length > 0 ) {
+    obs$Which <- selectvar(varnames[xWhich], obs$name, NAallowed = TRUE)
+    obs$Which [ obs$Which > ncol(obs$dat)] <- NA
     if (nrow(obs$pos) != length(obs$Which))
       obs$pos <- matrix(nrow = length(obs$Which), ncol = ncol(obs$pos),
         byrow = TRUE, data =obs$pos[1,])
@@ -422,15 +433,16 @@ SetRange <- function(lim, x, x2, isub, ix, obs, io, Log) {
 ## =============================================================================
 
 plotObs <- function (obs, io, xyswap = FALSE) {
+  oLength <- min(nrow(obs$pos), obs$length)
   if (! xyswap) {
-    for (j in 1: obs$length) {
+    for (j in 1: oLength) {
       i.obs <- obs$pos[j, 1] : obs$pos[j, 2]
       if (length (i.obs) > 0)
         do.call("points", c(alist(obs$dat[i.obs, 1], obs$dat[i.obs, io]),
                 extractdots(obs$par, j) ))
        }
   } else {
-    for (j in 1: obs$length)
+    for (j in 1: oLength)
       if (length (i.obs <- obs$pos[j, 1]:obs$pos[j, 2]) > 0)
         do.call("points", c(alist(obs$dat[i.obs, io], obs$dat[i.obs, 1]),
                 extractdots(obs$par, j) ))

@@ -1,5 +1,5 @@
 ## =============================================================================
-## print the return code settings - all except daspk
+## print the return code settings - all except rk and daspk
 ## =============================================================================
 
 printidid <- function(idid) {
@@ -18,10 +18,25 @@ printidid <- function(idid) {
 }
 
 ## =============================================================================
+## print the return code settings - all except rk and daspk
+## =============================================================================
+
+printidid_rk <- function(idid) {
+  cat(paste("\n  return code (idid) = ", idid), "\n")
+
+  if (idid == 2 || idid ==0)  cat("  Integration was successful.\n") else
+  if (idid == -1) cat("  Excess work done on this call. (Perhaps maxstep exceeded.)\n") else
+  if (idid == -2) cat("  Excess accuracy requested. (Tolerances too small.)\n") else
+    cat("  Unknown error code, please inform package developers.\n")
+}
+
+
+
+## =============================================================================
 ## print the return code settings - only daspk
 ## =============================================================================
 
-printididdaspk <- function(idid) {
+printidid_daspk <- function(idid) {
   cat(paste("\n  return code (idid) = ", idid), "\n")
     if (idid > 0)   {
       cat ("  integration was succesful\n")
@@ -97,7 +112,7 @@ df <- c( "The return code :",                                              #1
 ## =============================================================================
 
 printRstate <- function( rstate) {
-  if(is.null(rstate)) return()  
+  if(is.null(rstate)) return()
   df <- c( "The step size in t last used (successfully):",
     "The step size to be attempted on the next step:",
     "The current value of the independent variable which the solver has reached:",
@@ -131,7 +146,8 @@ diagnostics.deSolve <- function(obj, Full = FALSE, ...) {
 
   idid <- istate[1]
   if (name == "lsodes" && idid == -7) idid <- -8
-  if (name == "daspk") printididdaspk(idid) else  printidid(idid)
+  if (name == "rk")  printidid_rk
+  if (name == "daspk") printidid_daspk(idid) else  printidid(idid)
 
   printIstate(istate, name, all=Full)
 
@@ -144,7 +160,7 @@ diagnostics.deSolve <- function(obj, Full = FALSE, ...) {
       cat("\n root found at times :",
         signif(Attr$troot, digits = 5), "\n")
   }
-       
+
   if (name == "lsodar" ||
       (name %in% c("lsode","lsodes","radau") && !is.null(Attr$iroot))) {
     cat("--------------------\n")
@@ -156,8 +172,8 @@ diagnostics.deSolve <- function(obj, Full = FALSE, ...) {
         signif(iroot, digits = 0), "\n")
       cat("\n at time :",
         signif(Attr$troot, digits = 5), "\n")
-        
-      }  
+
+      }
     else
      if (is.null(Attr$nroot)) cat("\n NO root found \n")
     invisible(list(istate=istate, rstate=rstate, iroot = iroot))

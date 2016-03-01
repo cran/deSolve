@@ -12,17 +12,17 @@ void rk_fixed(
        int isDll, int isForcing, int verbose,
        int nknots, int interpolate, int maxsteps, int nt,
        /* int pointers */
-       int* _iknots, int* _it, int* _it_ext, int* _it_tot, 
+       int* _iknots, int* _it, int* _it_ext, int* _it_tot,
        int* istate,  int* ipar,
        /* double */
         double t, double tmax, double hini,
        /* double pointers */
        double* _dt,
        /* arrays */
-       double* tt, double* y0, double* y1, double* dy1, 
+       double* tt, double* y0, double* y1, double* dy1,
        double* f, double* y, double* Fj, double* tmp,
-       double* FF, double* rr, double* A, double* out, 
-       double* bb1, double* cc, 
+       double* FF, double* rr, double* A, double* out,
+       double* bb1, double* cc,
        double* yknots, double* yout,
        /* SEXPs */
        SEXP Func, SEXP Parms, SEXP Rho
@@ -50,7 +50,7 @@ void rk_fixed(
     /******  Prepare Coefficients from Butcher table ******/
     /* NOTE: the fixed-step solver needs coefficients as vector, not matrix!  */
     for (j = 0; j < stage; j++) {
-      if (j == 0) 
+      if (j == 0)
         for(i = 0; i < neq; i++) Fj[i] = 0;
       else
         for(i = 0; i < neq; i++)
@@ -59,7 +59,7 @@ void rk_fixed(
         tmp[i] = Fj[i] + y0[i];
       }
       /******  Compute Derivatives ******/
-      derivs(Func, t + dt * cc[j], tmp, Parms, Rho, FF, out, j, neq, 
+      derivs(Func, t + dt * cc[j], tmp, Parms, Rho, FF, out, j, neq,
         ipar, isDll, isForcing);
     }
 
@@ -107,7 +107,7 @@ void rk_fixed(
       /*--------------------------------------------------------------------*/
       /* No interpolation mode(for step to step integration);               */
       /*         results are stored after the call                          */
-      /*--------------------------------------------------------------------*/ 
+      /*--------------------------------------------------------------------*/
     }
     /*--------------------------------------------------------------------*/
     /* next time step                                                     */
@@ -120,13 +120,14 @@ void rk_fixed(
       break;
     }
     if (it_tot > maxsteps) {
-      if (verbose) Rprintf("Max. number of steps exceeded\n");
+      istate[0] = -1;
+      warning("Number of time steps %i exceeded maxsteps at t = %g\n", it, t);
       break;
     }
     /* tolerance to avoid rounding errors */
   } while (fabs(t - tmax) > 100.0 * DBL_EPSILON); /* end of rk main loop */
-  
+
   /* return reference values */
   *_iknots = iknots; *_it = it; *_it_ext = it_ext; *_it_tot = it_tot;
 }
- 
+

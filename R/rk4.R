@@ -29,7 +29,20 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
       cat("'hini' is not supported by this version of rk4,\n")
       cat("but you can use ode(......, method = 'rk4', hini= .....)\n")
       cat("to set internal time steps smaller than external steps.\n")
-    }    
+    }
+    if(any(c("events", "rootfunc") %in% nmdots)) {
+      warning("events and roots are not supported by this version of rk4,\n",
+              "  but you can use ode(......, method = 'rk4', .....)\n")
+    }
+    if(any(c("jacfunc", "jactype", "mf", "bandup", "banddown") %in% nmdots)) {
+      warning("Euler and Runge-Kutta solvers make no use of a Jacobian,\n",
+              "  ('jacfunc', 'jactype', 'mf', 'bandup' and 'banddown' are ignored).\n")
+    }
+    if(any(c("lags") %in% nmdots)) {
+      warning("lags are not yet implemented for Euler and Runge-Kutta solvers,\n",
+              "  (argument 'lags' is ignored).\n")
+    }
+
     ## check input
     checkInputEuler(y, times, func, dllname)
     n <- length(y)
@@ -81,7 +94,7 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
 
     ## the CALL to the integrator
     ## rk can be nested, so no "unlock_solver" needed
-    on.exit(.C("unlock_solver"))    
+    on.exit(.C("unlock_solver"))
     out <- .Call("call_rk4", as.double(y), as.double(times),
         Func, Initfunc, parms, as.integer(Nglobal), rho, as.integer(vrb),
         as.double(rpar), as.integer(ipar), flist)

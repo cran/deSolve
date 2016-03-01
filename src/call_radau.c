@@ -436,8 +436,8 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
       deriv_func = (C_deriv_func_type *) C_deriv_func_rad; 
       /* needed to communicate with R */
       R_deriv_func = derivfunc;
-      R_envir = rho;
   }
+  R_envir = rho;           /* karline: this to allow merging compiled and R-code (e.g. events)*/
 
   if (!isNull(jacfunc))   {
       if (isDll)

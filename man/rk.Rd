@@ -119,8 +119,8 @@ rk(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{maxsteps }{average maximal number of steps per output interval
     taken by the solver. This argument is defined such as to ensure
     compatibility with the Livermore-solvers. \code{rk} only accepts the maximal
-    number of steps for the entire integration, and this is calculated 
-    as \code{length(times) * maxsteps}.
+    number of steps for the entire integration. It is calculated 
+    as \code{max(length(times) * maxsteps, max(diff(times)/hini + 1)}.
   }
   \item{dllname }{a string giving the name of the shared library
     (without extension) that contains all the compiled function or

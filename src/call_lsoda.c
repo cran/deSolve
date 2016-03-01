@@ -29,6 +29,7 @@
             improving names
    karline: version 1.9.1: root finding in lsodes
             version 1.10.4: 2D with mapping - still in testing phase, undocumented
+   karline: version 1.13-1: combining compiled code function with R code event 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /* definition of the calls to the FORTRAN functions - in file opkdmain.f
@@ -329,6 +330,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
      dy = (double *) R_alloc(n_eq, sizeof(double));
      for (j = 0; j < n_eq; j++) dy[j] = 0.; 
   }
+      R_envir = rho;
 
   if (isDll) {
      /* DLL address passed to FORTRAN */
@@ -345,8 +347,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       deriv_func = (C_deriv_func_type *) C_deriv_func; 
       /* needed to communicate with R */
       R_deriv_func = derivfunc;
-      R_envir = rho;
   }
+  R_envir = rho;           /* karline: this to allow merging compiled and R-code (e.g. events)*/
 
   if (!isNull(jacfunc) && solver != 3 && solver != 7) { /* lsodes uses jac_vec */
     if (isDll)
@@ -431,8 +433,13 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
     tin = REAL(times)[it];
     tout = REAL(times)[it+1];
     if (isEvent) { 
-      rwork[0] = tout;
       updateevent(&tin, xytmp, &istate);
+      // check tEvent > tout to account for root events
+      if ((iEvent < nEvent)&&(tEvent > tout)) {
+        rwork[0] = tEvent;
+      } else {
+        rwork[0] = REAL(times)[nt-1];
+      }
     }
     repcount = 0;
     do  {

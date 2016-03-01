@@ -1,7 +1,7 @@
 \name{rkMethod}
 \alias{rkMethod}
 
-\title{Collection of Parameter Sets (Butcher Arrays) for 
+\title{Collection of Parameter Sets (Butcher Arrays) for
   the Runge-Kutta Family of ODE Solvers
 }
 \description{
@@ -12,7 +12,7 @@
 rkMethod(method = NULL, ...)
 }
 \arguments{
-  
+
   \item{method }{a string constant naming one of the pre-defined methods
     of the Runge-Kutta family of solvers.  The most common methods are
     the fixed-step methods \code{"euler"}, \code{"rk2"}, \code{"rk4"} or
@@ -28,10 +28,10 @@ rkMethod(method = NULL, ...)
   This function supplies \code{method} settings for \code{\link{rk}} or
   \code{\link{ode}}. If called without arguments, the names of all
   currently implemented solvers of the Runge-Kutta family are returned.
-  
+
   The following comparison gives an idea how the algorithms of \pkg{deSolve}
   are related to similar algorithms of other simulation languages:
-  
+
   \tabular{lll}{
     \bold{rkMethod}    \tab | \tab \bold{Description} \cr
     "euler"            \tab | \tab Euler's Method\cr
@@ -46,31 +46,31 @@ rkMethod(method = NULL, ...)
     "rk45dp6"          \tab | \tab Dormand-Prince, order 4(5), local order 6\cr
     "rk45dp7", "ode45" \tab | \tab Dormand-Prince 4(5), local order 7 \cr
                        \tab | \tab (also known as dopri5; MATLAB: ode45; Octave: ode45, pair=0)\cr
-    "rk78f"            \tab | \tab Runge-Kutta-Fehlberg, order 7(8)\cr		       
+    "rk78f"            \tab | \tab Runge-Kutta-Fehlberg, order 7(8)\cr
     "rk78dp"           \tab | \tab Dormand-Prince, order 7(8)\cr
   }
-  
+
   Note that this table is based on the Runge-Kutta coefficients only,
   but the algorithms differ also in their implementation, in their
-  stepsize adaption strategy and interpolation methods. 
+  stepsize adaption strategy and interpolation methods.
 
   The table reflects the state at time of writing and it is of course possible
   that implementations change.
-  
+
   Methods \code{"rk45dp7"} (alias \code{"ode45"}) and \code{"rk45ck"} contain
   specific and efficient built-in interpolation schemes (dense output).
 
   As an alternative, Neville-Aitken polynomials can be used to interpolate between
   time steps. This is available for all RK methods and may be useful to speed
-  up computation if no dense-output formula is available. Note however, that 
-  this can introduce considerable local error; it is disabled by default 
+  up computation if no dense-output formula is available. Note however, that
+  this can introduce considerable local error; it is disabled by default
   (see \code{nknots} below).
 }
 
-\note{  
+\note{
   \itemize{
     \item Adaptive stepsize Runge-Kuttas are preferred if the solution
-      contains parts where it changes fast, and parts where nothing much
+      contains parts when the states change fast, and parts when not much
       happens. They will take small steps over bumpy ground and long steps
       over uninteresting terrain.
 
@@ -92,7 +92,7 @@ rkMethod(method = NULL, ...)
       adequate stepsize is known a-priori or if external forcing data
       are provided for fixed time steps only and frequent interpolation
       of external data needs to be avoided.
-  
+
     \item Method \code{"rk45dp7"} (alias \code{"ode45"}) contains an
       efficient built-in interpolation scheme (dense output) based on
       intermediate function evaluations.
@@ -102,12 +102,12 @@ rkMethod(method = NULL, ...)
     are also supported by the general \code{rk} interface, however their
     implementation is still experimental.  Instead of this you may
     consider \code{\link{radau}} for a specific full implementation of an
-    implicit Runge-Kutta method.  
+    implicit Runge-Kutta method.
 }
-   
+
 \value{
   A list with the following elements:
-  
+
   \item{ID}{name of the method (character)}
   \item{varstep}{boolean value specifying if the method allows for
     variable time step (\code{TRUE}) or not (\code{FALSE}).
@@ -117,7 +117,7 @@ rkMethod(method = NULL, ...)
     the method allows re-use of the last function evaluation
     (\code{TRUE}) or not (\code{FALSE} or \code{NULL}).
   }
-  
+
   \item{A}{coefficient matrix of the method. As \code{link{rk}} supports
     only explicit methods, this matrix must be lower triangular.
     \code{A} must be a vector for fixed step methods where only the
@@ -129,18 +129,18 @@ rkMethod(method = NULL, ...)
     (optional, for embedded methods that allow variable time step).
   }
   \item{c}{coefficients for calculating the intermediate time steps.}
-  
+
   \item{d}{optional coefficients for built-in polynomial interpolation
     of the outputs from internal steps (dense output), currently only
     available for method \code{rk45dp7} (Dormand-Prince).
   }
-  
+
   \item{densetype}{optional integer value specifying the dense output formula;
     currently only \code{densetype = 1} for \code{rk45dp7} (Dormand-Prince)
-    and \code{densetype = 2} for \code{rk45ck} (Cash-Karp) are supported. 
+    and \code{densetype = 2} for \code{rk45ck} (Cash-Karp) are supported.
     Undefined values (e.g., \code{densetype = NULL}) disable dense output.
   }
-  
+
   \item{stage}{number of function evaluations needed (corresponds to
     number of rows in A).
   }
@@ -205,7 +205,7 @@ rkMethod(method = NULL, ...)
 
   Runge, C. (1895) Ueber die numerische Aufloesung von
   Differentialgleichungen, Math. Ann. \bold{46}, 167--178.
-    
+
   MATLAB (R) is a registed property of The Mathworks
   Inc. \url{http://www.mathworks.com/} }
 
@@ -250,14 +250,14 @@ o1 <- ode(x, times, func, parms, method = rkMethod("rk45dp7"), hmax = 10)
 
 ## disable dense-output interpolation
 ## and use only Neville-Aitken polynomials instead
-o2 <- ode(x, times, func, parms, 
+o2 <- ode(x, times, func, parms,
   method = rkMethod("rk45dp7", densetype = NULL, nknots = 5), hmax = 10)
 
 ## stop and go: disable interpolation completely
 ## and integrate explicitly between external time steps
-o3 <- ode(x, times, func, parms, 
+o3 <- ode(x, times, func, parms,
   method = rkMethod("rk45dp7", densetype = NULL, nknots = 0, hmax=10))
-  
+
 ## compare different interpolation methods with lsoda
 mf <- par("mfrow" = c(4, 1))
 matplot(o1[,1], o1[,-1], type = "l", xlab = "Time", main = "State Variables",
@@ -265,7 +265,7 @@ matplot(o1[,1], o1[,-1], type = "l", xlab = "Time", main = "State Variables",
 matplot(o0[,1], o0[,-1] - o1[,-1], type = "l", xlab = "Time", ylab = "Diff.",
   main="Difference between lsoda and ode45 with dense output")
 abline(h = 0, col = "grey")
-matplot(o0[,1], o0[,-1] - o2[,-1], type = "l", xlab = "Time", ylab = "Diff.", 
+matplot(o0[,1], o0[,-1] - o2[,-1], type = "l", xlab = "Time", ylab = "Diff.",
   main="Difference between lsoda and ode45 with Neville-Aitken")
 abline(h = 0, col = "grey")
 matplot(o0[,1], o0[,-1] - o3[,-1], type = "l", xlab = "Time", ylab = "Diff.",
@@ -276,7 +276,7 @@ par(mf)
 ##===========================================================================
 ## rkMethod allows to define user-specified Runge-Kutta methods
 ##===========================================================================
-out <- ode(x, times, func, parms, 
+out <- ode(x, times, func, parms,
           method = rkMethod(ID = "midpoint",
             varstep = FALSE,
             A      = c(0, 1/2),

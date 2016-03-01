@@ -202,7 +202,7 @@ yini <- c(v1 = 1, v2 = 2)
 times <- seq(0, 10, by = 0.1)
 
 out <- ode(func = derivs, y = yini, times = times, parms = NULL,
-           events = list(func = eventfun, time = 1:9) )
+           events = list(func = eventfun, time = c(1:9, 2.2, 2.4)) )
 plot(out, type = "l")
 
 ## =============================================================================
@@ -304,6 +304,30 @@ out3 <- ode(func = Rotate, y = c(x1 = 5, x2 = 5, nroot = 0),
       events = list(func = event3, root = TRUE, terminalroot = 2))
 plot(out3)
 attributes(out3)[c("troot", "nroot", "indroot")]
+
+## =============================================================================
+## 6 Event in R-code, model function in compiled code - based on vode example
+## =============================================================================
+
+times <- 1:365
+Flux <- cbind(times, sin(pi*times/365)^2) # forcing function
+
+# run without events
+out <- ode(y = c(C = 1), times, func = "scocder", parms = c(k=0.01),
+   dllname = "deSolve", initforc = "scocforc", forcings = Flux,
+   initfunc = "scocpar", nout = 2, outnames = c("Mineralisation", "Depo"))
+
+# Event halves the concentration
+EventMin <- function(t, y , p) y/2
+
+out2 <- ode(y = c(C = 1), times, func = "scocder", parms = c(k=0.01),
+   dllname = "deSolve", initforc = "scocforc", forcings = Flux,
+   initfunc = "scocpar", nout = 2, outnames = c("Mineralisation", "Depo"),
+   events = list (func = EventMin, time = c(50.1, 200, 210.5)))
+
+plot(out, out2)
+
+
 }
 
 \keyword{utilities}

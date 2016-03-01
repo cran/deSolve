@@ -17,22 +17,22 @@ void rk_auto(
        int* _iknots, int* _it, int* _it_ext, int* _it_tot, int* _it_rej,
        int* istate,  int* ipar,
        /* double */
-       double t, double tmax, double hmin, double hmax, 
+       double t, double tmax, double hmin, double hmax,
        double alpha, double beta,
        /* double pointers */
        double* _dt, double* _errold,
        /* arrays */
        double* tt, double* y0, double* y1, double* y2, double* dy1, double* dy2,
        double* f, double* y, double* Fj, double* tmp,
-       double* FF, double* rr, double* A, double* out, 
-       double* bb1, double* bb2, double* cc, double* dd, 
+       double* FF, double* rr, double* A, double* out,
+       double* bb1, double* bb2, double* cc, double* dd,
        double* atol, double* rtol, double* yknots, double* yout,
        /* SEXPs */
        SEXP Func, SEXP Parms, SEXP Rho
-  ) 
+  )
 {
 
-  int i = 0, j = 0, j1 = 0, k = 0, accept = FALSE, nreject = *_it_rej, one = 1; 
+  int i = 0, j = 0, j1 = 0, k = 0, accept = FALSE, nreject = *_it_rej, one = 1;
   int iknots = *_iknots, it = *_it, it_ext = *_it_ext, it_tot = *_it_tot;
   double err, dtnew, t_ext;
   double dt = *_dt, errold = *_errold;
@@ -70,7 +70,7 @@ void rk_auto(
         }
         /******  Compute Derivatives ******/
         /* pass option to avoid unnecessary copying in derivs */
-        derivs(Func, t + dt * cc[j], tmp, Parms, Rho, FF, out, j, neq, 
+        derivs(Func, t + dt * cc[j], tmp, Parms, Rho, FF, out, j, neq,
                ipar, isDll, isForcing);
     }
 
@@ -91,7 +91,7 @@ void rk_auto(
     /*====================================================================*/
     /*      stepsize adjustment                                           */
     /*====================================================================*/
-    
+
     err = maxerr(y0, y1, y2, atol, rtol, neq);
     dtnew = dt;
     if (err == 0) {  /* use max scale if all tolerances are zero */
@@ -100,8 +100,8 @@ void rk_auto(
       accept = TRUE;
     } else if (err < 1.0) {
       /* increase step size only if last one was accepted */
-      if (accept) 
-        dtnew = fmin(hmax, dt * 
+      if (accept)
+        dtnew = fmin(hmax, dt *
           fmin(safe * pow(err, -alpha) * pow(errold, beta), maxscale));
       errold = fmax(err, 1e-4); /* 1e-4 taken from Press et al. */
       accept = TRUE;
@@ -144,9 +144,9 @@ void rk_auto(
         /* case A2) dense output type 2: the Cash-Karp method                 */
         /*--------------------------------------------------------------------*/
       } else if (densetype == 2)  {   /* dense output method 2 = Cash-Karp */
-        derivs(Func, t + dt, y2, Parms, Rho, dy2, out, 0, neq, 
+        derivs(Func, t + dt, y2, Parms, Rho, dy2, out, 0, neq,
                ipar, isDll, isForcing);
-        
+
         t_ext = tt[it_ext];
 
         while (t_ext <= t + dt) {
@@ -207,8 +207,8 @@ void rk_auto(
       break;
     }
     if (it_tot > maxsteps) {
-      if (verbose) Rprintf("Max. number of steps exceeded\n");
       istate[0] = -1;
+      warning("Number of time steps %i exceeded maxsteps at t = %g\n", it, t);      
       break;
     }
     /* tolerance to avoid rounding errors */
