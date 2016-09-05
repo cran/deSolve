@@ -1,5 +1,4 @@
 #include <R.h>
-#include <Rinternals.h>
 
 void F77_SUB(rprintf)(char* msg) {
    Rprintf(msg);

@@ -3,7 +3,7 @@
      1            ISTATE, IOPT, ZWORK, LZW, RWORK, LRW, IWORK, LIW,
      2            JAC, MF, RPAR, IPAR)
       EXTERNAL F, JAC
-      DOUBLE COMPLEX Y, ZWORK
+      COMPLEX(KIND=8) Y, ZWORK
       DOUBLE PRECISION T, TOUT, RTOL, ATOL, RWORK
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LZW, LRW, IWORK, LIW,
      1        MF, IPAR
@@ -1070,7 +1070,7 @@ C
       INTEGER I, IER, IFLAG, IMXER, JCO, KGO, LENIW, LENJ, LENP, LENZW,
      1   LENRW, LENWM, LF0, MBAND, MFA, ML, MORD, MU, MXHNL0, MXSTP0,
      2   NITER, NSLAST
-      CHARACTER*80 MSG
+      CHARACTER(LEN=80) MSG
 C
 C Type declaration for function subroutines called ---------------------
 C
@@ -1703,7 +1703,7 @@ C----------------------- End of Subroutine ZVODE -----------------------
       SUBROUTINE ZVHIN (N, T0, Y0, YDOT, F, RPAR, IPAR, TOUT, UROUND,
      1   EWT, ITOL, ATOL, Y, TEMP, H0, NITER, IER)
       EXTERNAL F
-      DOUBLE COMPLEX Y0, YDOT, Y, TEMP
+      COMPLEX(KIND=8) Y0, YDOT, Y, TEMP
       DOUBLE PRECISION T0, TOUT, UROUND, EWT, ATOL, H0
       INTEGER N, IPAR, ITOL, NITER, IER
       DIMENSION Y0(*), YDOT(*), EWT(*), ATOL(*), Y(*),
@@ -1839,7 +1839,7 @@ C----------------------- End of Subroutine ZVHIN -----------------------
       END
 *DECK ZVINDY
       SUBROUTINE ZVINDY (T, K, YH, LDYH, DKY, IFLAG)
-      DOUBLE COMPLEX YH, DKY
+      COMPLEX(KIND=8) YH, DKY
       DOUBLE PRECISION T
       INTEGER K, LDYH, IFLAG
       DIMENSION YH(LDYH,*), DKY(*)
@@ -1895,7 +1895,7 @@ C Type declarations for local variables --------------------------------
 C
       DOUBLE PRECISION C, HUN, R, S, TFUZZ, TN1, TP, ZERO
       INTEGER I, IC, J, JB, JB2, JJ, JJ1, JP1
-      CHARACTER*80 MSG
+      CHARACTER(LEN=80) MSG
 C-----------------------------------------------------------------------
 C The following Fortran-77 declaration is to cause the values of the
 C listed (local) variables to be saved between calls to this integrator.
@@ -1965,7 +1965,7 @@ C----------------------- End of Subroutine ZVINDY ----------------------
       SUBROUTINE ZVSTEP (Y, YH, LDYH, YH1, EWT, SAVF, VSAV, ACOR,
      1                  WM, IWM, F, JAC, PSOL, VNLS, RPAR, IPAR)
       EXTERNAL F, JAC, PSOL, VNLS
-      DOUBLE COMPLEX Y, YH, YH1, SAVF, VSAV, ACOR, WM
+      COMPLEX(KIND=8) Y, YH, YH1, SAVF, VSAV, ACOR, WM
       DOUBLE PRECISION EWT
       INTEGER LDYH, IWM, IPAR
       DIMENSION Y(*), YH(LDYH,*), YH1(*), EWT(*), SAVF(*), VSAV(*),
@@ -2598,7 +2598,7 @@ C----------------------- End of Subroutine ZVSET -----------------------
       END
 *DECK ZVJUST
       SUBROUTINE ZVJUST (YH, LDYH, IORD)
-      DOUBLE COMPLEX YH
+      COMPLEX(KIND=8) YH
       INTEGER LDYH, IORD
       DIMENSION YH(LDYH,*)
 C-----------------------------------------------------------------------
@@ -2760,7 +2760,7 @@ C----------------------- End of Subroutine ZVJUST ----------------------
       SUBROUTINE ZVNLSD (Y, YH, LDYH, VSAV, SAVF, EWT, ACOR, IWM, WM,
      1                 F, JAC, PDUM, NFLAG, RPAR, IPAR)
       EXTERNAL F, JAC, PDUM
-      DOUBLE COMPLEX Y, YH, VSAV, SAVF, ACOR, WM
+      COMPLEX(KIND=8) Y, YH, VSAV, SAVF, ACOR, WM
       DOUBLE PRECISION EWT
       INTEGER LDYH, IWM, NFLAG, IPAR
       DIMENSION Y(*), YH(LDYH,*), VSAV(*), SAVF(*), EWT(*), ACOR(*),
@@ -2990,7 +2990,7 @@ C----------------------- End of Subroutine ZVNLSD ----------------------
       SUBROUTINE ZVJAC (Y, YH, LDYH, EWT, FTEM, SAVF, WM, IWM, F, JAC,
      1                 IERPJ, RPAR, IPAR)
       EXTERNAL F, JAC
-      DOUBLE COMPLEX Y, YH, FTEM, SAVF, WM
+      COMPLEX(KIND=8) Y, YH, FTEM, SAVF, WM
       DOUBLE PRECISION EWT
       INTEGER LDYH, IWM, IERPJ, IPAR
       DIMENSION Y(*), YH(LDYH,*), EWT(*), FTEM(*), SAVF(*),
@@ -3066,7 +3066,7 @@ C
 C
 C Type declarations for local variables --------------------------------
 C
-      DOUBLE COMPLEX DI, R1, YI, YJ, YJJ
+      COMPLEX(KIND=8) DI, R1, YI, YJ, YJJ
       DOUBLE PRECISION CON, FAC, ONE, PT1, R, R0, THOU, ZERO
       INTEGER I, I1, I2, IER, II, J, J1, JJ, JOK, LENP, MBA, MBAND,
      1        MEB1, MEBAND, ML, ML1, MU, NP1
@@ -3260,7 +3260,7 @@ C----------------------- End of Subroutine ZVJAC -----------------------
       END
 *DECK ZACOPY
       SUBROUTINE ZACOPY (NROW, NCOL, A, NROWA, B, NROWB)
-      DOUBLE COMPLEX A, B
+      COMPLEX(KIND=8) A, B
       INTEGER NROW, NCOL, NROWA, NROWB
       DIMENSION A(NROWA,NCOL), B(NROWB,NCOL)
 C-----------------------------------------------------------------------
@@ -3286,7 +3286,7 @@ C----------------------- End of Subroutine ZACOPY ----------------------
       END
 *DECK ZVSOL
       SUBROUTINE ZVSOL (WM, IWM, X, IERSL)
-      DOUBLE COMPLEX WM, X
+      COMPLEX(KIND=8) WM, X
       INTEGER IWM, IERSL
       DIMENSION WM(*), IWM(*), X(*)
 C-----------------------------------------------------------------------
@@ -3329,7 +3329,7 @@ C
 C
 C Type declarations for local variables --------------------------------
 C
-      DOUBLE COMPLEX DI
+      COMPLEX(KIND=8) DI
       DOUBLE PRECISION ONE, PHRL1, R, ZERO
       INTEGER I, MEBAND, ML, MU
 C-----------------------------------------------------------------------
@@ -3457,7 +3457,7 @@ C***ROUTINES CALLED  (NONE)
 C***REVISION HISTORY  (YYMMDD)
 C   060502  DATE WRITTEN, modified from DEWSET of 930809.
 C***END PROLOGUE  ZEWSET
-      DOUBLE COMPLEX YCUR
+      COMPLEX(KIND=8) YCUR
       DOUBLE PRECISION RTOL, ATOL, EWT
       INTEGER N, ITOL
       INTEGER I
@@ -3503,7 +3503,7 @@ C***ROUTINES CALLED  ZABSSQ
 C***REVISION HISTORY  (YYMMDD)
 C   060502  DATE WRITTEN, modified from DVNORM of 930809.
 C***END PROLOGUE  ZVNORM
-      DOUBLE COMPLEX V
+      COMPLEX(KIND=8) V
       DOUBLE PRECISION W,   SUM, ZABSSQ
       INTEGER N,   I
       DIMENSION V(N), W(N)
@@ -3531,7 +3531,7 @@ C    ZABSSQ = DREAL(Z)**2 * DIMAG(Z)**2
 C***REVISION HISTORY  (YYMMDD)
 C   060502  DATE WRITTEN.
 C***END PROLOGUE  ZABSSQ
-      DOUBLE COMPLEX Z
+      COMPLEX(KIND=8) Z
       ZABSSQ = DREAL(Z)**2 + DIMAG(Z)**2
       RETURN
 C----------------------- END OF FUNCTION ZABSSQ ------------------------
@@ -3549,7 +3549,7 @@ C  Minor modification of BLAS routine ZSCAL.
 C***REVISION HISTORY  (YYMMDD)
 C   060530  DATE WRITTEN.
 C***END PROLOGUE  DZSCAL
-      DOUBLE COMPLEX ZX(*)
+      COMPLEX(KIND=8) ZX(*)
       DOUBLE PRECISION DA
       INTEGER I,INCX,IX,N
 C
@@ -3580,7 +3580,7 @@ C  Minor modification of BLAS routine ZAXPY.
 C***REVISION HISTORY  (YYMMDD)
 C   060530  DATE WRITTEN.
 C***END PROLOGUE  DZAXPY
-      DOUBLE COMPLEX ZX(*),ZY(*)
+      COMPLEX(KIND=8) ZX(*),ZY(*)
       DOUBLE PRECISION DA
       INTEGER I,INCX,INCY,IX,IY,N
       IF(N.LE.0)RETURN
@@ -3607,15 +3607,15 @@ C Code for both increments equal to 1
 
       subroutine zgesl(a,lda,n,ipvt,b,job)
       integer lda,n,ipvt(1),job
-      complex*16 a(lda,*),b(*)
+      COMPLEX(KIND=8) a(lda,*),b(*)
 c
-c     zgesl solves the complex*16 system
+c     zgesl solves the COMPLEX(KIND=8) system
 c     a * x = b  or  ctrans(a) * x = b
 c     using the factors computed by zgeco or zgefa.
 c
 c     on entry
 c
-c        a       complex*16(lda, n)
+c        a       COMPLEX(KIND=8)(lda, n)
 c                the output from zgeco or zgefa.
 c
 c        lda     integer
@@ -3627,7 +3627,7 @@ c
 c        ipvt    integer(n)
 c                the pivot vector from zgeco or zgefa.
 c
-c        b       complex*16(n)
+c        b       COMPLEX(KIND=8)(n)
 c                the right hand side vector.
 c
 c        job     integer
@@ -3666,10 +3666,10 @@ c     fortran dconjg
 c
 c     internal variables
 c
-      complex*16 zdotc,t
+      COMPLEX(KIND=8) zdotc,t
       integer k,kb,l,nm1
       double precision dreal,dimag
-      complex*16 zdumr,zdumi
+      COMPLEX(KIND=8) zdumr,zdumi
       dreal(zdumr) = zdumr
       dimag(zdumi) = (0.0d0,-1.0d0)*zdumi
 c
@@ -3730,16 +3730,16 @@ c
 
       subroutine zgbfa(abd,lda,n,ml,mu,ipvt,info)
       integer lda,n,ml,mu,ipvt(*),info
-      complex*16 abd(lda,*)
+      COMPLEX(KIND=8) abd(lda,*)
 c
-c     zgbfa factors a complex*16 band matrix by elimination.
+c     zgbfa factors a COMPLEX(KIND=8) band matrix by elimination.
 c
 c     zgbfa is usually called by zgbco, but it can be called
 c     directly with a saving in time if  rcond  is not needed.
 c
 c     on entry
 c
-c        abd     complex*16(lda, n)
+c        abd     COMPLEX(KIND=8)(lda, n)
 c                contains the matrix in band storage.  the columns
 c                of the matrix are stored in the columns of  abd  and
 c                the diagonals of the matrix are stored in rows
@@ -3814,13 +3814,13 @@ c     fortran dabs,max0,min0
 c
 c     internal variables
 c
-      complex*16 t
+      COMPLEX(KIND=8) t
       integer i,izamax,i0,j,ju,jz,j0,j1,k,kp1,l,lm,m,mm,nm1
 c
-      complex*16 zdum
+      COMPLEX(KIND=8) zdum
       double precision cabs1
       double precision dreal,dimag
-      complex*16 zdumr,zdumi
+      COMPLEX(KIND=8) zdumr,zdumi
       dreal(zdumr) = zdumr
       dimag(zdumi) = (0.0d0,-1.0d0)*zdumi
       cabs1(zdum) = dabs(dreal(zdum)) + dabs(dimag(zdum))
@@ -3912,15 +3912,15 @@ c
 
       subroutine zgbsl(abd,lda,n,ml,mu,ipvt,b,job)
       integer lda,n,ml,mu,ipvt(1),job
-      complex*16 abd(lda,*),b(*)
+      COMPLEX(KIND=8) abd(lda,*),b(*)
 c
-c     zgbsl solves the complex*16 band system
+c     zgbsl solves the COMPLEX(KIND=8) band system
 c     a * x = b  or  ctrans(a) * x = b
 c     using the factors computed by zgbco or zgbfa.
 c
 c     on entry
 c
-c        abd     complex*16(lda, n)
+c        abd     COMPLEX(KIND=8)(lda, n)
 c                the output from zgbco or zgbfa.
 c
 c        lda     integer
@@ -3938,7 +3938,7 @@ c
 c        ipvt    integer(n)
 c                the pivot vector from zgbco or zgbfa.
 c
-c        b       complex*16(n)
+c        b       COMPLEX(KIND=8)(n)
 c                the right hand side vector.
 c
 c        job     integer
@@ -3977,10 +3977,10 @@ c     fortran dconjg,min0
 c
 c     internal variables
 c
-      complex*16 zdotc,t
+      COMPLEX(KIND=8) zdotc,t
       integer k,kb,l,la,lb,lm,m,nm1
       double precision dreal,dimag
-      complex*16 zdumr,zdumi
+      COMPLEX(KIND=8) zdumr,zdumi
       dreal(zdumr) = zdumr
       dimag(zdumi) = (0.0d0,-1.0d0)*zdumi
 c
@@ -4052,9 +4052,9 @@ c
 
       subroutine zgefa(a,lda,n,ipvt,info)
       integer lda,n,ipvt(*),info
-      complex*16 a(lda,*)
+      COMPLEX(KIND=8) a(lda,*)
 c
-c     zgefa factors a complex*16 matrix by gaussian elimination.
+c     zgefa factors a COMPLEX(KIND=8) matrix by gaussian elimination.
 c
 c     zgefa is usually called by zgeco, but it can be called
 c     directly with a saving in time if  rcond  is not needed.
@@ -4062,7 +4062,7 @@ c     (time for zgeco) = (1 + 9/n)*(time for zgefa) .
 c
 c     on entry
 c
-c        a       complex*16(lda, n)
+c        a       COMPLEX(KIND=8)(lda, n)
 c                the matrix to be factored.
 c
 c        lda     integer
@@ -4100,13 +4100,13 @@ c     fortran dabs
 c
 c     internal variables
 c
-      complex*16 t
+      COMPLEX(KIND=8) t
       integer izamax,j,k,kp1,l,nm1
 c
-      complex*16 zdum
+      COMPLEX(KIND=8) zdum
       double precision cabs1
       double precision dreal,dimag
-      complex*16 zdumr,zdumi
+      COMPLEX(KIND=8) zdumr,zdumi
       dreal(zdumr) = zdumr
       dimag(zdumi) = (0.0d0,-1.0d0)*zdumi
       cabs1(zdum) = dabs(dreal(zdum)) + dabs(dimag(zdum))

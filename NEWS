@@ -1,3 +1,11 @@
+Changes version 1.14
+================================
+o matplot.deSolve is not anymore exported as matplot to avoid the 
+  respective startup message;
+o please use matplot.deSolve or the alias matplot.0D instead  (Thomas)
+o small fix that allows parameters in list format for DLLfunc and DLLres
+o a little bit fortran modification (e.g. avoid real*8 and complex*16 types)
+
 Changes version 1.13
 ================================
  o observed data and plot.deSolve / matplot for multiple outputs  (Karline)

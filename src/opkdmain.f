@@ -1,12 +1,12 @@
 *DECK DLSODE
       SUBROUTINE DLSODE (F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK,
-     1                  ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, MF, 
+     1                  ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, MF,
      2                  rpar, ipar)
       EXTERNAL F, JAC
 CKS: added rpar, ipar
       integer ipar(*)
-      double precision rpar(*)      
-      
+      double precision rpar(*)
+
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, IWORK, LIW, MF
       DOUBLE PRECISION Y, T, TOUT, RTOL, ATOL, RWORK
       DIMENSION NEQ(*), Y(*), RTOL(*), ATOL(*), RWORK(LRW), IWORK(LIW)
@@ -40,9 +40,9 @@ C           - Optional supplemental routines in the DLSODE package
 C           - internal COMMON block
 C
 C     changes by Karline Soetaert.
-C     NOTE for inclusion in R-package: the interface to F, Res and Jac has 
+C     NOTE for inclusion in R-package: the interface to F, Res and Jac has
 C          been changed: now a double precision and an integer vector
-C          rpar(*) and ipar(*) is also passed. This to allow output of 
+C          rpar(*) and ipar(*) is also passed. This to allow output of
 C          ordinary output variables.
 C          These changes have been made consistently throughout the code
 C          including subroutines in opkda1.f
@@ -307,10 +307,10 @@ C
 C     on the interval from t = 0.0 to t = 4.E10, with initial conditions
 C     y1 = 1.0, y2 = y3 = 0. The problem is stiff.
 C
-C     The following coding solves this problem with DLSODE, using 
-C     MF = 21 and printing results at t = .4, 4., ..., 4.E10.  It uses 
-C     ITOL = 2 and ATOL much smaller for y2 than for y1 or y3 because y2 
-C     has much smaller values.  At the end of the run, statistical 
+C     The following coding solves this problem with DLSODE, using
+C     MF = 21 and printing results at t = .4, 4., ..., 4.E10.  It uses
+C     ITOL = 2 and ATOL much smaller for y2 than for y1 or y3 because y2
+C     has much smaller values.  At the end of the run, statistical
 C     quantities of interest are printed.
 C
 C        EXTERNAL  FEX, JEX
@@ -401,7 +401,7 @@ C     inputs.
 C
 C *Portability:
 C     Since NEQ is dimensioned inside DLSODE, some compilers may object
-C     to a call to DLSODE with NEQ a scalar variable.  In this event, 
+C     to a call to DLSODE with NEQ a scalar variable.  In this event,
 C     use DIMENSION NEQ(1).  Similar remarks apply to RTOL and ATOL.
 C
 C     Note to Cray users:
@@ -891,9 +891,9 @@ C
 C     Optional Outputs
 C     ----------------
 C     As optional additional output from DLSODE, the variables listed
-C     below are quantities related to the performance of DLSODE which 
+C     below are quantities related to the performance of DLSODE which
 C     are available to the user.  These are communicated by way of the
-C     work arrays, but also have internal mnemonic names as shown. 
+C     work arrays, but also have internal mnemonic names as shown.
 C     Except where stated otherwise, all of these outputs are defined on
 C     any successful return from DLSODE, and on any return with ISTATE =
 C     -1, -2, -4, -5, or -6.  On an illegal input return (ISTATE = -3),
@@ -1035,7 +1035,7 @@ C
 C     If DLSODE is to be used in an overlay situation, the user must
 C     declare, in the primary overlay, the variables in:
 C     (1) the call sequence to DLSODE,
-C     (2) the internal COMMON block /DLS001/, of length 255 
+C     (2) the internal COMMON block /DLS001/, of length 255
 C         (218 double precision words followed by 37 integer words).
 C
 C     If DLSODE is used on a system in which the contents of internal
@@ -1171,7 +1171,7 @@ C 19930326  Added comment about non-reentrancy.  (FNF)
 C 19930723  Changed D1MACH to DUMACH. (FNF)
 C 19930801  Removed ILLIN and NTREP from Common (affects driver logic);
 C           minor changes to prologue and internal comments;
-C           changed Hollerith strings to quoted strings; 
+C           changed Hollerith strings to quoted strings;
 C           changed internal comments to mixed case;
 C           replaced XERRWD with new version using character type;
 C           changed dummy dimensions from 1 to *. (ACH)
@@ -1233,7 +1233,7 @@ C  Declare all other variables.
      1   TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
       DIMENSION MORD(2)
       LOGICAL IHIT
-      CHARACTER*80 MSG
+      CHARACTER(LEN=80) MSG
       SAVE MORD, MXSTP0, MXHNL0
 C-----------------------------------------------------------------------
 C The following internal Common block contains
@@ -1662,7 +1662,7 @@ C-----------------------------------------------------------------------
 C Block I.
 C The following block handles all error returns due to illegal input
 C (ISTATE = -3), as detected before calling the core integrator.
-C First the error message routine is called.  If the illegal input 
+C First the error message routine is called.  If the illegal input
 C is a negative ISTATE, the run is aborted (apparent infinite loop).
 C-----------------------------------------------------------------------
  601  MSG = 'DLSODE-  ISTATE (=I1) illegal '
@@ -1774,8 +1774,8 @@ C----------------------- END OF SUBROUTINE DLSODE ----------------------
       EXTERNAL F, JAC
 CKS: added rpar, ipar
       integer ipar(*)
-      double precision rpar(*)      
-      
+      double precision rpar(*)
+
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, IWORK, LIW, MF
       DOUBLE PRECISION Y, T, TOUT, RTOL, ATOL, RWORK
       INTEGER IWK(2*LRW)
@@ -3045,7 +3045,7 @@ C-----------------------------------------------------------------------
      1   TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
       DIMENSION MORD(2)
       LOGICAL IHIT
-      CHARACTER*60 MSG
+      CHARACTER(LEN=80) MSG
       SAVE LENRAT, MORD, MXSTP0, MXHNL0
 C-----------------------------------------------------------------------
 C The following two internal Common blocks contain
@@ -3256,7 +3256,7 @@ C DIPREP and DPREP do sparse matrix preprocessing if MITER = 1 or 2. ---
       LEWT = MIN(LEWT,LRW)
       LACOR = MIN(LACOR,LRW)
 CKS
-      CALL DIPREP (NEQ,Y,RWORK,IWK,IWORK(LIA),IWORK(LJA), IPFLAG, F, JAC,
+      CALL DIPREP (NEQ,Y,RWORK,IWK,IWORK(LIA),IWORK(LJA),IPFLAG,F,JAC,
      & rpar, ipar )
       LENRW = LWM - 1 + LENWK + LREST
       IWORK(17) = LENRW
@@ -3759,13 +3759,13 @@ C----------------------- End of Subroutine DLSODES ---------------------
       END
 *DECK DLSODA
       SUBROUTINE DLSODA (F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK,
-     1            ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, JT, 
+     1            ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, JT,
      2            rpar, ipar)
       EXTERNAL F, JAC
 CKS: added rpar, ipar
       integer ipar(*)
-      double precision rpar(*)      
-      
+      double precision rpar(*)
+
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, IWORK, LIW, JT
       DOUBLE PRECISION Y, T, TOUT, RTOL, ATOL, RWORK
       DIMENSION NEQ(*), Y(*), RTOL(*), ATOL(*), RWORK(LRW), IWORK(LIW)
@@ -4767,7 +4767,7 @@ C-----------------------------------------------------------------------
      1   TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
       DIMENSION MORD(2)
       LOGICAL IHIT
-      CHARACTER*80 MSG
+      CHARACTER(LEN=80) MSG
       SAVE MORD, MXSTP0, MXHNL0
 C-----------------------------------------------------------------------
 C The following two internal Common blocks contain
@@ -5144,18 +5144,16 @@ C-----------------------------------------------------------------------
       IF (IXPR .EQ. 0) GO TO 310
       IF (METH .EQ. 2) THEN
         MSG = 'Switch to BDF   at T (=R1), new step (=R2): %g, %g'
-        MSG = MSG // char(0)
-        CALL rprintfd2(MSG, TN, H)
+        CALL rprintfd2(MSG // char(0), TN, H)
       ENDIF
       IF (METH .EQ. 1) THEN
 C      MSG='DLSODA- A switch to the Adams (nonstiff) method has occurred'
 C KS      CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
 C      CALL DBLEPR(MSG, 60, 0, 0)
        MSG = 'Switch to Adams at T (=R1), new step (=R2): %g, %g'
-       MSG = MSG // char(0)
-       CALL rprintfd2(MSG, TN, H)
+       CALL rprintfd2(MSG // char(0), TN, H)
       ENDIF
-c	    write(msg,'(A4,D18.10,A9,D18.10)') 
+c     write(msg,'(A4,D18.10,A9,D18.10)')
 c     &      'at T',TN,' new step', H
 C KS      CALL XERRWD (MSG, 60, 107, 0, 1, NST, 0, 2, TN, H)
 c      CALL DBLEPR(MSG, 60, 0, 0)
@@ -5410,7 +5408,7 @@ C----------------------- End of Subroutine DLSODA ----------------------
       EXTERNAL F, JAC, G
 CKS: added rpar, ipar
       integer ipar(*)
-      double precision rpar(*)      
+      double precision rpar(*)
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, IWORK, LIW, JT,
      1   NG, JROOT
       DOUBLE PRECISION Y, T, TOUT, RTOL, ATOL, RWORK
@@ -6536,7 +6534,7 @@ C-----------------------------------------------------------------------
      1   TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
       DIMENSION MORD(2)
       LOGICAL IHIT
-      CHARACTER*60 MSG
+      CHARACTER(LEN=60) MSG
       SAVE MORD, MXSTP0, MXHNL0
 C-----------------------------------------------------------------------
 C The following three internal Common blocks contain
@@ -6964,22 +6962,19 @@ C-----------------------------------------------------------------------
       JSTART = -1
       IF (IXPR .EQ. 0) GO TO 310
       IF (METH .EQ. 2) THEN
-      MSG='DLSODAR- A switch to the BDF (stiff) method has occurred    '
+      MSG='DLSODAR- A switch to the BDF (stiff) method has occurred'
 C KS      CALL XERRWD (MSG, 60, 105, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
 C      CALL DBLEPR(MSG, 60, 0, 0)
-      MSG = MSG // char(0)
-      CALL rprintf(MSG)
+      CALL rprintf(MSG // char(0))
       ENDIF
       IF (METH .EQ. 1) THEN
-      MSG='DLSODAR- A switch to the Adams (nonstiff) method occurred   '
+      MSG='DLSODAR- A switch to the Adams (nonstiff) method occurred'
 C      CALL XERRWD (MSG, 60, 106, 0, 0, 0, 0, 0, 0.0D0, 0.0D0)
 C      CALL DBLEPR(MSG, 60, 0, 0)
-      MSG = MSG // char(0)
-      CALL rprintf(MSG)
+      CALL rprintf(MSG // char(0))
       ENDIF
       MSG = 'at T (R1), the new step size is (R2): %g, %g '
-      MSG = MSG // char(0)
-      call rprintfd2 (MSG, TN, H)
+      call rprintfd2 (MSG // char(0), TN, H)
  310  CONTINUE
 C
       IF (NGC .EQ. 0) GO TO 315

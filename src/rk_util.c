@@ -4,13 +4,10 @@
 /*==========================================================================*/
 
 /* Load headers needed by the R interface */
-#include <R.h>
-#include <Rinternals.h>
 #include <R_ext/Rdynload.h>
-#include <Rdefines.h>     /* AS_NUMERIC ... */
-
 #include <R_ext/Applic.h> /* for dgemm */
 #include <R_ext/Boolean.h>
+#include "deSolve.h"
 
 #ifdef HAVE_LONG_DOUBLE
 # define LDOUBLE long double
@@ -18,7 +15,7 @@
 # define LDOUBLE double
 #endif
 
-#include "deSolve.h"
+
 
 /*============================================================================*/
 /*   DLL specific functions                                                   */

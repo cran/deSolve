@@ -1,22 +1,4 @@
-@MANUAL{Rexts2009,
-  title = {Writing \proglang{R} Extensions},
-  author = {{\proglang{R} Development Core Team}},
-  organization = {R Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  year = {2009},
-  note = {{ISBN} 3-900051-11-9},
-  url = {http://www.R-project.org}
-}
-
-@MANUAL{Rcore,
-  title = {\proglang{R}: A Language and Environment for Statistical Computing},
-  author = {{\proglang{R} Development Core Team}},
-  organization = {\proglang{R} Foundation for Statistical Computing},
-  address = {Vienna, Austria},
-  year = {2008},
-  note = {{ISBN} 3-900051-07-0},
-  url = {http://www.R-project.org}
-}
+% Encoding: UTF-8
 
 @ARTICLE{Bogacki1989,
   author = {Bogacki, P and Shampine, L F},
@@ -55,6 +37,14 @@
   pages = {1--9},
   address = {Chichester and New York.}
 }
+@MANUAL{bvpSolve,
+  title = {\pkg{bvpSolve}: Solvers for Boundary Value Problems of Ordinary Differential
+  	Equations},
+  author = {Karline Soetaert and Jeff R. Cash and Francesca Mazzia},
+  year = {2010},
+  note = {\proglang{R} package version 1.2},
+  url = {http://CRAN.R-project.org/package=bvpSolve}
+}
 
 @ARTICLE{Cash1990,
   author = {Cash, J R and Karp, A H},
@@ -66,14 +56,33 @@
   pages = {201--222}
 }
 
-@ARTICLE{Dormand1981,
-  author = {Dormand, J R and Prince, P J},
-  title = {High Order Embedded Runge-Kutta Formulae},
-  journal = {Journal of Computational and Applied Mathematics},
-  year = {1981},
-  volume = {7},
-  pages = {67--75},
-  issue = {1}
+@MANUAL{compiledCode,
+  title = {\proglang{R} package \pkg{deSolve}: Writing Code in Compiled Languages},
+  author = {Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer},
+  year = {2008},
+  note = {\pkg{deSolve} vignette - \proglang{R} package version 1.8}
+}
+
+@MANUAL{deSolve,
+  title = {deSolve: General solvers for initial value problems of ordinary differential
+	equations (ODE), partial differential equations (PDE), differential
+	algebraic equations (DAE) and delay differential equations (DDE)},
+  author = {Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer},
+  year = {2010},
+  note = {R package version 1.8}
+}
+
+@ARTICLE{deSolve_jss,
+  author = {Soetaert, K and Petzoldt, T and Setzer, RW},
+  title = {Solving Differential Equations in \proglang{R}: Package \pkg{deSolve}},
+  journal = {Journal of Statistical Software},
+  year = {2010},
+  volume = {33},
+  pages = {1--25},
+  number = {9},
+  coden = {JSSOBK},
+  issn = {1548-7660},
+  url = {http://www.jstatsoft.org/v33/i09}
 }
 
 @ARTICLE{Dormand1980,
@@ -83,6 +92,16 @@
   year = {1980},
   volume = {6},
   pages = {19--26},
+  issue = {1}
+}
+
+@ARTICLE{Dormand1981,
+  author = {Dormand, J R and Prince, P J},
+  title = {High Order Embedded Runge-Kutta Formulae},
+  journal = {Journal of Computational and Applied Mathematics},
+  year = {1981},
+  volume = {7},
+  pages = {67--75},
   issue = {1}
 }
 
@@ -136,6 +155,27 @@
   pages = {136--148}
 }
 
+@Conference{Petzoldt-Rennes,
+  author =    {Petzoldt, Thomas},
+  title =     {Dynamic simulation models - is R powerful enough?},
+  booktitle = {UseR!2009, July 8-10, Rennes, France},
+  year =      {2009}
+}
+
+@Conference{Petzoldt-UCLA,
+  author =    {Petzoldt, Thomas},
+  title =     {Swimming in clear lakes: How model coupling with R helps to improve water quality},
+  booktitle = {user!2014},
+  year =      {2014}
+}
+
+@Conference{Petzoldt-Warwick,
+  author =    {Petzoldt, T. and Soetaert, K.},
+  title =     {Using R for Systems Understanding - A Dynamic Approach},
+  booktitle = {UseR!2011, August 16-18, University of Warwick, Coventry, UK},
+  year =      {2011}
+}
+
 @BOOK{Press92,
   title = {Numerical Recipes in FORTRAN. The Art of Scientific Computing},
   publisher = {Cambridge University Press},
@@ -143,6 +183,31 @@
   author = {Press, W H and Teukolsky, S A and Vetterling, W T and Flannery, B
 	P},
   edition = {2nd}
+}
+
+@MANUAL{Rcore,
+  title = {\proglang{R}: A Language and Environment for Statistical Computing},
+  author = {{\proglang{R} Development Core Team}},
+  organization = {\proglang{R} Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2008},
+  note = {{ISBN} 3-900051-07-0},
+  url = {http://www.R-project.org}
+}
+
+@Manual{ReacTran,
+    title = {ReacTran: Reactive transport modelling in 1D, 2D and 3D},
+    author = {Karline Soetaert and Filip Meysman},
+    year = {2010},
+    note = {R package version 1.3},
+  }@MANUAL{Rexts2009,
+  title = {Writing \proglang{R} Extensions},
+  author = {{\proglang{R} Development Core Team}},
+  organization = {R Foundation for Statistical Computing},
+  address = {Vienna, Austria},
+  year = {2009},
+  note = {{ISBN} 3-900051-11-9},
+  url = {http://www.R-project.org}
 }
 
 @MANUAL{Setzer01,
@@ -162,33 +227,26 @@
   note = {ISBN 978-1-4020-8623-6}
 }
 
-@ARTICLE{deSolve_jss,
-  author = {Soetaert, K and Petzoldt, T and Setzer, RW},
-  title = {Solving Differential Equations in \proglang{R}: Package \pkg{deSolve}},
-  journal = {Journal of Statistical Software},
-  year = {2010},
-  volume = {33},
-  pages = {1--25},
-  number = {9},
-  coden = {JSSOBK},
-  issn = {1548-7660},
-  url = {http://www.jstatsoft.org/v33/i09}
+@Conference{Soetaert-ICNAAM,
+  author =    {Soetaert, K., Meysman, F. and Petzoldt, T.},
+  title =     {Solving Differential Equations in R},
+  booktitle = {ICNAAM 2010: International Conference of Numerical Analysis and Applied Mathematics, September 19-25, Rhodos, Greece},
+  year =      {2010},
+  doi =       {doi:10.1063/1.3498463}
 }
 
-@MANUAL{deSolve,
-  title = {deSolve: General solvers for initial value problems of ordinary differential
-	equations (ODE), partial differential equations (PDE), differential
-	algebraic equations (DAE) and delay differential equations (DDE)},
-  author = {Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer},
-  year = {2010},
-  note = {R package version 1.8}
+@Conference{Soetaert-Rennes,
+  author =    {Soetaert, Karline},
+  title =     {Mathematical modelling of the environment - are there enough data?},
+  booktitle = {UseR!2009, July 8-10, Rennes, France},
+  year =      {2009}
 }
 
-@MANUAL{compiledCode,
-  title = {\proglang{R} package \pkg{deSolve}: Writing Code in Compiled Languages},
-  author = {Karline Soetaert and Thomas Petzoldt and R. Woodrow Setzer},
-  year = {2008},
-  note = {\pkg{deSolve} vignette - \proglang{R} package version 1.8}
+@Manual{ST2000,
+  author = {Shampine, L.F and Thompson, S.},
+  year = {2000},
+  title = {Solving Delay Differential Equations with dde23},
+  url = {http://www.runet.edu/~thompson/webddes/tutorial.pdf}
 }
 
 @MANUAL{testset,
@@ -200,24 +258,17 @@
   url = {http://pitagora.dm.uniba.it/~testset}
 }
 
-@Manual{ReacTran,
-    title = {ReacTran: Reactive transport modelling in 1D, 2D and 3D},
-    author = {Karline Soetaert and Filip Meysman},
-    year = {2010},
-    note = {R package version 1.3},
-  }
-
-@Manual{ST2000,
-  author = {Shampine, L.F and Thompson, S.},
-  year = {2000},
-  title = {Solving Delay Differential Equations with dde23},
-  url = {http://www.runet.edu/~thompson/webddes/tutorial.pdf}
+@Conference{Tutorial-UCLA,
+  author =    {Soetaert, Karline and Petzoldt, Thomas},
+  title =     {Simulating differential equation models in R},
+  booktitle = {Pre-conference tutorial at the useR!2014 conference, UCLA, Los Angeles, June 30 - July 3 2014},
+  year =      {2014},
+  url =       {http://user2014.stat.ucla.edu/}
 }
-@MANUAL{bvpSolve,
-  title = {\pkg{bvpSolve}: Solvers for Boundary Value Problems of Ordinary Differential
-  	Equations},
-  author = {Karline Soetaert and Jeff R. Cash and Francesca Mazzia},
-  year = {2010},
-  note = {\proglang{R} package version 1.2},
-  url = {http://CRAN.R-project.org/package=bvpSolve}
+
+@Conference{,
+  author =    {Soetaert, Karline},
+  title =     {Solving differential equations in R (plenary talk)},
+  booktitle = {useR!2014 conference, UCLA, Los Angeles, June 30 - July 3 2014},
+  year =      {2014}
 }

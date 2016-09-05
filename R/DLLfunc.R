@@ -12,7 +12,7 @@ DLLfunc <- function (func, times, y,
     if (! is.null(outnames)) if (length(outnames) != nout)
       stop("length outnames should be = nout")
 
-    if (is.list(func)) {       
+    if (is.list(func)) {
       if (!is.null(dllname) & "dllname" %in% names(func))
          stop("If 'func' is a list that contains dllname, argument 'dllname' should be NULL")
       if (!is.null(initfunc) & "initfunc" %in% names(func))
@@ -33,44 +33,50 @@ DLLfunc <- function (func, times, y,
     flist <- list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
     Ynames <- attr(y, "names")
 
-    if (class(func) != "CFunc") 
+    if (class(func) != "CFunc")
       if (is.null(dllname) || !is.character(dllname))
             stop("`dllname' must be a name referring to a dll")
 
     if (! is.null(initfunc)) {
-      if (class(initfunc) == "CFunc") 
+      if (class(initfunc) == "CFunc")
          ModelInit <- body(initfunc)[[2]]
       else if (is.loaded(initfunc, PACKAGE = dllname,
             type = "") || is.loaded(initfunc, PACKAGE = dllname,
             type = "Fortran"))
       {ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
       } else if (initfunc != dllname && ! is.null(initfunc))
-            stop(paste("cannot integrate: initfunc not loaded ",initfunc))        
+            stop(paste("cannot integrate: initfunc not loaded ",initfunc))
     }
-    
+
     if (is.null(initfunc)) initfunc <- NA
 
     if (! is.null(forcings))
       flist <- checkforcings(forcings,times,dllname,initforc,TRUE,fcontrol)
 
 ## the function
-    if (class(func) == "CFunc") 
+    if (class(func) == "CFunc")
         Func <- body(func)[[2]]
     else if (!is.character(func))
             stop("`func' must be a *name* referring to a function in a dll or of class CFunc")
     else if (is.loaded(func, PACKAGE = dllname)) {
         Func <- getNativeSymbolInfo(func, PACKAGE = dllname)$address
-        } 
-    else 
+        }
+    else
       stop(paste("cannot run DLLfunc: dyn function not loaded: ",func))
-    
+
     dy <- rep(0,n)
     storage.mode(y) <- storage.mode(dy) <- "double"
 
+    # out <- .Call("call_DLL", y, dy, as.double(times[1]), Func,  ModelInit, #Outinit,
+    #              as.double(parms),as.integer(nout),
+    #              as.double(rpar),as.integer(ipar), 1L,
+    #              flist, PACKAGE = "deSolve")
+
     out <- .Call("call_DLL", y, dy, as.double(times[1]), Func,  ModelInit, #Outinit,
-                 as.double(parms),as.integer(nout),
+                 parms, as.integer(nout),
                  as.double(rpar),as.integer(ipar), 1L,
                  flist, PACKAGE = "deSolve")
+
     vout <- if (nout>0)
       out[(n + 1):(n + nout)]
       else NA
@@ -79,8 +85,8 @@ DLLfunc <- function (func, times, y,
     if (! is.null(outnames)) names(out$var) <- outnames
     return(out) # a list with the rate of change (dy) and output variables (var)
 }
-            
-            
+
+
 DLLres <- function (res, times, y, dy, parms,
                     dllname, initfunc=dllname,
                     rpar=NULL, ipar=NULL, nout=0, outnames=NULL,
@@ -93,14 +99,14 @@ DLLres <- function (res, times, y, dy, parms,
     if (!is.numeric(dy))
         stop("`dy' must be numeric")
     n <- length(y)
-    if (length(dy) != n) 
-        stop("`dy' and 'y' muxt hve the same length")    
+    if (length(dy) != n)
+        stop("`dy' and 'y' muxt hve the same length")
     if (! is.null(times)&&!is.numeric(times))
         stop("`time' must be NULL or numeric")
     if (! is.null(outnames)) if (length(outnames) != nout)
       stop("length outnames should be = nout")
 
-    if (is.list(res)) {       
+    if (is.list(res)) {
       if (!is.null(dllname) & "dllname" %in% names(res))
          stop("If 'res' is a list that contains dllname, argument 'dllname' should be NULL")
       if (!is.null(initfunc) & "initfunc" %in% names(res))
@@ -120,19 +126,19 @@ DLLres <- function (res, times, y, dy, parms,
     flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
     Ynames <- attr(y, "names")
 
-    if (class(res) != "CFunc") 
+    if (class(res) != "CFunc")
       if(is.null(dllname)|| !is.character(dllname))
             stop("`dllname' must be a name referring to a dll")
 
     if (! is.null(initfunc)){
-      if (class(initfunc) == "CFunc") 
+      if (class(initfunc) == "CFunc")
          ModelInit <- body(initfunc)[[2]]
       else if (is.loaded(initfunc, PACKAGE = dllname,
             type = "") || is.loaded(initfunc, PACKAGE = dllname,
-            type = "Fortran")) 
+            type = "Fortran"))
         {ModelInit <- getNativeSymbolInfo(initfunc, PACKAGE = dllname)$address
         } else if (initfunc != dllname && ! is.null(initfunc))
-            stop(paste("cannot integrate: initfunc not loaded ",initfunc))        
+            stop(paste("cannot integrate: initfunc not loaded ",initfunc))
     }
     if (is.null(initfunc)) initfunc <- NA
 
@@ -140,7 +146,7 @@ DLLres <- function (res, times, y, dy, parms,
       flist <- checkforcings(forcings,times,dllname,initforc,TRUE,fcontrol)
 
 ## the function
-    if (class(res) == "CFunc") 
+    if (class(res) == "CFunc")
         Res <- body(res)[[2]]
     else if (!is.character(res))
             stop("`res' must be a *name* referring to a function in a dll")
@@ -150,10 +156,16 @@ DLLres <- function (res, times, y, dy, parms,
 
     storage.mode(y) <- storage.mode(dy) <- "double"
 
+    # out <- .Call("call_DLL", y, dy, as.double(times[1]), Res,  ModelInit, #Outinit,
+    #              as.double(parms),as.integer(nout),
+    #              as.double(rpar),as.integer(ipar), 2L,
+    #              flist, PACKAGE = "deSolve")
+
     out <- .Call("call_DLL", y, dy, as.double(times[1]), Res,  ModelInit, #Outinit,
-                 as.double(parms),as.integer(nout),
-                 as.double(rpar),as.integer(ipar), 2L,
+                 parms, as.integer(nout),
+                 as.double(rpar), as.integer(ipar), 2L,
                  flist, PACKAGE = "deSolve")
+
 
     vout <- if (nout>0)
       out[(n + 1):(n + nout)]
@@ -164,4 +176,4 @@ DLLres <- function (res, times, y, dy, parms,
 
     return(out) # a list with the residual and output variables (var)
 }
-                 
+

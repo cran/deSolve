@@ -2,14 +2,13 @@
 /* Runge-Kutta Solvers, (C) Th. Petzoldt, License: GPL >=2                  */
 /* Definitions and Utilities needed by Runge-Kutta Solvers                  */
 /*==========================================================================*/
-/* Karline: added rejected steps */
-#include <R.h>
-#include <Rinternals.h>
-#include <R_ext/Rdynload.h>
-#include <Rdefines.h>
 
+/* Load headers needed by the R interface */
+
+#include <R_ext/Rdynload.h>
 #include <R_ext/Applic.h>
 #include <R_ext/Boolean.h>
+#include "deSolve.h"
 
 #ifdef HAVE_LONG_DOUBLE
 # define LDOUBLE long double
@@ -17,7 +16,7 @@
 # define LDOUBLE double
 #endif
 
-#include "deSolve.h"
+
 
 /* sign of a number */
 #define sign(x) (( x > 0 ) - ( x < 0 ))

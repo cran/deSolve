@@ -2,6 +2,11 @@
 
 #include <R.h>
 #include <Rdefines.h>
+
+#ifndef  R_INTERNALS_H_
+#include <Rinternals.h>
+#endif
+
 #include <R_ext/Applic.h>
 #include <R_ext/Rdynload.h>
 #include "deSolve.h"

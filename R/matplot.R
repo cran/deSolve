@@ -64,7 +64,7 @@ matplot.deSolve <- function(x, ..., select = NULL, which = select,
     ldots  <- list(...)
     Dots   <- splitdots(ldots, varnames)
 
-    if (Dots$nother > 1)                                             
+    if (Dots$nother > 1)
       stop ("can plot only one deSolve output object at a time with matplot")
 
     Dotmain <- setdots(Dots$main, np)
@@ -263,7 +263,7 @@ matplot.1D <- function (x, select= NULL, which = select, ask = NULL,
   Dotpoints <- Dots$points
   Dotmain <- setdots(Dots$main, np) # expand all dots to np values (no defaults)
 
-  # These are different from defaulst
+  # These are different from defaults
   Dotmain$xlab <- expanddots(ldots$xlab,  "x", np)
   Dotmain$ylab <- expanddots(ldots$ylab,  "", np)
   Dotmain$main <- expanddots(ldots$main,  varnames[xWhich], np)
@@ -364,3 +364,11 @@ setGeneric("matplot", function(x, ...) graphics::matplot(x, ...))
 setOldClass("deSolve")
 
 setMethod("matplot", list(x = "deSolve"), matplot.deSolve)
+
+## thpe: 2016-06-20, deSolve 1.14
+## exporting matplot leads to annoying messages during package startup
+## experimental approach:
+##   - do not anymore export matplot
+##   - instead, use exported 'matplot.deSolve' or alias 'matplot.0D'
+
+matplot.0D <- matplot.deSolve
