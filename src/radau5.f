@@ -1179,7 +1179,7 @@ C --- EXIT CAUSED BY SOLOUT
 C karline: toggled this off
 C      WRITE(MSG,979)X
 C      CALL rprint(MSG)
- 979  FORMAT(' EXIT OF RADAU5 AT X=',E18.4)
+C 979     FORMAT(' EXIT OF RADAU5 AT X=',E18.4)
       IDID=2
       RETURN
       END

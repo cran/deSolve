@@ -3,6 +3,7 @@
 #include <time.h>
 #include <string.h>
 #include "deSolve.h"
+#include "externalptr.h"
 
 SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
 		          SEXP nOut, SEXP Rpar, SEXP Ipar, SEXP Type, SEXP flist)
@@ -46,14 +47,14 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
   if(isForcing == 1)  updatedeforc(&tin);
 
   if (type == 1)   {
-    derivs = (C_deriv_func_type *) R_ExternalPtrAddr(func);
+    derivs = (C_deriv_func_type *) R_ExternalPtrAddrFn_(func);
 
     derivs (&ny, &tin, ytmp, dy, out, ipar) ;
     for (j = 0; j < ny; j++)  REAL(yout)[j] = dy[j];
 
   } else {
 
-    res = (C_res_func_type  *) R_ExternalPtrAddr(func);
+    res = (C_res_func_type  *) R_ExternalPtrAddrFn_(func);
     delta = (double *) R_alloc(ny, sizeof(double));
     for (j = 0; j < ny; j++) delta[j] = 0.;
 

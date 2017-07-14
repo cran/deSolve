@@ -2,7 +2,9 @@
 #include <time.h>
 #include <string.h>
 #include "deSolve.h"   
-#include "zvode.h"   
+#include "zvode.h"
+#include "externalptr.h"
+   
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    Ordinary differential equation solver for complex state variables, zvode.
    
@@ -188,7 +190,7 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 /* pointers to functions zderiv_func and zjac_func, passed to the FORTRAN subroutine */
 
   if (isDll == 1) { /* DLL address passed to FORTRAN */
-    zderiv_func = (C_zderiv_func_type *) R_ExternalPtrAddr(derivfunc);
+    zderiv_func = (C_zderiv_func_type *) R_ExternalPtrAddrFn_(derivfunc);
     /* no need to communicate with R - but output variables set here */      
     if (isOut) {
       dy = (Rcomplex *) R_alloc(neq, sizeof(Rcomplex));
@@ -196,7 +198,7 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
     }
 	  /* here overruling zderiv_func if forcing */
     if (isForcing) {
-      DLL_cderiv_func = (C_zderiv_func_type *) R_ExternalPtrAddr(derivfunc);
+      DLL_cderiv_func = (C_zderiv_func_type *) R_ExternalPtrAddrFn_(derivfunc);
       zderiv_func = (C_zderiv_func_type *) C_zderiv_func_forc;
     }
   } else {  
@@ -209,7 +211,7 @@ SEXP call_zvode(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   
   if (!isNull(jacfunc)) {
     if (isDll == 1) {
-	    zjac_func = (C_zjac_func_type *) R_ExternalPtrAddr(jacfunc);
+	    zjac_func = (C_zjac_func_type *) R_ExternalPtrAddrFn_(jacfunc);
     } else {
 	    R_zjac_func = jacfunc;
 	    zjac_func = C_zjac_func;

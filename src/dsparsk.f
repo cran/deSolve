@@ -699,7 +699,7 @@ c
          mask(riord(j)) = 0
  12   continue
 c-----------------------------------------------------------------------
- 13   continue
+      continue
 c
  1    nlev = nlev+1
       levels(nlev) = istart + 1
@@ -723,7 +723,7 @@ c
          endif
       endif
 c-----------------------------------------------------------------------
- 3    levels(nlev+1) = iend+1
+      levels(nlev+1) = iend+1
       do j=1, iend
          mask(riord(j)) = maskval
       enddo

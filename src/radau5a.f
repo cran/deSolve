@@ -16,7 +16,36 @@ C
       LOGICAL CALHES
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
 C
-      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .EQ. 7) THEN
+        GOTO 7
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55       
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11       
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12       
+      ELSE IF (IJOB .EQ. 13) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 14) THEN
+        GOTO 14
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15       
+      ENDIF
+
+C karline: changed from       
+C      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
 C
 C -----------------------------------------------------------
 C
@@ -221,7 +250,36 @@ C
      &          E2R(LDE1,NM1),E2I(LDE1,NM1),IP2(NM1)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
 C
-      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .EQ. 7) THEN
+        GOTO 7
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55       
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11       
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12       
+      ELSE IF (IJOB .EQ. 13) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 14) THEN
+        GOTO 14
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15       
+      ENDIF
+
+C karline: changed from       
+C GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
 C
 C -----------------------------------------------------------
 C
@@ -469,7 +527,34 @@ C
      &          IP1(NM1),IPHES(N),Z1(N),F1(N)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
 C
-      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,13,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .EQ. 7) THEN
+        GOTO 7
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55       
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11       
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12       
+      ELSE IF (IJOB .EQ. 13 .OR. IJOB .EQ. 14) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15       
+      ENDIF
+
+C karline: changed from       
+C      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,13,15), IJOB
 C
 C -----------------------------------------------------------
 C
@@ -679,8 +764,36 @@ C
      &          IP2(NM1),IPHES(N),Z2(N),Z3(N),F2(N),F3(N)
       DIMENSION E2R(LDE1,NM1),E2I(LDE1,NM1)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
-C
-      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,13,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .EQ. 7) THEN
+        GOTO 7
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55       
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11       
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12       
+      ELSE IF (IJOB .EQ. 13) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 14) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15       
+      ENDIF
+
+C karline: changed from
+C      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,13,15), IJOB
 C
 C -----------------------------------------------------------
 C
@@ -959,7 +1072,35 @@ C
      &          IPHES(N),Z1(N),Z2(N),Z3(N),F1(N),F2(N),F3(N)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
 C
-      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,13,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .EQ. 7) THEN
+        GOTO 7
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55       
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11       
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12       
+      ELSE IF (IJOB .EQ. 13) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 14) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15       
+      ENDIF
+C karline: changed from
+C      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,13,15), IJOB
 C
 C -----------------------------------------------------------
 C
@@ -1289,7 +1430,36 @@ C
       HEE1=DD1/H
       HEE2=DD2/H
       HEE3=DD3/H
-      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .EQ. 7) THEN
+        GOTO 7
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55       
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11       
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12       
+      ELSE IF (IJOB .EQ. 13) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 14) THEN
+        GOTO 14       
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15       
+      ENDIF
+
+C karline changed from:   
+C      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
 C
    1  CONTINUE
 C ------  B=IDENTITY, JACOBIAN A FULL MATRIX
@@ -1519,7 +1689,21 @@ C
           DO I=1,N
              CONT(I)=F1(I)+F2(I)
           END DO
-          GOTO (31,32,31,32,31,32,33,55,55,55,41,42,41,42,41), IJOB
+          IF (IJOB .EQ. 1 .OR. IJOB .EQ. 3 .OR. IJOB .EQ. 5) THEN
+           GOTO 31
+          ELSE IF (IJOB .EQ. 2 .OR. IJOB .EQ. 4 .OR. IJOB .EQ. 6) THEN
+           GOTO 32
+          ELSE IF (IJOB .EQ. 7) THEN
+           GOTO 33
+          ELSE IF (IJOB .LE. 10) THEN
+           GOTO 55
+          ELSE IF (IJOB .EQ.11 .OR. IJOB .EQ.13 .OR. IJOB .EQ.15) THEN
+           GOTO 41
+          ELSE IF (IJOB .EQ. 12 .OR. IJOB .EQ. 14) THEN
+           GOTO 42
+          END IF 
+C karline: changed from          
+C          GOTO (31,32,31,32,31,32,33,55,55,55,41,42,41,42,41), IJOB
 C ------ FULL MATRIX OPTION
   31      CONTINUE
           CALL solradau(N,LDE1,E1,CONT,IP1)
@@ -1617,7 +1801,35 @@ C
       DIMENSION DD(NS),CONT(N),RPAR(1),IPAR(1)
       LOGICAL FIRST,REJECT
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
-      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .EQ. 7) THEN
+        GOTO 7
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55       
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11       
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12       
+      ELSE IF (IJOB .EQ. 13) THEN
+        GOTO 13       
+      ELSE IF (IJOB .EQ. 14) THEN
+        GOTO 14       
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15       
+      ENDIF     
+C karline: changed from     
+C      GOTO (1,2,3,4,5,6,7,55,55,55,11,12,13,14,15), IJOB
 C
    1  CONTINUE
 C ------  B=IDENTITY, JACOBIAN A FULL MATRIX
@@ -1903,7 +2115,21 @@ C
           DO I=1,N
              CONT(I)=FF(I)+FF(I+N)
           END DO
-          GOTO (31,32,31,32,31,32,33,55,55,55,41,42,41,42,41), IJOB
+          IF (IJOB.EQ.1 .OR. IJOB .EQ. 3 .OR. IJOB .EQ. 5) THEN
+            GOTO 31       
+          ELSE IF (IJOB .EQ.2 .OR. IJOB .EQ. 4 .OR. IJOB .EQ. 6) THEN
+            GOTO 32
+          ELSE IF (IJOB .EQ.7) THEN
+            GOTO 33
+          ELSE IF (IJOB .LE.10) THEN
+            GOTO 55
+          ELSE IF (IJOB .EQ.11 .OR. IJOB .EQ. 13 .OR. IJOB.EQ.15) THEN
+            GOTO 41
+          ELSE IF (IJOB .EQ.12 .OR. IJOB .EQ. 14) THEN
+            GOTO 42
+          ENDIF         
+C karline: changed from       
+C          GOTO (31,32,31,32,31,32,33,55,55,55,41,42,41,42,41), IJOB
 C ------ FULL MATRIX OPTION
  31      CONTINUE
          CALL solradau (N,LDE1,E1,CONT,IP1)
@@ -2011,7 +2237,33 @@ C
          END DO
       END IF
 C
-      GOTO (1,2,3,4,5,6,55,55,55,55,11,12,13,13,15), IJOB
+C      GOTO (1,2,3,4,5,6,55,55,55,55,11,12,13,13,15), IJOB
+      IF (IJOB .EQ. 1) THEN
+        GOTO 1
+      ELSE IF (IJOB .EQ. 2) THEN
+        GOTO 2
+      ELSE IF (IJOB .EQ. 3) THEN
+        GOTO 3
+      ELSE IF (IJOB .EQ. 4) THEN
+        GOTO 4
+      ELSE IF (IJOB .EQ. 5) THEN
+        GOTO 5
+      ELSE IF (IJOB .EQ. 6) THEN
+        GOTO 6
+      ELSE IF (IJOB .LE. 10) THEN
+        GOTO 55
+      ELSE IF (IJOB .EQ. 11) THEN
+        GOTO 11
+      ELSE IF (IJOB .EQ. 12) THEN
+        GOTO 12
+      ELSE IF (IJOB .LE. 14) THEN
+        GOTO 13
+      ELSE IF (IJOB .EQ. 15) THEN
+        GOTO 15
+      ENDIF     
+C karline: was      
+C      GOTO (1,2,3,4,5,6,55,55,55,55,11,12,13,13,15), IJOB
+
 C
 C -----------------------------------------------------------
 C
@@ -2187,8 +2439,10 @@ C ---  THIS OPTION IS NOT PROVIDED
       DO 624 I=1,N
          SUM=0.D0
          DO 623 J=1,N
-  623       SUM=SUM+FMAS(I,J)*YNEW(J)
-  624    AK(I)=AK(I)+SUM
+           SUM=SUM+FMAS(I,J)*YNEW(J)
+  623    CONTINUE        
+        AK(I)=AK(I)+SUM
+  624  CONTINUE
       CALL SOLradB (N,LDE,E,MLE,MUE,AK,IP)
       END IF
       RETURN
@@ -2211,7 +2465,22 @@ C
       DIMENSION IP(NM1),IPHES(N)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
 C
-      GOTO (1,2,1,2,1,55,7,55,55,55,11,12,11,12,11), IJOB
+ 
+       IF (IJOB .EQ. 1 .OR. IJOB .EQ. 3 .OR. IJOB .EQ. 5) THEN
+         GOTO 1
+       ELSE IF (IJOB .EQ. 2 .OR. IJOB .EQ. 4) THEN
+         GOTO 2
+       ELSE IF (IJOB.EQ.6.OR.IJOB.EQ.8.OR.IJOB.EQ.9.OR.IJOB.EQ.10) THEN
+         GOTO 55
+       ELSE IF (IJOB .EQ. 7) THEN
+         GOTO 7
+       ELSE IF (IJOB .EQ. 11 .OR. IJOB .EQ.13 .OR. IJOB .EQ. 15) THEN
+         GOTO 11
+       ELSE IF (IJOB .EQ. 12 .OR. IJOB .EQ. 14) THEN
+         GOTO 12
+       ENDIF     
+C  karline: the above was changed from this computed goto
+C      GOTO (1,2,1,2,1,55,7,55,55,55,11,12,11,12,11), IJOB
 C
 C -----------------------------------------------------------
 C
@@ -2358,14 +2627,16 @@ C-----------------------------------------------------------------------
         IF (T .EQ. 0.D0) GO TO 80
         T = 1.D0/T
         DO 30 I = KP1,N
- 30       A(I,K) = -A(I,K)*T
+          A(I,K) = -A(I,K)*T
+ 30     CONTINUE 
         DO 50 J = KP1,N
           T = A(M,J)
           A(M,J) = A(K,J)
           A(K,J) = T
           IF (T .EQ. 0.D0) GO TO 45
           DO 40 I = KP1,N
- 40         A(I,J) = A(I,J) + A(I,K)*T
+            A(I,J) = A(I,J) + A(I,K)*T
+ 40       CONTINUE 
  45       CONTINUE
  50       CONTINUE
  60     CONTINUE
@@ -2405,7 +2676,8 @@ C-----------------------------------------------------------------------
         B(M) = B(K)
         B(K) = T
         DO 10 I = KP1,N
- 10       B(I) = B(I) + A(I,K)*T
+          B(I) = B(I) + A(I,K)*T
+ 10     CONTINUE 
  20     CONTINUE
       DO 40 KB = 1,NM1
         KM1 = N - KB
@@ -2413,7 +2685,8 @@ C-----------------------------------------------------------------------
         B(K) = B(K)/A(K,K)
         T = -B(K)
         DO 30 I = 1,KM1
- 30       B(I) = B(I) + A(I,K)*T
+          B(I) = B(I) + A(I,K)*T
+ 30     CONTINUE 
  40     CONTINUE
  50   B(1) = B(1)/A(1,1)
       RETURN
@@ -2471,14 +2744,16 @@ C-----------------------------------------------------------------------
         IF (T .EQ. 0.D0) GO TO 80
         T = 1.D0/T
         DO 30 I = KP1,NA
- 30       A(I,K) = -A(I,K)*T
+          A(I,K) = -A(I,K)*T
+ 30     CONTINUE
         DO 50 J = KP1,N
           T = A(M,J)
           A(M,J) = A(K,J)
           A(K,J) = T
           IF (T .EQ. 0.D0) GO TO 45
           DO 40 I = KP1,NA
- 40         A(I,J) = A(I,J) + A(I,K)*T
+           A(I,J) = A(I,J) + A(I,K)*T
+ 40       CONTINUE
  45       CONTINUE
  50       CONTINUE
  60     CONTINUE
@@ -2520,7 +2795,8 @@ C-----------------------------------------------------------------------
         B(K) = T
         NA = MIN0(N,LB+K)
         DO 10 I = KP1,NA
- 10       B(I) = B(I) + A(I,K)*T
+         B(I) = B(I) + A(I,K)*T
+ 10     CONTINUE
  20     CONTINUE
       DO 40 KB = 1,NM1
         KM1 = N - KB
@@ -2528,7 +2804,8 @@ C-----------------------------------------------------------------------
         B(K) = B(K)/A(K,K)
         T = -B(K)
         DO 30 I = 1,KM1
- 30       B(I) = B(I) + A(I,K)*T
+          B(I) = B(I) + A(I,K)*T
+ 30     CONTINUE
  40     CONTINUE
  50   B(1) = B(1)/A(1,1)
       RETURN
@@ -2917,9 +3194,11 @@ C-----------------------------------------------------------------------
       IF (ML .EQ. 0) GO TO 70
       IF (N .EQ. 1) GO TO 70
       IF (N .LT. MU+2) GO TO 7
-      DO 5 J = MU+2,N
-      DO 5 I = 1,ML
-  5   A(I,J) = 0.D0
+      DO 6 J = MU+2,N
+        DO 5 I = 1,ML
+         A(I,J) = 0.D0
+  5     CONTINUE
+  6   CONTINUE
   7   NM1 = N - 1
       DO 60 K = 1,NM1
         KP1 = K + 1
@@ -2938,7 +3217,8 @@ C-----------------------------------------------------------------------
         IF (T .EQ. 0.D0) GO TO 80
         T = 1.D0/T
         DO 30 I = MD1,MDL
- 30       A(I,K) = -A(I,K)*T
+          A(I,K) = -A(I,K)*T
+ 30     CONTINUE
         JU = MIN0(MAX0(JU,MU+IP(K)),N)
         MM = MD
         IF (JU .LT. KP1) GO TO 55
@@ -2954,7 +3234,8 @@ C-----------------------------------------------------------------------
           JK = J - K
           DO 40 I = MD1,MDL
             IJK = I - JK
- 40         A(IJK,J) = A(IJK,J) + A(I,K)*T
+            A(IJK,J) = A(IJK,J) + A(I,K)*T
+ 40       CONTINUE
  45       CONTINUE
  50       CONTINUE
  55     CONTINUE
@@ -3000,8 +3281,9 @@ C-----------------------------------------------------------------------
         MDL = MIN(ML,N-K) + MD
         DO 10 I = MD1,MDL
           IMD = I + K - MD
- 10       B(IMD) = B(IMD) + A(I,K)*T
- 20     CONTINUE
+          B(IMD) = B(IMD) + A(I,K)*T
+ 10     CONTINUE
+ 20    CONTINUE
  25   CONTINUE
       DO 40 KB = 1,NM1
         K = N + 1 - KB
@@ -3011,7 +3293,8 @@ C-----------------------------------------------------------------------
         LM = MAX0(1,KMD+1)
         DO 30 I = LM,MDM
           IMD = I - KMD
- 30       B(IMD) = B(IMD) + A(I,K)*T
+          B(IMD) = B(IMD) + A(I,K)*T
+ 30     CONTINUE
  40     CONTINUE
  50   B(1) = B(1)/A(MD,1)
       RETURN
@@ -3058,11 +3341,12 @@ C-----------------------------------------------------------------------
       IF (ML .EQ. 0) GO TO 70
       IF (N .EQ. 1) GO TO 70
       IF (N .LT. MU+2) GO TO 7
-      DO 5 J = MU+2,N
-      DO 5 I = 1,ML
-      AR(I,J) = 0.D0
-      AI(I,J) = 0.D0
-  5   CONTINUE
+      DO 6 J = MU+2,N
+       DO 5 I = 1,ML
+        AR(I,J) = 0.D0
+        AI(I,J) = 0.D0
+  5    CONTINUE
+  6   CONTINUE
   7   NM1 = N - 1
       DO 60 K = 1,NM1
         KP1 = K + 1
@@ -3306,10 +3590,12 @@ C
           a(i,mm1) = y
 C
           do 140 j = m, n
-  140      a(i,j) = a(i,j) - y * a(m,j)
+           a(i,j) = a(i,j) - y * a(m,j)
+  140     continue
 C
           do 150 j = 1, igh
-  150      a(j,m) = a(j,m) + y * a(j,i)
+           a(j,m) = a(j,m) + y * a(j,i)
+  150     continue   
 C
   160   continue
 C

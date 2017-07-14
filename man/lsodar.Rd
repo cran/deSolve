@@ -215,7 +215,7 @@
   \item{fcontrol }{A list of control parameters for the forcing functions.
     See \link{forcings} or vignette \code{compiledCode}.
   }
-  \item{events }{A list that specifies events, i.e. when the value of a 
+  \item{events }{A matrix or data frame that specifies events, i.e. when the value of a 
    state variable is suddenly changed. See \link{events} for more information.
   }
   \item{lags }{A list that specifies timelags, i.e. the number of steps 

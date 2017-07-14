@@ -10,6 +10,7 @@
 #include <R_ext/Applic.h>
 #include <R_ext/Rdynload.h>
 #include "deSolve.h"
+#include "externalptr.h"
 
 /*==================================================
 some functions for keeping track of how many SEXPs
@@ -105,7 +106,7 @@ void initParms(SEXP Initfunc, SEXP Parms) {
   if (inherits(Initfunc, "NativeSymbol")) {
     init_func_type *initializer;
     PROTECT(de_gparms = Parms); incr_N_Protect();
-    initializer = (init_func_type *) R_ExternalPtrAddr(Initfunc);
+    initializer = (init_func_type *) R_ExternalPtrAddrFn_(Initfunc);
     initializer(Initdeparms);
   }
 }

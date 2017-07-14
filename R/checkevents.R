@@ -1,5 +1,5 @@
 ### ============================================================================
-### Check events data set 
+### Check events data set
 ### Changes version 1.11: event can be an R-function, even if DLL model
 ###                       continueeroot: to continue even if a root is found
 ### ============================================================================
@@ -7,7 +7,7 @@
 checkevents <- function (events, times, vars, dllname, root = FALSE) {
 
   if (is.null(events)) return(list())
-  if (is.null(events$data) && is.null(events$func) && 
+  if (is.null(events$data) && is.null(events$func) &&
       is.null(events$terminalroot)) return(list())
 
   funevent <- events$func
@@ -25,9 +25,9 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
   Terminalroot <- events$terminalroot
 
   if (! is.null(Terminalroot) && is.null(funevent))
-    funevent <- function(t,y,p) return(y)  # dummy event function 
+    funevent <- function(t,y,p) return(y)  # dummy event function
 
-  if (is.null(Terminalroot)) 
+  if (is.null(Terminalroot))
     Terminalroot <- 0  # at which roots simulation should continue
 
 
@@ -38,7 +38,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
     if (class (funevent) == "CFunc") {
       funevent <- body(funevent)[[2]]
       Type <- 3
-    } else if (is.character(funevent)){ 
+    } else if (is.character(funevent)){
       if (is.null(dllname))
         stop("'dllname' should be given if 'events$func' is a string")
       if (is.loaded(funevent, PACKAGE = dllname, type = "") ||
@@ -46,14 +46,14 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
         funevent <- getNativeSymbolInfo(funevent, PACKAGE = dllname)$address
       } else
         stop(paste("'events$func' should be loaded ",funevent))
-      Type <- 3  
+      Type <- 3
     } else {
       Type <- 2  # SHOULD ALSO CHECK THE FUNCTION if R-function....
 #      if (!is.null(dllname))      KARLINE: removed that 02/07/2011
 #       stop("'events$func' should be a string, events specified in compiled code if 'dllname' is not NULL")
     }
     if (Root == 0) {
-      if (is.null(events$time)) 
+      if (is.null(events$time))
         stop("either 'events$time' should be given and contain the times of the events, if 'events$func' is specified and no root function or your solver does not support root functions")
       eventtime <- sort(as.double(events$time)) # Karline: sorted that 4-01-2016
 
@@ -82,12 +82,12 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
 
   if (!is.data.frame(eventdata))
     stop("'event' should be a data.frame with 3(4) columns: state variable, time, value, (method)")
-    
+
   ## this should make check < 3 columns obsolete
   evtcols <-  c("var", "time", "value", "method")
   if (!all(evtcols %in% names(eventdata)))
     stop("structure of events does not match specification, see help('events')")
-  
+
   ## make sure that event data frame has correct order
   eventdata <- eventdata[evtcols]
 
@@ -118,7 +118,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
 ## Times in 'event' should be embraced by 'times'
   rt <- range(times)
   ii <- c(which(eventdata[,2] < rt[1]), which(eventdata[,2] > rt[2]))
-  if (length(ii) > 0) 
+  if (length(ii) > 0)
     eventdata <- eventdata [-ii,]
   if (any(!(eventdata[,2] %in% times))) {
         warning("Not all event times 'events$times' were in output 'times' so they are automatically included.")
@@ -126,7 +126,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
         if (length(uniqueTimes) < length(times))
           warning("Some time steps were very close to events - only the event times are used in these cases.")
         times <- sort(c(uniqueTimes, eventdata[,2]))
-      }  
+      }
 
   if (any(!(eventdata[,2] %in% times))) {
     warning("Not all event times 'events$times' where in output 'times' so they are automatically included.")
@@ -134,15 +134,20 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
     if (length(uniqueTimes) < length(times))
       warning("Some time steps were very close to events - only the event times are used in these cases.")
     times <- sort(c(uniqueTimes, eventdata[,2]))
-  }  
-
+  }
+  ## check if times are ordered and if not, fix it
+  if (any(diff(eventdata[,2]) < 0)) {
+    warning("Time of events ('time' column of 'events') was not ordered.")
+    ord <- order(eventdata[,2])
+    eventdata <- eventdata[ord,]
+  }
 
 ## 4th column: method; if not available: "replace" = method 1 - to date: 3 methods
   if (ncol(eventdata) ==3)
     eventdata$method <- rep(1,nrow(eventdata))
   else if (is.numeric(eventdata[,4])) {
     if (max(eventdata[,4]) > 3 | min(eventdata[,4]) < 1)
-      stop("unknown method in 'event': should be >0 and < 4") 
+      stop("unknown method in 'event': should be >0 and < 4")
   } else {
     vv <- charmatch(eventdata[,4],c("replace","add","multiply"))
     if (any(is.na(vv)))

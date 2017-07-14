@@ -1,10 +1,14 @@
-#include <R.h>
-#include <Rdefines.h>
-
-#ifndef  R_INTERNALS_H_
-#include <Rinternals.h>
+#ifndef R_R_H
+#  include <R.h>
 #endif
 
+#ifndef R_DEFINES_H
+#  include <Rdefines.h>
+#endif
+
+#ifndef R_INTERNALS_H_
+#  include <Rinternals.h>
+#endif
 
 
 /*============================================================================

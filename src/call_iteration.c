@@ -3,6 +3,7 @@
 /*==========================================================================*/
 
 #include "rk_util.h"
+#include "externalptr.h"
 
 SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfunc,
 	        SEXP Parms, SEXP Nout, SEXP Rho, SEXP Verbose, SEXP Rpar, SEXP Ipar,
@@ -59,7 +60,7 @@ SEXP call_iteration(SEXP Xstart, SEXP Times, SEXP Nsteps, SEXP Func, SEXP Initfu
     if (nout > 0) isOut = TRUE;
     lrpar = nout + LENGTH(Rpar);  /* length of rpar; LENGTH(Rpar) is always >0 */
     lipar = 3    + LENGTH(Ipar);  /* length of ipar */
-    cderivs = (C_deriv_func_type *) R_ExternalPtrAddr(Func);
+    cderivs = (C_deriv_func_type *) R_ExternalPtrAddrFn_(Func);
 
   } else {                        /* function is not a dll */
     isDll = FALSE;

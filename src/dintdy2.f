@@ -22,7 +22,7 @@ C
 C***BASED ON  DINTDY
       IMPLICIT NONE
       INTEGER K, NYH, NQ, I, IC, J, JB, JB2, JJ, JJ1, JP1
-      DOUBLE PRECISION T, DKY, H, C, R, S, TP, Tn
+      DOUBLE PRECISION T, DKY, H, C, R, S, Tn
       DOUBLE PRECISION YH(NYH,*) 
 C
 C***FIRST EXECUTABLE STATEMENT  
@@ -31,7 +31,8 @@ C***FIRST EXECUTABLE STATEMENT
       IF (K .EQ. 0) GO TO 15
       JJ1 = nq+1 - K
       DO 10 JJ = JJ1,NQ
- 10     IC = IC*JJ
+        IC = IC*JJ
+ 10   CONTINUE
  15   C = IC
       DKY = C*YH(I,nq+1)
       IF (K .EQ. NQ) GO TO 55
@@ -43,7 +44,8 @@ C***FIRST EXECUTABLE STATEMENT
         IF (K .EQ. 0) GO TO 35
         JJ1 = JP1 - K
         DO 30 JJ = JJ1,J
- 30       IC = IC*JJ
+          IC = IC*JJ
+ 30     CONTINUE
  35     C = IC
         DKY = C*YH(I,JP1) + S*DKY
  50     CONTINUE

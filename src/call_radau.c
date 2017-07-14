@@ -1,6 +1,7 @@
 #include <time.h>
 #include <string.h>
 #include "deSolve.h"
+#include "externalptr.h"
 
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    RADAU: Implicit runge-Kutta of order 5
@@ -424,7 +425,7 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
   
  /* pointers to functions deriv_func, jac_func, passed to FORTRAN */
   if (isDll)  { /* DLL address passed to FORTRAN */
-      deriv_func = (C_deriv_func_type *) R_ExternalPtrAddr(derivfunc);  
+      deriv_func = (C_deriv_func_type *) R_ExternalPtrAddrFn_(derivfunc);  
 	  
  	   /* overruling deriv_func if forcing */
       if (isForcing) {
@@ -441,7 +442,7 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
 
   if (!isNull(jacfunc))   {
       if (isDll)
-	      jac_func = (C_jac_func_type_rad *) R_ExternalPtrAddr(jacfunc);
+	      jac_func = (C_jac_func_type_rad *) R_ExternalPtrAddrFn_(jacfunc);
 	    else  {
 	      R_jac_func = jacfunc;
 	      jac_func= C_jac_func_rad;
@@ -475,7 +476,7 @@ SEXP call_radau(SEXP y, SEXP times, SEXP derivfunc, SEXP masfunc, SEXP jacfunc,
     oldroot = (double *) R_alloc(nroot, sizeof(double));
 
     if (isDll) {
-      root_func = (C_root_func_type *) R_ExternalPtrAddr(rootfunc);
+      root_func = (C_root_func_type *) R_ExternalPtrAddrFn_(rootfunc);
     } else {
       root_func = (C_root_func_type *) C_root_radau;
       R_root_func = rootfunc;

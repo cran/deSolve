@@ -1,6 +1,7 @@
 #include <time.h>
 #include <string.h>
 #include "deSolve.h"
+#include "externalptr.h"
 
 /* +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    Ordinary differential equation solvers lsoda, lsode, lsodes, lsodar, and vode.
@@ -334,7 +335,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   if (isDll) {
      /* DLL address passed to FORTRAN */
-      deriv_func = (C_deriv_func_type *) R_ExternalPtrAddr(derivfunc);  
+      deriv_func = (C_deriv_func_type *) R_ExternalPtrAddrFn_(derivfunc);  
       /* no need to communicate with R - but output variables set here */
       
       /* here overruling deriv_func if forcing */
@@ -352,14 +353,14 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
 
   if (!isNull(jacfunc) && solver != 3 && solver != 7) { /* lsodes uses jac_vec */
     if (isDll)
-      jac_func = (C_jac_func_type *) R_ExternalPtrAddr(jacfunc);
+      jac_func = (C_jac_func_type *) R_ExternalPtrAddrFn_(jacfunc);
       else  {
         R_jac_func = jacfunc;
         jac_func = C_jac_func;
       }
   }  else if (!isNull(jacfunc) && (solver == 3 || solver == 7)) {  /*lsodes*/
     if (isDll)
-      jac_vec = (C_jac_vec_type *) R_ExternalPtrAddr(jacfunc);
+      jac_vec = (C_jac_vec_type *) R_ExternalPtrAddrFn_(jacfunc);
       else  {
          R_jac_vec = jacfunc;
          jac_vec = C_jac_vec;
@@ -377,7 +378,7 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
       
     if (isDll) 
     {
-      root_func = (C_root_func_type *) R_ExternalPtrAddr(rootfunc);
+      root_func = (C_root_func_type *) R_ExternalPtrAddrFn_(rootfunc);
     } else {
       root_func = (C_root_func_type *) C_root_func;
       R_root_func = rootfunc; 

@@ -6,13 +6,13 @@
 \description{
   Function \code{dede} is a general solver for delay differential equations, i.e.
   equations where the derivative depends on past values of the state variables
-  or their derivatives. 
+  or their derivatives.
 }
 \usage{
-dede(y, times, func=NULL, parms, 
-    method = c( "lsoda", "lsode", "lsodes", "lsodar", "vode", 
+dede(y, times, func=NULL, parms,
+    method = c( "lsoda", "lsode", "lsodes", "lsodar", "vode",
        "daspk", "bdf", "adams", "impAdams", "radau"), control = NULL, ...)
-}    
+}
 \arguments{
   \item{y }{the initial (state) values for the DE system, a vector. If
     \code{y} has a name attribute, the names will be used to label the
@@ -31,14 +31,14 @@ dede(y, times, func=NULL, parms,
     \code{names} attribute, the names will be available inside \code{func}.
     \code{parms} is a vector or list of parameters; \code{...} (optional) are
     any other arguments passed to the function.
-  
+
     The return value of \code{func} should be a list, whose first
     element is a vector containing the derivatives of \code{y} with
     respect to \code{time}, and whose next elements are global values
     that are required at each point in \code{times}.The derivatives
     must be specified in the \bold{same order} as the state variables \code{y}.
 
-    If method "daspk" is used, then \code{func} can be \code{NULL}, in which 
+    If method "daspk" is used, then \code{func} can be \code{NULL}, in which
     case \code{res} should be used.
   }
   \item{parms }{parameters passed to \code{func}.
@@ -47,11 +47,11 @@ dede(y, times, func=NULL, parms,
     \code{"lsode"}, \code{"lsodes"}, \code{"lsodar"}, \code{"vode"},
     \code{"daspk"}, \code{"bdf"}, \code{"adams"}, \code{"impAdams"}, \code{"radau"})
     or a function that performs the integration.
-    The default integrator used is \link{lsoda}. 
+    The default integrator used is \link{lsoda}.
   }
-  \item{control }{a list that can supply (1) the size of the history array, as 
-    \code{control\$mxhist}; the default is 1e4 and (2) how to interpolate, as
-    \code{control$interpol}, where \code{1} is  hermitian interpolation, 
+  \item{control }{a list that can supply (1) the size of the history array, as
+    \code{control$mxhist}; the default is 1e4 and (2) how to interpolate, as
+    \code{control$interpol}, where \code{1} is  hermitian interpolation,
     \code{2} is variable order interpolation, using the Nordsieck history array.
     Only for the two Adams methods is the second option recommended.
   }
@@ -73,23 +73,23 @@ dede(y, times, func=NULL, parms,
 \author{Karline Soetaert <karline.soetaert@nioz.nl>}
 
 \details{
-  Functions \link{lagvalue} and \link{lagderiv} are to be used with \code{dede} 
+  Functions \link{lagvalue} and \link{lagderiv} are to be used with \code{dede}
   as they provide access to past (lagged)
-  values of state variables and derivatives.  The number of past values that 
-  are to be stored in a history matrix, can be specified in \code{control\$mxhist}.
-  The default value (if unspecified) is 1e4. 
-  
+  values of state variables and derivatives.  The number of past values that
+  are to be stored in a history matrix, can be specified in \code{control$mxhist}.
+  The default value (if unspecified) is 1e4.
+
   Cubic Hermite interpolation is used by default to obtain an accurate
   interpolant at the requested lagged time. For methods \code{adams, impAdams},
   a more accurate interpolation method can be triggered by setting
   \code{control$interpol = 2}.
-    
+
 \code{dede} does not deal explicitly with propagated derivative discontinuities,
-but relies on the integrator to control the stepsize in the region of a 
+but relies on the integrator to control the stepsize in the region of a
 discontinuity.
 
-\code{dede} does not include methods to deal with delays that are smaller than the 
-stepsize, although in some cases it may be possible to solve such models. 
+\code{dede} does not include methods to deal with delays that are smaller than the
+stepsize, although in some cases it may be possible to solve such models.
 
 For these reasons, it can only solve rather simple delay differential equations.
 
@@ -98,13 +98,13 @@ can simultaneously locate a root, and trigger an event. See last example.
 
 }
 \seealso{
-  \link{lagvalue}, \link{lagderiv},for how to specify lagged variables and 
+  \link{lagvalue}, \link{lagderiv},for how to specify lagged variables and
   derivatives.
 }
 \examples{
 ## =============================================================================
-## A simple delay differential equation  
-## dy(t) = -y(t-1) ; y(t<0)=1 
+## A simple delay differential equation
+## dy(t) = -y(t-1) ; y(t<0)=1
 ## =============================================================================
 
 ##-----------------------------
@@ -125,7 +125,7 @@ yinit <- 1
 times <- seq(0, 30, 0.1)
 
 ##-----------------------------
-## solve the model  
+## solve the model
 ##-----------------------------
 yout <- dede(y = yinit, times = times, func = derivs, parms = NULL)
 
@@ -146,13 +146,13 @@ plot(yout, type = "l", lwd = 2, main = "dy/dt = -y(t-1)")
 derivs <- function(t,y,parms) {
   if (t < 1)
     lag1 <- 0.1
-  else 
+  else
     lag1 <- lagvalue(t - 1,2)
   if (t < 10)
     lag10 <- 0.1
-  else 
+  else
     lag10 <- lagvalue(t - 10,2)
-  
+
   dy1 <- -y[1] * lag1 + lag10
   dy2 <-  y[1] * lag1 - y[2]
   dy3 <-  y[2] - lag10
@@ -166,7 +166,7 @@ yinit <- c(5, 0.1, 1)
 times <- seq(0, 40, by = 0.1)
 
 ##-----------------------------
-## solve the model  
+## solve the model
 ##-----------------------------
 system.time(
   yout <- dede(y = yinit, times = times, func = derivs, parms = NULL)
@@ -180,7 +180,7 @@ matplot(yout[,1], yout[,-1], type = "l", lwd = 2, lty = 1,
 
 ## =============================================================================
 ## time lags + EVENTS triggered by a root function
-## The two-wheeled suitcase model 
+## The two-wheeled suitcase model
 ## example 8 from Shampine and Thompson, 2000
 ## solving delay differential equations with dde23
 ## =============================================================================
@@ -191,9 +191,9 @@ matplot(yout[,1], yout[,-1], type = "l", lwd = 2, lty = 1,
 derivs <- function(t, y, parms) {
   if (t < tau)
     lag <- 0
-  else 
+  else
     lag <- lagvalue(t - tau)
-  
+
   dy1 <- y[2]
   dy2 <- -sign(y[1]) * gam * cos(y[1]) +
           sin(y[1]) - bet * lag[1] + A * sin(omega * t + mu)
@@ -214,11 +214,11 @@ yinit <- c(y = 0, dy = 0)
 times <- seq(0, 12, len = 1000)
 
 ##-----------------------------
-## solve the model  
+## solve the model
 ##-----------------------------
-## Note: use a solver that supports both root finding and events, 
+## Note: use a solver that supports both root finding and events,
 ##       e.g. lsodar, lsode, lsoda, adams, bdf
-yout <- dede(y = yinit, times = times, func = derivs, parms = NULL,  
+yout <- dede(y = yinit, times = times, func = derivs, parms = NULL,
   method = "lsodar", rootfun = root, events = list(func = event, root = TRUE))
 
 ##-----------------------------

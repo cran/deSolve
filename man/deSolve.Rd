@@ -12,7 +12,7 @@
   first-order ordinary differential equations (ODE), of partial
   differential equations (PDE), of differential algebraic equations (DAE)
   and delay differential equations.
-  
+
   The functions provide an interface to the FORTRAN functions lsoda,
   lsodar, lsode, lsodes of the ODEPACK collection,
   to the FORTRAN functions dvode and daspk and a C-implementation of
@@ -28,8 +28,8 @@
   \tabular{ll}{
     Package: \tab deSolve\cr
     Type:    \tab Package\cr
-    Version: \tab 1.14\cr
-    Date:    \tab 2016-06-20\cr
+    Version: \tab 1.20\cr
+    Date:    \tab 2017-03-22\cr
     License: \tab GNU Public License 2 or above\cr
   }
 
@@ -42,7 +42,7 @@
   \code{\link{optim}}, \code{\link{nls}}, \code{\link{nlm}} or
   \code{\link[nlme]{nlme}}, or \code{\link[FME]{FME}}.
 
-  
+
   \bold{Package Vignettes, Examples, Online Resources}
 
   \itemize{
@@ -50,11 +50,11 @@
       (\href{../doc/deSolve.pdf}{pdf}, \href{../doc/deSolve.R}{R code})
     \item Writing Code in Compiled Languages
       (\href{../doc/compiledCode.pdf}{pdf}, \href{../doc/compiledCode.R}{R code})
-    \item Examples in R (\url{../doc/examples}), and in Fortran or C (\url{../doc/dynload}, \url{../doc/dynload-dede}) 
+    \item Examples in R (\url{../doc/examples}), and in Fortran or C (\url{../doc/dynload}, \url{../doc/dynload-dede})
     \item deSolve homepage: \url{http://desolve.r-forge.r-project.org} (Papers, Books, PDFs)
     \item Mailing list: \url{mailto:r-sig-dynamic-models@r-project.org}
    }
-    
+
 }
 \author{
   Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer
@@ -63,11 +63,11 @@
 
   Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010):  Solving
   Differential Equations in R: Package deSolve Journal of Statistical
-  Software, 33(9), 1--25.  \url{http://www.jstatsoft.org/v33/i09/}
+  Software, 33(9), 1--25.  \url{https://www.jstatsoft.org/v33/i09/}
 
   Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010): Solving
   differential equations in R. The R Journal 2(2), 5-15.
-  \href{http://journal.r-project.org/archive/2010-2/RJournal_2010-2_Soetaert~et~al.pdf}{pdf}
+  \href{https://journal.r-project.org/archive/2010-2/RJournal_2010-2_Soetaert~et~al.pdf}{pdf}
 
   Karline Soetaert, Thomas Petzoldt (2011): Solving ODEs, DAEs, DDEs and
   PDEs in R. Journal of Numerical Analysis, Industrial and Applied
@@ -76,7 +76,7 @@
 
   Karline Soetaert, Jeff Cash, Francesca Mazzia, (2012):
   Solving Differential Equations in R. Springer, 248 pp.
-  
+
   Alan C. Hindmarsh (1983): ODEPACK, A Systematized Collection of ODE
   Solvers, in Scientific Computing, R. S. Stepleman et al. (Eds.),
   North-Holland, Amsterdam, pp. 55-64.
@@ -94,13 +94,13 @@
 }
 \seealso{
   \code{\link{ode}} for a general interface to most of the ODE solvers,
-  
+
   \code{\link{ode.band}} for solving models with a banded Jacobian,
 
   \code{\link{ode.1D}}, \code{\link{ode.2D}}, \code{\link{ode.3D}},
   for integrating 1-D, 2-D and 3-D models,
-  
-  \code{\link{dede}} for a general interface to the delay differential 
+
+  \code{\link{dede}} for a general interface to the delay differential
   equation solvers,
 
   \code{\link{lsoda}}, \code{\link{lsode}},
@@ -109,7 +109,7 @@
 
   \code{\link{daspk}}, for a DAE solver up to index 1, of the Livermore family,
 
-  \code{\link{radau}} for integrating DAEs up to index 3 using an implicit 
+  \code{\link{radau}} for integrating DAEs up to index 3 using an implicit
     Runge-Kutta,
 
   \code{\link{rk}}, \code{\link{rkMethod}}, \code{\link{rk4}},
@@ -118,10 +118,10 @@
   \code{\link{DLLfunc}}, \code{\link{DLLres}}, for testing model implementations
   in compiled code,
 
-  \code{\link{forcings}},  \code{\link{events}}, for how to implement forcing 
+  \code{\link{forcings}},  \code{\link{events}}, for how to implement forcing
   functions (external variables) and events (sudden changes in state variables),
-  
-  \code{\link{lagvalue}}, \code{\link{lagderiv}}, for how to get access to 
+
+  \code{\link{lagvalue}}, \code{\link{lagderiv}}, for how to get access to
   lagged values of state variables and derivatives.
 
 }
