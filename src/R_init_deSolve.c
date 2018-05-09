@@ -13,8 +13,8 @@
 
 /* register native routines ------------------------------------------------ */
 
-/* 
-   ToDo: 
+/*
+   ToDo:
    - consider replacing SEXP with REALSXP, INTSXP, STRSXP (character), VEXSXP (lists) etc.
    - unlock
 */
@@ -110,20 +110,18 @@ void R_init_deSolve(DllInfo *dll) {
 
   // thpe 2017-03-22, register entry points
   R_registerRoutines(dll, CEntries, CallEntries, NULL, NULL);
-  
+
   // the following two lines protect against accidentially finding entry points
   R_useDynamicSymbols(dll, FALSE); // disable dynamic searching
   //R_forceSymbols(dll, TRUE);       // entry points as R objects, not as strings
 
-  /* 
-    thpe: register C callable to support compiled dede functions 
+  /*
+    thpe: register C callable to support compiled dede functions
     The direct way would be:
       R_RegisterCCallable("deSolve", "get_deSolve_gparms", (DL_FUNC) get_deSolve_gparms);
     while the following macro (taken from package Matrix) makes this more compact.
   */
-
- #define RREGDEF(name)  R_RegisterCCallable("deSolve", #name, (DL_FUNC) name)
-
+  #define RREGDEF(name)  R_RegisterCCallable("deSolve", #name, (DL_FUNC) name)
   RREGDEF(get_deSolve_gparms);
   RREGDEF(lagvalue);
   RREGDEF(lagderiv);

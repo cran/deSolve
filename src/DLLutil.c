@@ -12,12 +12,11 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
 
   double *ytmp, *dy, tin, *delta, cj;
   int    ny, j,  type, ires, isDll, isForcing, nout=0, ntot=0;
-  
+
   C_deriv_func_type *derivs;
   C_res_func_type *res;
 
-  //init_N_Protect();
-  long int old_N_Protect = save_N_Protected();
+  int nprot = 0;
 
   ny   = LENGTH(y);
   type = INTEGER(Type)[0];
@@ -31,10 +30,22 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
 
 /* initialise output, parameters, forcings ... */
   initOutR(isDll,  &nout, &ntot, ny, nOut, Rpar, Ipar);
-  initParms(initfunc, parms);
+
+  //initParms(initfunc, parms);
+  if (initfunc != NA_STRING) {
+    if (inherits(initfunc, "NativeSymbol")) {
+      init_func_type *initializer;
+      PROTECT(de_gparms = parms); nprot++;
+      initializer = (init_func_type *) R_ExternalPtrAddrFn_(initfunc);
+      initializer(Initdeparms);
+    }
+  }
+  // end inline initParms
+
+
   isForcing = initForcings(flist);
 
-  PROTECT(yout = allocVector(REALSXP,ntot))    ; incr_N_Protect();
+  PROTECT(yout = allocVector(REALSXP,ntot)); nprot++;
 
   tin = REAL(time)[0];
 
@@ -42,7 +53,7 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
     for (j = 0; j < ny; j++) ytmp[j] = REAL(y)[j];
 
   dy   = (double *) R_alloc(ny, sizeof(double));
-    for (j = 0; j < ny; j++) dy[j] = REAL(dY)[j]; 
+    for (j = 0; j < ny; j++) dy[j] = REAL(dY)[j];
 
   if(isForcing == 1)  updatedeforc(&tin);
 
@@ -62,15 +73,13 @@ SEXP call_DLL(SEXP y, SEXP dY, SEXP time, SEXP func, SEXP initfunc, SEXP parms,
     for (j = 0; j < ny; j++)  REAL(yout)[j] = delta[j];
 
   }
-                  
+
   if (nout > 0)   {
 
 	   for (j = 0; j < nout; j++)
-	       REAL(yout)[j + ny] = out[j]; 
+	       REAL(yout)[j + ny] = out[j];
   }
 
-  //unprotect_all();
-  restore_N_Protected(old_N_Protect);
-  
+  UNPROTECT(nprot);
   return(yout);
 }

@@ -360,7 +360,7 @@ rkMethod <- function(method = NULL, ...) {
       if (nrow(out$A) != stage | ncol(out$A)  < stage -1 | ncol(out$A) > stage)
         stop("Size of matrix A does not match stage")
     } else {
-      if (length(out$A) != stage) stop("Size of A does not match stage")
+      if (length(out$A) != stage) stop("Size of matrix A does not match stage")
     }
     if (stage != sl$b1 | stage != sl$c)
       stop("Wrong rkMethod, length of parameters do not match")
@@ -372,17 +372,17 @@ rkMethod <- function(method = NULL, ...) {
     if (!is.null(out[["d"]])) # exact argument matching!
       if (sl[["d"]] != stage)
         stop("Wrong rkMethod, length of d must be empty or equal to stage")
-    
+
     ## check densetype
     if (!is.null(out$densetype)) {
       if (out$densetype == 1)
         if (!(out$ID %in% c("rk45dp7", "ode45")))
           stop("densetype = 1 not implemented for this method")
-  
+
       if (out$densetype == 2)
         if (!(out$ID %in% c("rk45ck")))
           stop("densetype = 2 not implemented for this method")
-    }    
+    }
     class(out) <- c("list", "rkMethod")
   }
 

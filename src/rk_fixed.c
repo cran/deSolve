@@ -48,7 +48,7 @@ void rk_fixed(
     timesteps[1] = dt;
 
     /******  Prepare Coefficients from Butcher table ******/
-    /* NOTE: the fixed-step solver needs coefficients as vector, not matrix!  */
+    /* NOTE: the fixed-step solver needs coefficients as vector, not matrix! */
     for (j = 0; j < stage; j++) {
       if (j == 0)
         for(i = 0; i < neq; i++) Fj[i] = 0;
@@ -80,7 +80,7 @@ void rk_fixed(
     /*====================================================================*/
     if (interpolate) {
       /*------------------------------------------------------------------*/
-      /* "Neville-Aitken-Interpolation";                                  */
+      /* Neville-Aitken-Interpolation                                     */
       /* the fixed step integrators have no dense output                  */
       /*------------------------------------------------------------------*/
       /* (1) collect number "nknots" of knots in advance */

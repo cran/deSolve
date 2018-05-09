@@ -21,7 +21,6 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
      func <- func$func
   }
 
-
     ## check for unsupported solver options
     dots   <- list(...); nmdots <- names(dots)
     if(any(c("hmin", "hmax") %in% nmdots))
@@ -43,8 +42,6 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
       warning("lags are not yet implemented for Euler and Runge-Kutta solvers,\n",
               "  (argument 'lags' is ignored).\n")
     }
-
-
 
     ## check input
     checkInputEuler(y, times, func, dllname)
@@ -117,7 +114,6 @@ euler <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     out
 }
 
-
 ## 1D version that is compatible with ode.1D
 ## possible inconsistencies and problems:
 ##   - names, outnames, ynames
@@ -134,7 +130,7 @@ euler.1D <- function(y, times, func, parms,
 
   N     <- length(y)
   if (is.null(dimens)) dimens  <- N/nspec
-  if (is.null(nspec)  )
+  if (is.null(nspec))
     nspec = N/dimens
   if (N %% nspec != 0    )
     stop ("cannot run ode.1D: nspec is not an integer fraction of number of state variables")
@@ -152,4 +148,3 @@ euler.1D <- function(y, times, func, parms,
 
   return(out)
 }
-

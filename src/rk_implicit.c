@@ -165,7 +165,7 @@ void rk_implicit( double * alfa,  /* neq*stage * neq*stage */
     /*====================================================================*/
     if (interpolate) {
       /*------------------------------------------------------------------*/
-      /* "Neville-Aitken-Interpolation";                                  */
+      /* Neville-Aitken-Interpolation                                     */
       /* the fixed step integrators have no dense output                  */
       /*------------------------------------------------------------------*/
       /* (1) collect number "nknots" of knots in advanve */
@@ -190,7 +190,7 @@ void rk_implicit( double * alfa,  /* neq*stage * neq*stage */
       }
     } else {
       /*--------------------------------------------------------------------*/
-      /* No interpolation mode(for step to step integration);               */
+      /* No interpolation mode for step to step integration                 */
       /*         results are stored after the call                          */
       /*--------------------------------------------------------------------*/
     }
@@ -206,7 +206,7 @@ void rk_implicit( double * alfa,  /* neq*stage * neq*stage */
     }
     if (it_tot > maxsteps) {
       istate[0] = -1;
-      warning("Number of time steps %i exceeded maxsteps at t = %g\n", it, t);      
+      warning("Number of time steps %i exceeded maxsteps at t = %g\n", it, t);
       break;
     }
     /* tolerance to avoid rounding errors */

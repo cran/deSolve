@@ -4,6 +4,7 @@
 /*==========================================================================*/
 
 #include "rk_util.h"
+#include "externalptr.h"
 
 SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   SEXP Parms, SEXP eventfunc, SEXP elist, SEXP Nout, SEXP Rho,
@@ -11,7 +12,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
       SEXP Method, SEXP Maxsteps, SEXP Flist) {
 
   /**  Initialization **/
-  long int old_N_Protect = save_N_Protected();
+  int nprot = 0;
 
   double *tt = NULL, *xs = NULL;
 
@@ -41,22 +42,22 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   SEXP R_A, R_B1, R_C;
   double  *A, *bb1, *cc=NULL;
 
-  PROTECT(R_A = getListElement(Method, "A")); incr_N_Protect();
+  PROTECT(R_A = getListElement(Method, "A")); nprot++;
   A = REAL(R_A);
 
-  PROTECT(R_B1 = getListElement(Method, "b1")); incr_N_Protect();
+  PROTECT(R_B1 = getListElement(Method, "b1")); nprot++;
   bb1 = REAL(R_B1);
 
-  PROTECT(R_C = getListElement(Method, "c")); incr_N_Protect();
+  PROTECT(R_C = getListElement(Method, "c")); nprot++;
   if (length(R_C)) cc = REAL(R_C);
-  
+
   double  qerr  = REAL(getListElement(Method, "Qerr"))[0];
 
-  PROTECT(Times = AS_NUMERIC(Times)); incr_N_Protect();
+  PROTECT(Times = AS_NUMERIC(Times)); nprot++;
   tt = NUMERIC_POINTER(Times);
   nt = length(Times);
 
-  PROTECT(Xstart = AS_NUMERIC(Xstart)); incr_N_Protect();
+  PROTECT(Xstart = AS_NUMERIC(Xstart)); nprot++;
   xs  = NUMERIC_POINTER(Xstart);
   neq = length(Xstart);
 
@@ -67,30 +68,27 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     for (i = 0; i < 2; i++) timesteps[i] = fmin(hini, tt[1] - tt[0]);
   else
     for (i = 0; i < 2; i++) timesteps[i] = tt[1] - tt[0];
-  
+
   /**************************************************************************/
   /****** DLL, ipar, rpar (to be compatible with lsoda)                ******/
   /**************************************************************************/
   int isDll = FALSE;
-  //int ntot  = 0;
   int lrpar= 0, lipar = 0;
   int *ipar = NULL;
 
   if (inherits(Func, "NativeSymbol")) { /* function is a dll */
     isDll = TRUE;
     if (nout > 0) isOut = TRUE;
-    //ntot  = neq + nout;         /* length of yout */
     lrpar = nout + LENGTH(Rpar);  /* length of rpar; LENGTH(Rpar) is always >0 */
     lipar = 3    + LENGTH(Ipar);  /* length of ipar */
 
   } else {                              /* function is not a dll */
     isDll = FALSE;
     isOut = FALSE;
-    //ntot = neq;
     lipar = 3;    /* in lsoda = 1 */
     lrpar = nout; /* in lsoda = 1 */
   }
-  out   = (double *) R_alloc(lrpar, sizeof(double)); 
+  out   = (double *) R_alloc(lrpar, sizeof(double));
   ipar  = (int *) R_alloc(lipar, sizeof(int));
 
   ipar[0] = nout;              /* first 3 elements of ipar are special */
@@ -101,7 +99,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
     for (j = 0; j < LENGTH(Ipar); j++) ipar[j+3] = INTEGER(Ipar)[j];
     /* out:  first nout elements of out are reserved for output variables
        other elements are set via argument *rpar*  */
-    for (j = 0; j < nout; j++)         out[j] = 0.0;                
+    for (j = 0; j < nout; j++)         out[j] = 0.0;
     for (j = 0; j < LENGTH(Rpar); j++) out[nout+j] = REAL(Rpar)[j];
   }
 
@@ -124,13 +122,13 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   int iknots = 0;  /* counter for knots buffer */
   double *yknots;
 
-  PROTECT(R_nknots = getListElement(Method, "nknots")); incr_N_Protect();
+  PROTECT(R_nknots = getListElement(Method, "nknots")); nprot++;
   if (length(R_nknots)) nknots = INTEGER(R_nknots)[0] + 1;
   if (nknots < 2) {nknots=1; interpolate = FALSE;}
   yknots = (double *) R_alloc((neq + 1) * (nknots + 1), sizeof(double));
 
   /* matrix for holding states and global outputs */
-  PROTECT(R_yout = allocMatrix(REALSXP, nt, neq + nout + 1)); incr_N_Protect();
+  PROTECT(R_yout = allocMatrix(REALSXP, nt, neq + nout + 1)); nprot++;
   yout = REAL(R_yout);
   /* initialize outputs with NA first */
   for (i = 0; i < nt * (neq + nout + 1); i++) yout[i] = NA_REAL;
@@ -138,7 +136,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* attribute that stores state information, similar to lsoda */
   SEXP R_istate;
   int *istate;
-  PROTECT(R_istate = allocVector(INTSXP, 22)); incr_N_Protect();
+  PROTECT(R_istate = allocVector(INTSXP, 22)); nprot++;
   istate = INTEGER(R_istate);
   istate[0] = 0; /* assume succesful return */
   for (i = 0; i < 22; i++) istate[i] = 0;
@@ -146,13 +144,25 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /*------------------------------------------------------------------------*/
   /* Initialization of Parameters (for DLL functions)                       */
   /*------------------------------------------------------------------------*/
-  PROTECT(Y = allocVector(REALSXP,(neq)));        incr_N_Protect(); 
-  
-  initParms(Initfunc, Parms);
+  PROTECT(Y = allocVector(REALSXP,(neq))); nprot++;
+
+  if (Initfunc != NA_STRING) {
+    if (inherits(Initfunc, "NativeSymbol")) {
+      init_func_type *initializer;
+      PROTECT(de_gparms = Parms); nprot++;
+      initializer = (init_func_type *) R_ExternalPtrAddrFn_(Initfunc);
+      initializer(Initdeparms);
+    }
+  }
+
+  /* assign global variables of the event function */
+  n_eq = neq;
+  R_envir = Rho;
+
   isForcing = initForcings(Flist);
   isEvent = initEvents(elist, eventfunc, 0);
   if (isEvent) interpolate = FALSE;
-  
+
   /*------------------------------------------------------------------------*/
   /* Initialization of Integration Loop                                     */
   /*------------------------------------------------------------------------*/
@@ -165,7 +175,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   }
   iknots++;
 
-  t = tt[0];                   
+  t = tt[0];
   tmax = fmax(tt[nt - 1], tcrit);
 
   /* Initialization of work arrays (to be on the safe side, remove this later) */
@@ -187,7 +197,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   if (interpolate) {
   /* integrate over the whole time step and interpolate internally */
     rk_fixed(
-         fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
+         fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate,
          maxsteps, nt,
          &iknots, &it, &it_ext, &it_tot,
          istate, ipar,
@@ -207,7 +217,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
          updateevent(&t, y0, istate);
        }
        rk_fixed(
-         fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate, 
+         fsal, neq, stage, isDll, isForcing, verbose, nknots, interpolate,
          maxsteps, nt,
          &iknots, &it, &it_ext, &it_tot,
          istate, ipar,
@@ -223,7 +233,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
       for (i = 0; i < neq; i++) yout[j + 1 + nt * (1 + i)] = y1[i];
     }
   }
-  
+
   /*====================================================================*/
   /* call derivs again to get global outputs                            */
   /* j = -1 suppresses unnecessary internal copying                     */
@@ -250,7 +260,7 @@ SEXP call_rkFixed(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   /* release R resources */
   timesteps[0] = 0;
   timesteps[1] = 0;
-  restore_N_Protected(old_N_Protect);
+  UNPROTECT(nprot);
   return(R_yout);
 }
- 
+

@@ -64,7 +64,7 @@ SEXP getInputs(SEXP symbol, SEXP Rho) {
 /*----------------------------------------------------------------------------*/
 
 void blas_matprod1(double *x, int nrx, int ncx,
-		    double *y, int nry, int ncy, double *z) 
+		    double *y, int nry, int ncy, double *z)
 {
     const char *transa = "N", *transb = "N";
     int i;
@@ -127,7 +127,7 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
     /*   Function is a DLL function                                           */
     /*------------------------------------------------------------------------*/
     C_deriv_func_type *cderivs;
-    if (isForcing) updatedeforc(&t); 
+    if (isForcing) updatedeforc(&t);
     cderivs = (C_deriv_func_type *) R_ExternalPtrAddrFn_(Func);
     cderivs(&neq, &t, y, ytmp, yout, ipar);
     if (j >= 0)
@@ -136,13 +136,13 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
     /*------------------------------------------------------------------------*/
     /* Function is an R function                                              */
     /*------------------------------------------------------------------------*/
-    PROTECT(R_t = ScalarReal(t)); incr_N_Protect();
-    PROTECT(R_y = allocVector(REALSXP, neq)); incr_N_Protect();
+    PROTECT(R_t = ScalarReal(t));
+    PROTECT(R_y = allocVector(REALSXP, neq));
     yy = REAL(R_y);
     for (i=0; i< neq; i++) yy[i] = y[i];
 
-    PROTECT(R_fcall = lang4(Func, R_t, R_y, Parms)); incr_N_Protect();
-    PROTECT(Val = eval(R_fcall, Rho)); incr_N_Protect();
+    PROTECT(R_fcall = lang4(Func, R_t, R_y, Parms));
+    PROTECT(Val = eval(R_fcall, Rho));
 
     /* extract the states from first list element of "Val" */
     if (j >= 0)
@@ -165,7 +165,7 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
         ii++;
       }
     }
-    my_unprotect(4);
+    UNPROTECT(4);
   }
 }
 
@@ -204,10 +204,10 @@ void densout(double *r, double t0, double t, double dt, double* res, int neq) {
 }
 
 /*----------------------------------------------------------------------------*/
-/* dense output for the Cash-Karp method  - does not work (yet)              */
+/* dense output for the Cash-Karp method  - does not work (yet)               */
 /*----------------------------------------------------------------------------*/
 
-void densoutck(double t0, double t, double dt, double* y0,  
+void densoutck(double t0, double t, double dt, double* y0,
  double* FF, double* dy, double* res, int neq) {
 
   double s, s2, s3, s4, b1, b3, b4, b5, b6, b7;
@@ -215,17 +215,17 @@ void densoutck(double t0, double t, double dt, double* y0,
   s2 = s  * s;
   s3 = s2 * s;
   s4 = s3 * s;
-  
+
   b3 = 500./161.    * s2 - 20000./4347.* s3 + 2750./1449.* s4;
   b4 = 125./132.    * s2 - 625./594.   * s3 + 125./396.  * s4;
   b5 = 15./28.      * s2 - 15./14.     * s3 + 15./28.    * s4;
   b6 = -6144./1771. * s2 + 2048./253.  * s3 - 7680./1771.* s4;
-  b7 = 3./2.        * s2 - 4.          * s3 + 5./2.      * s4;   
-  
+  b7 = 3./2.        * s2 - 4.          * s3 + 5./2.      * s4;
+
   b1 = s-b3-b4-b5-b6-b7;
 
   for (int i = 0; i < neq; i++)
-    res[i] = y0[i] + b1 * dt * FF[i + 0 * neq] + b3 * dt * FF[i + 2 * neq] 
+    res[i] = y0[i] + b1 * dt * FF[i + 0 * neq] + b3 * dt * FF[i + 2 * neq]
                    + b4 * dt * FF[i + 3 * neq] + b5 * dt * FF[i + 4 * neq]
                    + b6 * dt * FF[i + 5 * neq] + b7 * dt * dy[i];
 }
@@ -234,8 +234,8 @@ void densoutck(double t0, double t, double dt, double* y0,
 /* Polynomial interpolation                                                   */
 /*    ksig: number of signals                                                 */
 /*    n:    number of knots per signal                                        */
-/*    x[0 .. n-1]:          vector of x values                                */
-/*    y[0 .. n-1, 0 .. ksig] array  of y values                               */
+/*    x[0 .. n-1]:            vector of x values                              */
+/*    y[0 .. n-1, 0 .. ksig]: array  of y values                              */
 /*----------------------------------------------------------------------------*/
 void neville(double *xx, double *y, double tnew, double *ynew, int n, int ksig) {
   int i, j, k;
@@ -274,9 +274,9 @@ void setIstate(SEXP R_yout, SEXP R_istate, int *istate,
   /* note that indices are 1 smaller in C than in R  */
   istate[11] = it_tot;                      /* number of steps */
   istate[12] = it_tot * (stage - fsal) + 1; /* number of function evaluations */
-  if (fsal) 
-    istate[12] = istate[12] + nrej + 1;     /* one more ftion eval if rejected*/
-  istate[13] = nrej;                        /* number of rejected steps */  
+  if (fsal)                                 /* first same as last */
+    istate[12] = istate[12] + nrej + 1;     /* one more fct. eval if rejected*/
+  istate[13] = nrej;                        /* number of rejected steps */
   istate[14] = qerr;                        /* order of the method */
   setAttrib(R_yout, install("istate"), R_istate);
 }

@@ -198,7 +198,7 @@ rkMethod(method = NULL, ...)
   Differentialgleichungen, Z. Math. Phys. \bold{46}, 435--453.
 
   Octave-Forge - Extra Packages for GNU Octave, Package OdePkg.
-  \url{http://octave.sourceforge.net/odepkg/}
+  \url{http://octave.sourceforge.io}
 
   Prince, P. J.  and Dormand, J. R. (1981) High order embedded
   Runge-Kutta formulae, J. Comput. Appl. Math. \bold{7}(1), 67--75.

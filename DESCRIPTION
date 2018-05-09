@@ -1,5 +1,5 @@
 Package: deSolve
-Version: 1.20
+Version: 1.21
 Title: Solvers for Initial Value Problems of Differential Equations
         ('ODE', 'DAE', 'DDE')
 Authors@R: c(person("Karline","Soetaert", role = c("aut"), 
@@ -9,10 +9,10 @@ Authors@R: c(person("Karline","Soetaert", role = c("aut"),
              person("R. Woodrow","Setzer", role = c("aut"),
                      email = "setzer.woodrow@epa.gov"),
              person("odepack authors", role = "cph"))
-Author: Karline Soetaert [aut],  
-        Thomas Petzoldt [aut, cre],  
-        R. Woodrow Setzer [aut], 
-        odepack authors [cph]
+Author: Karline Soetaert [aut],
+  Thomas Petzoldt [aut, cre],
+  R. Woodrow Setzer [aut],
+  odepack authors [cph]
 Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
 Depends: R (>= 2.15.0)
 Imports: methods, graphics, grDevices, stats
@@ -33,6 +33,6 @@ License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
 NeedsCompilation: yes
-Packaged: 2017-07-13 20:03:15 UTC; user
+Packaged: 2018-05-08 19:29:44 UTC; user
 Repository: CRAN
-Date/Publication: 2017-07-14 16:34:05 UTC
+Date/Publication: 2018-05-09 09:38:07 UTC

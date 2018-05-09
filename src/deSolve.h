@@ -93,12 +93,16 @@ SEXP getTimestep();
 /*============================================================================ 
   C- utilities, functions 
 ============================================================================*/
+
+// obsolete
+/*
 void init_N_Protect(void);
 void incr_N_Protect(void);
 long int save_N_Protected(void);
 void restore_N_Protected(long int);
 void unprotect_all(void);
 void my_unprotect(int);
+*/
 
 void lock_solver(void);
 void unlock_solver(void);
@@ -107,7 +111,7 @@ void returnearly (int, int, int);
 void terminate(int, int*, int, int, double *, int, int);
 
 /* declarations for initialisations */
-void initParms(SEXP Initfunc, SEXP Parms);
+// void initParms(SEXP Initfunc, SEXP Parms);
 void Initdeparms(int*, double*);
 void Initdeforc(int*, double*);
 void initOutR(int isDll, int *nout, int *ntot, int neq, SEXP nOut, SEXP Rpar, SEXP Ipar);
@@ -120,8 +124,8 @@ void sparsity3D(SEXP Type, int* iwork, int neq, int liw);
 void sparsity2Dmap(SEXP Type, int* iwork, int neq, int liw);  /* testing, since version 1.10.4*/
 void sparsity3Dmap(SEXP Type, int* iwork, int neq, int liw);  /* testing, since version 1.10.4*/
 void interactmap (int *ij, int nnz, int *iwork, int *ipres, int ival);
-void initglobals(int, int);
-void initdaeglobals(int, int);
+//void initglobals(int, int);
+//void initdaeglobals(int, int);
 
 /* the forcings and event functions */
 void updatedeforc(double*);

@@ -1,5 +1,10 @@
-
-
+Changes version 1.21
+================================
+ o change way how PROTECT/UNPROTECT is handled (Thomas)
+   (suggested by Tomas Kalibera / R-Core)
+ o fixed inconsistency in the aphid model example
+   (suggested by Sarah Kintner)
+   
 Changes version 1.20
 ================================
  o register native routines (Thomas)
@@ -13,7 +18,7 @@ o matplot.deSolve is not anymore exported as matplot to avoid the
   respective startup message
 o please use matplot.deSolve or the alias matplot.0D instead  (Thomas)
 o small fix that allows parameters in list format for DLLfunc and DLLres
-o a little bit fortran modification (e.g. avoid real*8 and complex*16 types)
+o a little bit Fortran modification (e.g. avoid real*8 and complex*16 types)
 
 Changes version 1.13
 ================================

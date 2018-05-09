@@ -182,7 +182,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     ## Number of steps until the solver gives up
     # nsteps  <- min(.Machine$integer.max -1, maxsteps * length(times))
 
-    ## changed in v.1.13: total number of time steps is set to
+    ## total number of time steps is set to
     ## average number per time step * number of time steps
     ## but not less than required for the largest time step with given hini
 

@@ -28,9 +28,6 @@
    Note: findHistInt finds interval by bisectioning; only marginally
    more/less efficient than straightforward findHistInt2...
    
-   
-   to do: make lags callable from external C/Fortran function 
-   (thpe: availale since v 1.10-5; tested for C only; todo: Fortran example)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /*=========================================================================== 

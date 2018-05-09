@@ -328,7 +328,7 @@ hist(out, col = c("darkblue", "red", "orange", "black"),
 ## Model equations
 ## ================
 Aphid <- function(t, APHIDS, parameters) {
-  deltax  <- c (0.5, rep(1, numboxes - 1), 0.5)
+  deltax  <- c (0.5*delx, rep(delx, numboxes - 1), 0.5*delx)
   Flux    <- -D * diff(c(0, APHIDS, 0))/deltax
   dAPHIDS <- -diff(Flux)/delx + APHIDS * r
   list(dAPHIDS, Flux = Flux)

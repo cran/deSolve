@@ -163,7 +163,7 @@ void rk_auto(
        for (i = 0; i < neq; i++) FF[i + neq * (stage - 1)] = dy2[i] ;
 
         /*--------------------------------------------------------------------*/
-        /* case B) "Neville-Aitken-Interpolation" for integrators             */
+        /* case B) Neville-Aitken-Interpolation for integrators               */
         /* without dense output                                               */
         /*--------------------------------------------------------------------*/
       } else {
@@ -208,7 +208,7 @@ void rk_auto(
     }
     if (it_tot > maxsteps) {
       istate[0] = -1;
-      warning("Number of time steps %i exceeded maxsteps at t = %g\n", it, t);      
+      warning("Number of time steps %i exceeded maxsteps at t = %g\n", it, t);
       break;
     }
     /* tolerance to avoid rounding errors */

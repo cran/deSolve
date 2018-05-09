@@ -2,6 +2,9 @@
 ##  matplot methods  - it is not an S3 generic...
 ## =============================================================================
 
+## the following code was used to make 'matplot' a generic, but
+## we disabled this because of unwanted side-effects to other packages,
+## see also outcommented code at the end of this file
 
 #matplot <- function (x, ...) UseMethod("matplot")
 #matplot.default <- function (x, ...) {
