@@ -161,8 +161,8 @@ zvode  <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       if (!is.matrix(tmp))
         stop("Jacobian function must return a matrix\n")
       dd <- dim(tmp)
-      if((miter ==4 && dd != c(bandup+banddown+banddown+1,n)) ||
-         (miter ==1 && dd != c(n,n)))
+      if((miter ==4 && any(dd != c(bandup+banddown+banddown+1,n))) ||
+         (miter ==1 && any(dd != c(n,n))))
            stop("Jacobian dimension not ok")
     }
   }

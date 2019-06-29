@@ -254,8 +254,9 @@ par ("mfrow" = pm)
 matplot.0D(out, lwd = 2)
 
 ## Split y-variables in two groups
-matplot.0D(out, which = list(c(1,3), c(2,4)), lty = 1,
-  ylab = c("prey1,pred1", "prey2,pred2"))
+matplot.0D(out, which = list(c(1,3), c(2,4)),
+           lty = c(1,2,1,2), col=c(4,4,5,5),
+           ylab = c("prey1,pred1", "prey2,pred2"))
 
 ## =======================================================================
 ## Example 2. Add second and third output, and observations
@@ -273,9 +274,9 @@ out3 <- ode(y, times, LVmatrix, parms3)
 
 # plot all three outputs
 plot(out, out2, out3, type = "l",
-  ylab = c("Prey 1", "Prey 2", "Pred 1", "Pred 2"),
-  xlab = "Time (d)", main = "Time Series",
-  col = c("red", "blue", "darkred"))
+     ylab = c("Prey 1", "Prey 2", "Pred 1", "Pred 2"),
+     xlab = "Time (d)", main = c("Prey 1", "Prey 2", "Pred 1", "Pred 2"),
+     col = c("red", "blue", "darkred"))
 
 
 ## 'observed' data

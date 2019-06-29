@@ -1,7 +1,7 @@
 citHeader("To cite package 'deSolve' in publications use:")
 
 citEntry(entry="Article",
-  title = "Solving Differential Equations in R: Package deSolve",
+  title = "Solving Differential Equations in {R}: Package de{S}olve",
   author = personList(as.person("Karline Soetaert"),
                       as.person("Thomas Petzoldt"),
                       as.person("R. Woodrow Setzer")),

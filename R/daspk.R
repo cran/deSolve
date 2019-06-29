@@ -9,7 +9,7 @@
 ###          change during the integration.
 ### ============================================================================
 
-daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0), 
+daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
     dy = NULL, res = NULL,
     nalg=0, rtol=1e-6, atol=1e-6, jacfunc=NULL, jacres=NULL,
     jactype = "fullint", mass = NULL, estini = NULL, verbose=FALSE, tcrit = NULL,
@@ -40,7 +40,7 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
          if (! is.null(events))
            events$func <- func$eventfunc
          else
-           events <- list(func = func$eventfunc)  
+           events <- list(func = func$eventfunc)
       }
      if (!is.null(func$jacfunc))  jacfunc <- func$jacfunc
      if (!is.null(func$initfunc)) initfunc <- func$initfunc
@@ -64,7 +64,7 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
          if (! is.null(events))
            events$func <- res$eventfunc
          else
-           events <- list(func = res$eventfunc)  
+           events <- list(func = res$eventfunc)
       }
      if (!is.null(res$jacres)) jacres <- res$jacres
      if (!is.null(res$initfunc)) initfunc <- res$initfunc
@@ -167,13 +167,13 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
   events <- checkevents(events, times, Ynames, dllname)
   if (! is.null(events$newTimes)) times <- events$newTimes
 
-  if (!is.null(dllname))  
+  if (!is.null(dllname))
    # Karline.... to avoid wrong address to initfunc ... added 24/7/2014
     if (sum(duplicated (c(func, initfunc, jacfunc, res, jacres))) > 0)
       stop("func, initfunc, jacfunc, res, jacres cannot share the same name")
 
   if (!is.null(dllname) | class(func) == "CFunc" | class(res) == "CFunc")  {
-  
+
     if (class(initfunc) == "CFunc")
       ModelInit <- body(initfunc)[[2]]
     else if (is.character(initfunc))  # to allow absence of initfunc
@@ -186,7 +186,7 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
       flist <- checkforcings(forcings,times,dllname,initforc,verbose,fcontrol)
    # Easier to deal with NA in C-code
     if (is.null(initfunc)) ModelInit <- NA
-  } 
+  }
 
   psolfunc <- NULL  # not yet supported
 
@@ -212,7 +212,7 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
       Res <- body(func)[[2]]
       if (!is.null(mass)) funtype <- 3
     }
-      
+
 #        if (is.null(kryltype))
 #        {
      if (!is.null(jacres) )   {
@@ -221,7 +221,7 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
        jacname <- jacres
        if (class(jacres) == "CFunc")
           JacRes <- body(jacres)[[2]]
-        
+
        else if (is.loaded(jacname, PACKAGE = dllname)) {
          JacRes <- getNativeSymbolInfo(jacname, PACKAGE = dllname)$address
        } else
@@ -362,8 +362,8 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
        if (! is.matrix(tmp))
          stop("jacres must return a matrix\n")
        dd <- dim(tmp)
-       if ((imp ==24 && dd != c(bandup+banddown+1,n)) ||
-           (imp ==21 && dd != c(n,n)))
+       if ((imp ==24 && any(dd != c(bandup+banddown+1,n))) ||
+           (imp ==21 && any(dd != c(n,n)))) # thpe add 'any' (two times)
          stop("Jacobian dimension not ok")
 
        JacRes <- function(Rin,y,dy)  {

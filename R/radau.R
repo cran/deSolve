@@ -1,4 +1,4 @@
- 
+
 ### ============================================================================
 ### radau, implicit runge-kutta
 ### ============================================================================
@@ -18,7 +18,7 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
       if (!is.null(jacfunc) & "jacfunc" %in% names(func))
          stop("If 'func' is a list that contains jacfunc, argument 'jacfunc' should be NULL")
       if (!is.null(rootfunc) & "rootfunc" %in% names(func))
-         stop("If 'func' is a list that contains rootfunc, argument 'rootfunc' should be NULL")         
+         stop("If 'func' is a list that contains rootfunc, argument 'rootfunc' should be NULL")
       if (!is.null(initfunc) & "initfunc" %in% names(func))
          stop("If 'func' is a list that contains initfunc, argument 'initfunc' should be NULL")
       if (!is.null(initforc) & "initforc" %in% names(func))
@@ -29,7 +29,7 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
          if (! is.null(events))
            events$func <- func$eventfunc
          else
-           events <- list(func = func$eventfunc)  
+           events <- list(func = func$eventfunc)
       }
      jacfunc <- func$jacfunc
      rootfunc <- func$rootfunc
@@ -98,7 +98,7 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
   Eventfunc <- NULL
   events <- checkevents(events, times, Ynames, dllname, TRUE)
   if (! is.null(events$newTimes)) times <- events$newTimes
-  
+
   if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
@@ -206,8 +206,8 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
       if (!is.matrix(tmp))
          stop("Jacobian function 'jacfunc' must return a matrix\n")
       dd <- dim(tmp)
-      if ((!full && dd != c(bandup+banddown+1,n)) ||
-          ( full && dd != c(n,n)))
+      if ((!full && any(dd != c(bandup+banddown+1,n))) ||
+          ( full && any(dd != c(n,n))))
          stop("Jacobian dimension not ok")
      }
     ## and for rootfunc
@@ -234,7 +234,7 @@ radau <- function(y, times, func, parms, nind = c(length(y), 0, 0),
      if(is.null(dimens)) {
        mass <- matrix(nrow = 1, data = mass)
        dimens <- dim(mass)
-     } 
+     }
      if (dimens[2] != n)
        stop ("mass matrix should have as many columns as number of variables in 'y'")
      if (dimens[1] != n) {

@@ -207,8 +207,8 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       if (!is.matrix(tmp))
       stop("Jacobian function, 'jacfunc' must return a matrix\n")
       dd <- dim(tmp)
-      if((jt ==4 && dd != c(bandup+banddown+1,n)) ||
-         (jt ==1 && dd != c(n,n)))
+      if((jt ==4 && any(dd != c(bandup+banddown+1,n))) ||
+         (jt ==1 && any(dd != c(n,n))))
            stop("Jacobian dimension not ok")
     }
   }

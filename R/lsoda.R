@@ -1,5 +1,5 @@
 # ks 21-12-09: Func <- unlist() ... output variables now set in C-code
-                                    
+
 ### ============================================================================
 ### lsoda -- solves ordinary differential equation systems
 ### Compared to the other integrators of odepack
@@ -14,7 +14,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   verbose = FALSE, nroot = 0, tcrit = NULL, hmin=0, hmax=NULL, hini=0,
   ynames=TRUE, maxordn = 12, maxords = 5,
   bandup = NULL, banddown = NULL, maxsteps = 5000,
-  dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL, 
+  dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL,
   ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
   initforc = NULL, fcontrol = NULL, events = NULL, lags=NULL, ...)   {
 
@@ -42,10 +42,10 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
          if (! is.null(events))
            events$func <- func$eventfunc
          else
-           events <- list(func = func$eventfunc)  
+           events <- list(func = func$eventfunc)
       }
 
-     if (!is.null(func$jacfunc))  jacfunc <- func$jacfunc  
+     if (!is.null(func$jacfunc))  jacfunc <- func$jacfunc
      if (!is.null(func$initfunc)) initfunc <- func$initfunc
      if (!is.null(func$dllname))  dllname <- func$dllname
      if (!is.null(func$initforc)) initforc <- func$initforc
@@ -74,7 +74,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   else if (jactype == "bandint" ) jt <- 5 # banded, calculated internally
   else stop("'jactype' must be one of 'fullint', 'fullusr', 'bandusr' or 'bandint'")
 
-  ## check other specifications depending on Jacobian  
+  ## check other specifications depending on Jacobian
   if (jt %in% c(4,5) && is.null(bandup))
     stop("'bandup' must be specified if banded Jacobian")
   if (jt %in% c(4,5) && is.null(banddown))
@@ -92,10 +92,10 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   ModelInit <- NULL
 
   Eventfunc <- NULL
-  events <- checkevents(events, times, Ynames, dllname) 
+  events <- checkevents(events, times, Ynames, dllname)
   # KS: added...
   if (! is.null(events$newTimes)) times <- events$newTimes
-  
+
   if (jt == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
 
@@ -115,7 +115,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (is.null(ipar)) ipar<-0
     if (is.null(rpar)) rpar<-0
     Eventfunc <- events$func
-    if (is.function(Eventfunc))  
+    if (is.function(Eventfunc))
       rho <- environment(Eventfunc)
     else
       rho <- NULL
@@ -132,12 +132,12 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
          attr(state,"names") <- Ynames
          unlist(func   (time,state,parms,...))
        }
-         
+
        Func2   <- function(time,state) {
          attr(state,"names") <- Ynames
          func   (time,state,parms,...)
        }
-         
+
        JacFunc <- function(time,state) {
          attr(state,"names") <- Ynames
          rbind(jacfunc(time,state,parms,...),erow)
@@ -146,32 +146,32 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
          if (events$Type == 2)
            Eventfunc <- function(time,state) {
              attr(state,"names") <- Ynames
-             events$func(time,state,parms,...) 
+             events$func(time,state,parms,...)
            }
-       
+
     } else {                            # no ynames...
        Func    <- function(time,state)
          unlist(func   (time,state,parms,...))
-        
+
        Func2   <- function(time,state)
          func   (time,state,parms,...)
-         
+
        JacFunc <- function(time,state)
          rbind(jacfunc(time,state,parms,...),erow)
 
        if (! is.null(events$Type))
           if (events$Type == 2)
-            Eventfunc <- function(time,state)  
-              events$func(time,state,parms,...) 
+            Eventfunc <- function(time,state)
+              events$func(time,state,parms,...)
     }
-        
+
     ## Check function and return the number of output variables +name
     FF <- checkFunc(Func2,times,y,rho)
     Nglobal<-FF$Nglobal
     Nmtot <- FF$Nmtot
 
     if (! is.null(events$Type))
-      if (events$Type == 2) 
+      if (events$Type == 2)
         checkEventFunc(Eventfunc,times,y,rho)
 
     if (jt %in% c(1,4))  {
@@ -179,8 +179,8 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
     if (!is.matrix(tmp))
       stop("Jacobian function, 'jacfunc' must return a matrix\n")
     dd <- dim(tmp)
-    if((jt ==4 && dd != c(bandup+banddown+banddown+1,n)) ||
-       (jt ==1 && dd != c(n,n)))
+    if((jt ==4 && any(dd != c(bandup+banddown+banddown+1,n))) ||
+       (jt ==1 && any(dd != c(n,n)))) # thpe: add any (2 times)
       stop("Jacobian dimension not ok")
     }
   }
@@ -206,7 +206,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   if (maxordn != 12) iwork[8] <- maxordn
   if (maxords != 5)  iwork[9] <- maxords
   if (verbose)  iwork[5] = 1    # prints method switches to screen
-  
+
   if(! is.null(tcrit)) rwork[1] <- tcrit
   rwork[5] <- hini
   rwork[6] <- hmax
@@ -225,8 +225,8 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   storage.mode(y) <- storage.mode(times) <- "double"
   IN <-1
 
-  lags <- checklags(lags,dllname) 
-  on.exit(.C("unlock_solver"))    
+  lags <- checklags(lags,dllname)
+  on.exit(.C("unlock_solver"))
   out <- .Call("call_lsoda",y,times,Func,initpar,
                rtol, atol, rho, tcrit, JacFunc, ModelInit, Eventfunc,
                as.integer(verbose), as.integer(itask), as.double(rwork),
@@ -235,10 +235,10 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
                NULL, 0L, as.double(rpar), as.integer(ipar),
                0L, flist, events, lags, PACKAGE="deSolve")
 
-### saving results    
+### saving results
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,
                  iin=c(1,12:21), iout=c(1:3,14,5:9,15:16), nr = 5)
-                 
+
   attr(out, "type") <- "lsoda"
   if (verbose) diagnostics(out)
 

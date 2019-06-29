@@ -1,6 +1,6 @@
 ### ============================================================================
 ### lsode -- solves ordinary differential equation systems
-### The user has to specify whether or not                    
+### The user has to specify whether or not
 ### the problem is stiff and choose the appropriate method.
 ### It is very similar to vode, except for some implementation details.
 ### More specifically, in vode it is possible to choose whether or not a copy
@@ -32,7 +32,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       if (!is.null(jacfunc) & "jacfunc" %in% names(func))
          stop("If 'func' is a list that contains jacfunc, argument 'jacfunc' should be NULL")
       if (!is.null(rootfunc) & "rootfunc" %in% names(func))
-         stop("If 'func' is a list that contains rootfunc, argument 'rootfunc' should be NULL")         
+         stop("If 'func' is a list that contains rootfunc, argument 'rootfunc' should be NULL")
       if (!is.null(initfunc) & "initfunc" %in% names(func))
          stop("If 'func' is a list that contains initfunc, argument 'initfunc' should be NULL")
       if (!is.null(dllname) & "dllname" %in% names(func))
@@ -45,7 +45,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
          if (! is.null(events))
            events$func <- func$eventfunc
          else
-           events <- list(func = func$eventfunc)  
+           events <- list(func = func$eventfunc)
       }
      if (!is.null(func$jacfunc))  jacfunc <- func$jacfunc
      if (!is.null(func$rootfunc)) rootfunc <- func$rootfunc
@@ -100,7 +100,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   ModelInit <- NULL
   Eventfunc <- NULL
   events <- checkevents(events, times, Ynames, dllname,TRUE)
-  if (! is.null(events$newTimes)) times <- events$newTimes  
+  if (! is.null(events$newTimes)) times <- events$newTimes
 
   ## if (miter == 4) Jacobian should have banddown empty rows
   if (miter == 4 && banddown>0)
@@ -141,7 +141,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       rho <- environment(Eventfunc)
     else
       rho <- NULL
-    
+
 
   } else {
 
@@ -186,7 +186,7 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
       JacFunc <- function(time,state)
         rbind(jacfunc(time,state,parms,...),erow)
-         
+
       RootFunc <- function(time,state)
         rootfunc(time,state,parms,...)
 
@@ -220,8 +220,8 @@ lsode <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
       if (!is.matrix(tmp))
          stop("Jacobian function 'jacfunc' must return a matrix\n")
       dd <- dim(tmp)
-      if ((miter == 4 && dd != c(bandup+banddown+banddown+1,n)) ||
-          (miter == 1 && dd != c(n,n)))
+      if ((miter == 4 && any(dd != c(bandup+banddown+banddown+1,n))) ||
+          (miter == 1 && any(dd != c(n,n)))) # thpe add 'any' (2 times)
          stop("Jacobian dimension not ok")
      }
   }

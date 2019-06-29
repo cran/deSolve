@@ -1,3 +1,12 @@
+Changes version 1.23
+================================
+  o add FME to 'Suggests'
+
+Changes version 1.22
+================================
+  o small updates of examples (Thomas)
+  o improve Fortran compiler compatibility (Thomas)
+
 Changes version 1.21
 ================================
  o change way how PROTECT/UNPROTECT is handled (Thomas)
