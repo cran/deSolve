@@ -1,3 +1,11 @@
+Changes version 1.24
+================================
+  o fix compiler warnings to improve Fortran compatibility 
+    (Thomas, Karline, Woody)
+    thanks to Brian Ripley and Kurt Hornik
+  o iteration: set attribute before calling diagnostics (Karline)
+  o add open researcher id, ORCID (Thomas)
+
 Changes version 1.23
 ================================
   o add FME to 'Suggests'

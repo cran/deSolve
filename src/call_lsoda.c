@@ -31,6 +31,7 @@
    karline: version 1.9.1: root finding in lsodes
             version 1.10.4: 2D with mapping - still in testing phase, undocumented
    karline: version 1.13-1: combining compiled code function with R code event
+   karline/thomas: version 1.24: union approach for overlay types 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 /* definition of the calls to the FORTRAN functions - in file opkdmain.f
@@ -64,7 +65,7 @@ int *, int *,         double *, int *);
 void F77_NAME(dlsodes)(void (*)(int *, double *, double *, double *, double *, int *),
               int *, double *, double *, double *,
               int *, double *, double *, int *, int *,
-              int *, double *, int *, int *, int *, double *,  /* extra 'double'; is integer in fortran */
+              int *, double *, int *, int *, int *, int *,  /* extra 'double'; is integer in fortran, thpe: now u_work.iwk */
 void (*)(int *, double *, double *, int *,
       int *, int *, double *, double *, int *),     /* jacvec */
 int *, double *, int *);
@@ -72,7 +73,7 @@ int *, double *, int *);
 void F77_NAME(dlsodesr)(void (*)(int *, double *, double *, double *, double *, int *),
               int *, double *, double *, double *,
               int *, double *, double *, int *, int *,
-              int *, double *, int *, int *, int *, double *, /* extra 'double'; is integer in fortran */
+              int *, double *, int *, int *, int *, int *, /* extra 'double'; is integer in fortran, thpe now u_work.iwk */
 void (*)(int *, double *, double *, int *,
       int *, int *, double *, double *, int *),         /* jacvec */
 int *,
@@ -246,7 +247,13 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   C_jac_func_type   *jac_func=NULL;
   C_jac_vec_type    *jac_vec=NULL;
   C_root_func_type  *root_func=NULL;
-
+  
+  /* memory overlay, KS, TP 2019-07-03 */
+  union t_work {
+	double * rwk;
+    int * iwk;	
+  } u_work;
+  
   /******************************************************************************/
   /******                         STATEMENTS                               ******/
   /******************************************************************************/
@@ -293,8 +300,13 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
   for (j=0; j<LENGTH(iWork); j++) iwork[j] = INTEGER(iWork)[j];
 
   lrw = INTEGER(lRw)[0];
-  rwork = (double *) R_alloc(lrw, sizeof(double));
-  for (j=0; j<length(rWork); j++) rwork[j] = REAL(rWork)[j];
+
+  // ks, tp 2019-07-03
+  //rwork = (double *) R_alloc(lrw, sizeof(double));
+  //for (j=0; j<length(rWork); j++) rwork[j] = REAL(rWork)[j];
+  u_work.rwk = (double *) R_alloc(lrw, sizeof(double));
+  for (j=0; j<length(rWork); j++) u_work.rwk [j] = REAL(rWork)[j];
+  rwork = u_work.rwk;
 
   /* a global variable*/
   for (j=0; j<2; j++) timesteps[j] = 0.;
@@ -477,8 +489,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
                    &lrw, iwork, &liw, jac_func, &jt, out, ipar);
         } else if (solver == 3) {
           F77_CALL(dlsodes) (deriv_func, &n_eq, xytmp, &tin, &tout,
-                   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-                   &lrw, iwork, &liw, rwork, jac_vec, &jt, out, ipar);  /*rwork: iwk in fortran*/
+                   &itol, Rtol, Atol, &itask, &istate, &iopt, u_work.rwk,
+                   &lrw, iwork, &liw, u_work.iwk, jac_vec, &jt, out, ipar);  /*rwork: iwk in fortran*/
         } else if (solver == 4) {
           F77_CALL(dlsodar) (deriv_func, &n_eq, xytmp, &tin, &tout,
                    &itol, Rtol, Atol,  &itask, &istate, &iopt, rwork,
@@ -495,8 +507,8 @@ SEXP call_lsoda(SEXP y, SEXP times, SEXP derivfunc, SEXP parms, SEXP rtol,
                    out, ipar);
         } else if (solver == 7) {
           F77_CALL(dlsodesr) (deriv_func, &n_eq, xytmp, &tin, &tout,
-                   &itol, Rtol, Atol, &itask, &istate, &iopt, rwork,
-                   &lrw, iwork, &liw, rwork, jac_vec, &jt, root_func, &nroot, jroot, /*rwork: iwk in fortran*/
+                   &itol, Rtol, Atol, &itask, &istate, &iopt, u_work.rwk,
+                   &lrw, iwork, &liw, u_work.iwk, jac_vec, &jt, root_func, &nroot, jroot, /*rwork: iwk in fortran*/
         out, ipar);
           lyh = iwork[21];
         }

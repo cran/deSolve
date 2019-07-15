@@ -88,8 +88,8 @@ iteration <- function(y, times, func, parms, hini = NULL,
     ## saving results
     out <- saveOutrk(out, y, n, Nglobal, Nmtot,
                      iin = c(1, 12, 13, 15), iout = c(1:3, 18))
-    if (verbose) diagnostics(out)
     attr(out, "type") <- "iteration"
+    if (verbose) diagnostics(out)
     out
 }
 
