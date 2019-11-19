@@ -1,3 +1,9 @@
+C Original authors: Peter N. Brown,, Alan C. Hindmarsh, 
+C   Geore D. Byrne (see references and author statement below)
+C
+C  Adapted for use in R package deSolve by the deSolve authors.
+C
+
 C*********************************************************************
 C       MAIN VODE DRIVER
 C*********************************************************************

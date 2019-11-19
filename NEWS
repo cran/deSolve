@@ -1,3 +1,7 @@
+Changes version 1.25
+================================
+  o add original authors of LINPACK, ODEPACK and SPARSKIT to Authors@R
+
 Changes version 1.24
 ================================
   o fix compiler warnings to improve Fortran compatibility 

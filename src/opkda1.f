@@ -1,3 +1,9 @@
+C     The code in this file is was taken from 
+C     https://www.netlib.org/odepack/
+C     Original author: Hindmarsh, Alan C., (LLNL)
+C     Adapted for use in R package deSolve by the deSolve authors.
+C
+
 *DECK DUMACH
       DOUBLE PRECISION FUNCTION DUMACH ()
 C***BEGIN PROLOGUE  DUMACH

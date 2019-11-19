@@ -1,3 +1,10 @@
+C  The code in this file is was taken from daspk.tgz from
+C    https://www.netlib.org/ode/
+C  Author: Cleve Moler, University of New Mexico, Argonne National Lab.
+C     
+C  Adapted for use in R package deSolve by the deSolve authors.
+C
+
       subroutine dgefa(a,lda,n,ipvt,info)
       integer lda,n,ipvt(*),info
       double precision a(lda,*)

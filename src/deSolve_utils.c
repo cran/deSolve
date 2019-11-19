@@ -14,41 +14,6 @@
 
 int solver_locked = 0;   /* prevent nested calls of odepack solvers */
 
-/* PROTECT / UNPROTECT now  strictly local, the following is no longer needed */
-
-/*==================================================
- some functions for keeping track of how many SEXPs
- are PROTECTed, and UNPROTECTing them in the
- case of a FORTRAN stop.
- ==================================================*/
-
-/*
-long int N_Protected = 0; // initialize this with zero at the first time
-
-
-void init_N_Protect(void) { N_Protected = 0; }
-
-void incr_N_Protect(void) { N_Protected++; }
-
-void unprotect_all(void) { UNPROTECT((int) N_Protected); }
-
-long int save_N_Protected(void) {
-  int saved_N = N_Protected;
-  init_N_Protect();
-  return saved_N;
-}
-
-void restore_N_Protected(long int n) {
-  unprotect_all();
-  N_Protected = n;
-}
-
-void my_unprotect(int n) {
-    UNPROTECT(n);
-    N_Protected -= n;
-}
-*/
-
 void lock_solver(void) {
   if (solver_locked) {
     /* important: unlock for the next call *after* error */
@@ -83,46 +48,11 @@ SEXP R_mas_func;
 
 SEXP de_gparms;
 
-/*======================================================
-SEXP initialisation functions
-=======================================================*/
-
-// obsolete
-/*
-void initglobals(int nt, int ntot) {
-  //  PROTECT(Time = NEW_NUMERIC(1)); incr_N_Protect();
-  PROTECT(Y = allocVector(REALSXP,(n_eq)));        //incr_N_Protect();
-  PROTECT(YOUT = allocMatrix(REALSXP,ntot+1,nt));  //incr_N_Protect();
-}
-*/
-// thpe: obsolete, 2017-07-17
-/*
-void initdaeglobals(int nt, int ntot) {
-//  PROTECT(Time = NEW_NUMERIC(1));                    incr_N_Protect();
-  PROTECT(Rin  = NEW_NUMERIC(2));                    //incr_N_Protect();
-  PROTECT(Y = allocVector(REALSXP,n_eq));            //incr_N_Protect();
-  PROTECT(YPRIME = allocVector(REALSXP,n_eq));       //incr_N_Protect();
-  PROTECT(YOUT = allocMatrix(REALSXP,ntot+1,nt));    //incr_N_Protect();
-}
-*/
 
 /*======================================================
 Parameter initialisation functions
 note: forcing initialisation function is in forcings.c
 =======================================================*/
-
-// thpe: obsolete ??
-/*
-void initParms(SEXP Initfunc, SEXP Parms) {
-  if (Initfunc == NA_STRING) return;
-  if (inherits(Initfunc, "NativeSymbol")) {
-    init_func_type *initializer;
-    PROTECT(de_gparms = Parms); //incr_N_Protect();
-    initializer = (init_func_type *) R_ExternalPtrAddrFn_(Initfunc);
-    initializer(Initdeparms);
-  }
-}
-*/
 
 void Initdeparms(int *N, double *parms) {
   int i, Nparms;

@@ -1,3 +1,9 @@
+C     The code in this file is was taken from 
+C     https://www.netlib.org/odepack/
+C     Original author: Hindmarsh, Alan C., (LLNL)
+C     Adapted for use in R package deSolve by the deSolve authors.
+C
+
 *DECK DLSODE
       SUBROUTINE DLSODE (F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK,
      1                  ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, MF,

@@ -1,3 +1,9 @@
+C  The code in this file is based of function DINTDY from file
+C    opdka1.f from https://www.netlib.org/odepack/
+C 
+C  Original Author: Hindmarsh, Alan C., (LLNL)  
+C  Adapted for use in R package deSolve by the deSolve authors.
+
       SUBROUTINE INTERPOLY(T, K, I, YH, NYH, DKY, nq, tn, h)
 
 C***PURPOSE  Interpolate solution derivatives to be used in C-code.

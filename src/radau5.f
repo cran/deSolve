@@ -26,6 +26,8 @@ C NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 C SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 C------------------------------------------------------------------------
 
+C Adapted for use in R package deSolve by the deSolve authors.
+C
 C KS: write statements rewritten
 C Francesca Mazzia: small changes to avoid overflow
 

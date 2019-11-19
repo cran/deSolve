@@ -1,23 +1,34 @@
 Package: deSolve
-Version: 1.24
+Version: 1.25
 Title: Solvers for Initial Value Problems of Differential Equations
         ('ODE', 'DAE', 'DDE')
 Authors@R: c(person("Karline","Soetaert", role = c("aut"), 
                      email = "karline.soetaert@nioz.nl",
-					 comment = c(ORCID = "0000-0003-4603-7100")),
+                     comment = c(ORCID = "0000-0003-4603-7100")),
              person("Thomas","Petzoldt", role = c("aut", "cre"),
                      email = "thomas.petzoldt@tu-dresden.de",
-					 comment = c(ORCID = "0000-0002-4951-6468")),
+                     comment = c(ORCID = "0000-0002-4951-6468")),
              person("R. Woodrow","Setzer", role = c("aut"),
                      email = "setzer.woodrow@epa.gov",
-					 comment = c(ORCID = "0000-0002-6709-9186")),
-             person("odepack authors", role = "cph"))
-Author: Karline Soetaert [aut] (<https://orcid.org/0000-0003-4603-7100>),
-  Thomas Petzoldt [aut, cre] (<https://orcid.org/0000-0002-4951-6468>),
-  R. Woodrow Setzer [aut] (<https://orcid.org/0000-0002-6709-9186>),
-  odepack authors [cph]
-Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
-Depends: R (>= 2.15.0)
+                     comment = c(ORCID = "0000-0002-6709-9186")),
+             person("Peter N.","Brown", role = "ctb", 
+                     comment = "files ddaspk.f, dvode.f, zvode.f"),
+             person("George D.","Byrne", role = "ctb", 
+                     comment = "files dvode.f, zvode.f"),
+             person("Ernst","Hairer", role = "ctb", 
+                     comment = "files radau5.f, radau5a"),
+             person("Alan C.","Hindmarsh", role = "ctb", 
+                     comment = "files ddaspk.f, dlsode.f, dvode.f, zvode.f, opdkmain.f, opdka1.f"),
+             person("Cleve","Moler", role = "ctb", 
+                     comment = "file dlinpck.f"),
+             person("Linda R.","Petzold", role = "ctb", 
+                     comment = "files ddaspk.f, dlsoda.f"),
+             person("Youcef", "Saad", role = "ctb", 
+                     comment = "file dsparsk.f"),
+             person("Clement W.","Ulrich", role = "ctb", 
+                     comment = "file ddaspk.f")
+           )
+Depends: R (>= 3.3.0)
 Imports: methods, graphics, grDevices, stats
 Suggests: scatterplot3d, FME
 Description: Functions that solve initial value problems of a system
@@ -27,7 +38,7 @@ Description: Functions that solve initial value problems of a system
         equations.  The functions provide an interface to the FORTRAN
         functions 'lsoda', 'lsodar', 'lsode', 'lsodes' of the 'ODEPACK'
         collection, to the FORTRAN functions 'dvode', 'zvode' and 'daspk'
-	and a C-implementation of solvers of the 'Runge-Kutta' family with
+        and a C-implementation of solvers of the 'Runge-Kutta' family with
         fixed or variable time steps.  The package contains routines
         designed for solving 'ODEs' resulting from 1-D, 2-D and 3-D
         partial differential equations ('PDE') that have been converted
@@ -36,6 +47,19 @@ License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
 NeedsCompilation: yes
-Packaged: 2019-07-14 12:21:14 UTC; thpe
+Packaged: 2019-11-18 23:05:41 UTC; thpe
+Author: Karline Soetaert [aut] (<https://orcid.org/0000-0003-4603-7100>),
+  Thomas Petzoldt [aut, cre] (<https://orcid.org/0000-0002-4951-6468>),
+  R. Woodrow Setzer [aut] (<https://orcid.org/0000-0002-6709-9186>),
+  Peter N. Brown [ctb] (files ddaspk.f, dvode.f, zvode.f),
+  George D. Byrne [ctb] (files dvode.f, zvode.f),
+  Ernst Hairer [ctb] (files radau5.f, radau5a),
+  Alan C. Hindmarsh [ctb] (files ddaspk.f, dlsode.f, dvode.f, zvode.f,
+    opdkmain.f, opdka1.f),
+  Cleve Moler [ctb] (file dlinpck.f),
+  Linda R. Petzold [ctb] (files ddaspk.f, dlsoda.f),
+  Youcef Saad [ctb] (file dsparsk.f),
+  Clement W. Ulrich [ctb] (file ddaspk.f)
+Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
 Repository: CRAN
-Date/Publication: 2019-07-15 13:50:03 UTC
+Date/Publication: 2019-11-19 09:50:12 UTC

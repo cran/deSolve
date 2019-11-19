@@ -1,3 +1,10 @@
+C  The code in this file is was taken from daspk.tgz from
+C    https://www.netlib.org/ode/
+C  Original authors: Linda R. Petzold, Peter N. Brown, 
+C    Alan C. Hindmarsh, and Clement W. Ulrich
+C  Adapted for use in R package deSolve by the deSolve authors.
+C
+
 C Work performed under the auspices of the U.S. Department of Energy
 C by Lawrence Livermore National Laboratory under contract number 
 C W-7405-Eng-48.

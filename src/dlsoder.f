@@ -1,3 +1,13 @@
+C  The code in this file is based on ODEPACK from netlib
+C    https://www.netlib.org/odepack/
+C
+C  Original author: Alan C. Hindmarsh
+C 
+C  Created by merging DLSODE with DLSODAR by Karline Soetaert
+C    for use in R package deSolve.
+C
+
+
 *DECK DLSODER
 C DLSODER was created by merging DLSODE with DLSODAR - Karline Soetaert
       SUBROUTINE DLSODER (F, NEQ, Y, T, TOUT, ITOL, RTOL, ATOL, ITASK,

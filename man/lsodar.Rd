@@ -263,8 +263,6 @@ rootFun <- function (t, y, parms) {
 
 y     <- c(1, 0, 0)
 times <- c(0, 0.4*10^(0:8))
-Out   <- NULL
-ny    <- length(y)
 
 out   <- lsodar(y = y, times = times, fun = Fun, rootfun = rootFun,
                 rtol = 1e-4, atol = c(1e-6, 1e-10, 1e-6), parms = NULL)

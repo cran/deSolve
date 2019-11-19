@@ -94,16 +94,6 @@ SEXP getTimestep();
   C- utilities, functions 
 ============================================================================*/
 
-// obsolete
-/*
-void init_N_Protect(void);
-void incr_N_Protect(void);
-long int save_N_Protected(void);
-void restore_N_Protected(long int);
-void unprotect_all(void);
-void my_unprotect(int);
-*/
-
 void lock_solver(void);
 void unlock_solver(void);
 

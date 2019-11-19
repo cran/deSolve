@@ -1,3 +1,10 @@
+C  The code in this file is was taken from daspk.tgz from
+C    https://www.netlib.org/ode/
+C  Authors: Brown, Hindmarsh, Petzold
+C    originating from SPARSKIT, version 1 by Yousef Saad
+C  Adapted for use in R package deSolve by the deSolve authors.
+C
+
 c----------------------------------------------------------------------c
 c                          S P A R S K I T                             c
 c----------------------------------------------------------------------c
