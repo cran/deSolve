@@ -35,7 +35,7 @@ checkevents <- function (events, times, vars, dllname, root = FALSE) {
 ## event in a function
 ## ----------------------
   if (!is.null(funevent)) {
-    if (class (funevent) == "CFunc") {
+    if (inherits (funevent, "CFunc")) {
       funevent <- body(funevent)[[2]]
       Type <- 3
     } else if (is.character(funevent)){

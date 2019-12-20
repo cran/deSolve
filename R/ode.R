@@ -22,7 +22,7 @@ ode    <- function (y, times, func, parms,
   if (is.list(method)) {
 #  is() should work from R 2.7 on ...
 #   if (!is(method, "rkMethod"))
-    if (!"rkMethod" %in% class(method))
+    if (!inherits(method, "rkMethod" ))
       stop("'method' should be given as string or as a list of class 'rkMethod'")
     out <- rk(y, times, func, parms, method = method, ...)
   } else if (is.function(method))
@@ -136,7 +136,7 @@ ode.1D    <- function (y, times, func, parms, nspec = NULL,
   } else if (is.list(method)) {
     #  is() should work from R 2.7 on ...
     #   if (!is(method, "rkMethod"))
-    if (!"rkMethod" %in% class(method))
+    if (!inherits(method, "rkMethod" ))
       stop("'method' should be given as string or as a list of class 'rkMethod'")
     out <- rk(y, times, func, parms, method = method, ...)
 
@@ -315,7 +315,7 @@ ode.2D    <- function (y, times, func, parms, nspec=NULL, dimens,
           nnz=c(nspec, rev(dimens), rev(Bnd), bandwidth), ...)
 # a runge kutta
   } else  if (is.list(method)) {
-    if (!"rkMethod" %in% class(method))
+    if (!inherits(method, "rkMethod" ))
       stop("'method' should be given as string or as a list of class 'rkMethod'")
     out <- rk(y, times, func, parms, method = method, ...)
 # a function
@@ -395,7 +395,7 @@ ode.3D    <- function (y, times, func, parms, nspec=NULL, dimens,
 
 # a runge-kutta
   } else if (is.list(method)) {
-    if (!"rkMethod" %in% class(method))
+    if (!inherits(method, "rkMethod"))
       stop("'method' should be given as string or as a list of class 'rkMethod'")
     out <- rk(y, times, func, parms, method = method, ...)
 

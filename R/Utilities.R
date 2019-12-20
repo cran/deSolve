@@ -84,7 +84,7 @@ convert2wide <- function(Data) {
 
 mergeObs <- function(obs, Newobs) {
 
-  if (! class(Newobs) %in% c("data.frame", "matrix"))
+  if (! inherits(Newobs, c("data.frame", "matrix")))
     stop ("the elements in 'obs' should be either a 'data.frame' or a 'matrix'")
 
   if (is.character(Newobs[, 1]) | is.factor(Newobs[, 1]))
@@ -288,7 +288,7 @@ SetData <- function(obs) { ## check observed data
       Obs <- obs
       obs <- Obs[[1]]
       obs.pos <- matrix(nrow = 1, c(1, nrow(obs)))
-      if (! class(obs) %in% c("data.frame", "matrix"))
+      if (! inherits(obs, c("data.frame", "matrix")))
         stop ("'obs' should be either a 'data.frame' or a 'matrix'")
       if (length(Obs) > 1)
         for ( i in 2 : length(Obs)) {
@@ -300,7 +300,7 @@ SetData <- function(obs) { ## check observed data
       if (is.character(obs[, 1]) | is.factor(obs[, 1]))   # long format - convert
         obs <- convert2wide(obs)
       obsname <- colnames(obs)
-      if (! class(obs) %in% c("data.frame", "matrix"))
+      if (! inherits(obs, c("data.frame", "matrix")))
         stop ("'obs' should be either a 'data.frame' or a 'matrix'")
       obs.pos <- matrix(nrow = 1, c(1, nrow(obs)))
     }
@@ -326,11 +326,11 @@ splitdots <- function(ldots, varnames){
 
   if (length(ldots) > 0)
     for ( i in 1:length(ldots))
-      if ("deSolve" %in% class(ldots[[i]])) { # a deSolve object
+      if (inherits(ldots[[i]], "deSolve")) { # a deSolve object
         x2[[nother <- nother + 1]] <- ldots[[i]]
         names(x2)[nother] <- ndots[i]
         # a list of deSolve objects
-      } else if (is.list(ldots[[i]]) & "deSolve" %in% class(ldots[[i]][[1]])) {
+      } else if (is.list(ldots[[i]]) & inherits(ldots[[i]][[1]], "deSolve")) {
         for (j in 1:length(ldots[[i]])) {
           x2[[nother <- nother+1]] <- ldots[[i]][[j]]
           names(x2)[nother] <- names(ldots[[i]])[[j]]
@@ -1190,7 +1190,11 @@ plot.ode2D <- function (x, which, ask, add.contour, grid, method = "image",
         dotmain$color.palette <- dotscolorpalette
 
       do.call(method, c(List, dotmain))
-      if (! method %in% c("persp", "filled.contour")) box()
+      drawbox <- ! method %in% c("persp", "filled.contour")
+      if (! is.null(ldots$frame.plot))
+        if (! ldots$frame.plot) drawbox <- FALSE
+        
+      if (drawbox) box()
       if (add.contour) do.call("contour", c(List, add = TRUE))
 
       if (legend) {

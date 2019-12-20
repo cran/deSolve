@@ -113,7 +113,7 @@ rk <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     Nstates <- length(y) # assume length of states is correct
 
     ## function specified in a DLL or inline compiled
-    if (is.character(func) | class(func) == "CFunc") {
+    if (is.character(func) | inherits(func, "CFunc")) {
       DLL <- checkDLL(func, NULL, dllname,
                       initfunc, verbose, nout, outnames)
 

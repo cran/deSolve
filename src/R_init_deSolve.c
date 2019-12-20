@@ -6,7 +6,9 @@
 # include <R_ext/Rdynload.h>
 #endif
 
+#define extern
 #include "deSolve.h"
+#undef extern
 
 #include <Rinternals.h>
 #include <stdlib.h> // for NULL

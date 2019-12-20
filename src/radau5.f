@@ -744,6 +744,11 @@ C *** *** *** *** *** *** ***
 C  INITIALISATIONS
 C *** *** *** *** *** *** ***
 C --------- DUPLIFY N FOR COMMON BLOCK CONT -----
+C KARLINE: INITIALISE THQOLD ande HACC to avoid warnings - should have no effect
+      THQOLD = 1.D0
+      HACC = 1.D0
+      ERRACC = 1.D0
+      DYNOLD = 1.D0
       NN=N
       NN2=2*N
       NN3=3*N 

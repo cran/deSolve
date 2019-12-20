@@ -8,7 +8,7 @@
 
 #matplot <- function (x, ...) UseMethod("matplot")
 #matplot.default <- function (x, ...) {
-#if ("deSolve" %in% class (x))
+#if (inherits (x, "deSolve"))
 #  matplot.deSolve(x,...)
 #else
 #  graphics::matplot(x,...)

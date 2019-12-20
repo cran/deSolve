@@ -1,0 +1,72 @@
+# LINPACK
+dlinpk.f
+
+# odepack
+# https://computing.llnl.gov/casc/odepack/
+# http://www.netlib.org/odepack/
+# http://www.netlib.org/ode/
+opkda1.f
+opkdmain.f
+dvode.f
+zvode.f
+dlsode.f  (now part of dlsoder)
+dlsodar.f (now part of dlsoder)
+dlsoda.f  (now merged with opdkmain.f)
+
+
+# created by merging DLSODE with DLSODAR - Karline Soetaert
+dlsoder.f
+
+# daspk
+# http://www.netlib.org/ode/
+daux.f
+ddaspk.f
+
+# Hairer
+# http://www.unige.ch/~hairer/prog/stiff/radau5.f
+radau5.f
+radau5a.f
+
+# Derived from function DINTDY from opkda1.f
+dintdy2.f
+
+# SPARSKIT, Youcef Saad, NASA Ames Researc Center
+# the file is from SPARSKIT, while SPARSKIT 2 is LGPL 2
+dsparsk.f
+
+
+# brent's rootfinding method, based on R_Zeroin_2, itself based on NETLIB c/brent.shar
+brent.c
+
+
+# original files from deSolve authors
+errmsg.f
+call_daspk.c
+call_euler.c
+call_iteration.c
+call_lsoda.c
+call_radau.c
+call_rk4.c
+call_rkAuto.c
+call_rkFixed.c
+call_rkImplicit.c
+call_zvode.c
+deSolve_utils.c
+DLLutil.c
+ex_Aquaphy.c
+ex_CCL4model.c
+ex_ChemicalDAE.c
+ex_SCOC.c
+forcings.c
+lags.c
+rk_auto.c
+rk_fixed.c
+rk_implicit.c
+rk_util.c
+rprintf.c
+R_init_deSolve.c
+twoDmap.c
+*.h
+
+
+

@@ -52,7 +52,6 @@ C
       DOUBLE PRECISION R1, R2, RVEC(2), Dummy
       INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR, Ivec(2)
       CHARACTER(LEN=*) MSG
-      INTEGER IXSAV
 
       dummy = 0.d0
       MSG = MSG(1:NMES) // char(0)

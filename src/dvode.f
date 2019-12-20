@@ -276,6 +276,8 @@ C If ISTATE .gt. 1 but the flag INIT shows that initialization has
 C not yet been done, an error return occurs.
 C If ISTATE = 1 and TOUT = T, return immediately.
 C-----------------------------------------------------------------------
+C KARLINE: INITIALISED IHIT TO AVOID COMPILER WARNINGS - SHOULD HAVE NO EFFEXT
+      IHIT = .TRUE.
       IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601
       IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602
       IF (ISTATE .EQ. 1) GO TO 10
@@ -1229,6 +1231,7 @@ C
       NCF = 0
       JCUR = 0
       NFLAG = 0
+      ETAQM1 = 0.D0    ! KARLINE INITIALISED TO AVOID WARNING...
       IF (JSTART .GT. 0) GO TO 20
       IF (JSTART .EQ. -1) GO TO 100
 C-----------------------------------------------------------------------

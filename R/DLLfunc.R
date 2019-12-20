@@ -33,12 +33,12 @@ DLLfunc <- function (func, times, y,
     flist <- list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
     Ynames <- attr(y, "names")
 
-    if (class(func) != "CFunc")
+    if (! inherits(func, "CFunc"))
       if (is.null(dllname) || !is.character(dllname))
             stop("`dllname' must be a name referring to a dll")
 
     if (! is.null(initfunc)) {
-      if (class(initfunc) == "CFunc")
+      if (inherits(initfunc, "CFunc"))
          ModelInit <- body(initfunc)[[2]]
       else if (is.loaded(initfunc, PACKAGE = dllname,
             type = "") || is.loaded(initfunc, PACKAGE = dllname,
@@ -54,7 +54,7 @@ DLLfunc <- function (func, times, y,
       flist <- checkforcings(forcings,times,dllname,initforc,TRUE,fcontrol)
 
 ## the function
-    if (class(func) == "CFunc")
+    if (inherits(func, "CFunc"))
         Func <- body(func)[[2]]
     else if (!is.character(func))
             stop("`func' must be a *name* referring to a function in a dll or of class CFunc")
@@ -126,12 +126,12 @@ DLLres <- function (res, times, y, dy, parms,
     flist<-list(fmat=0,tmat=0,imat=0,ModelForc=NULL)
     Ynames <- attr(y, "names")
 
-    if (class(res) != "CFunc")
+    if (!inherits(res, "CFunc"))
       if(is.null(dllname)|| !is.character(dllname))
             stop("`dllname' must be a name referring to a dll")
 
     if (! is.null(initfunc)){
-      if (class(initfunc) == "CFunc")
+      if (inherits(initfunc, "CFunc"))
          ModelInit <- body(initfunc)[[2]]
       else if (is.loaded(initfunc, PACKAGE = dllname,
             type = "") || is.loaded(initfunc, PACKAGE = dllname,
@@ -146,7 +146,7 @@ DLLres <- function (res, times, y, dy, parms,
       flist <- checkforcings(forcings,times,dllname,initforc,TRUE,fcontrol)
 
 ## the function
-    if (class(res) == "CFunc")
+    if (inherits(res, "CFunc"))
         Res <- body(res)[[2]]
     else if (!is.character(res))
             stop("`res' must be a *name* referring to a function in a dll")

@@ -1,6 +1,18 @@
+Changes version 1.27
+================================
+  o C level changes to ensure compatibility with gcc 10
+    solution kindly provided by Brian Ripley
+
+Changes version 1.26
+================================
+  o fix outdated class checks to ensure R 4.0.0 compatibility
+    (Karline, Thomas)
+  o Fortran modernization: initialization ov variables (Karline)
+
 Changes version 1.25
 ================================
   o add original authors of LINPACK, ODEPACK and SPARSKIT to Authors@R
+    (Thomas, Karline, Woody)
 
 Changes version 1.24
 ================================

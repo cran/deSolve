@@ -79,9 +79,9 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
     stop("`times' must be NULL or numeric")
   if (!is.null(jacres) && !is.null(jacfunc))
     stop("either `jacfunc' OR 'jacres' must be specified, not both")
-  if (!is.null(func) && !is.function(func) && !is.character(func) && ! class(func) == "CFunc")
+  if (!is.null(func) && !is.function(func) && !is.character(func) && ! inherits(func, "CFunc"))
     stop("`func' must be a function, a character vector, of class 'CFunc' or NULL")
-  if (!is.null(res) && !is.function(res) && !is.character(res) && ! class(res) == "CFunc")
+  if (!is.null(res) && !is.function(res) && !is.character(res) && ! inherits(res, "CFunc"))
     stop("`res' must be NULL, a function or character vector or of class 'CFunc'")
   if (is.character(res) && (is.null(dllname) || !is.character(dllname)))
     stop("You need to specify the name of the dll or shared library where res can be found (without extension)")
@@ -172,9 +172,9 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
     if (sum(duplicated (c(func, initfunc, jacfunc, res, jacres))) > 0)
       stop("func, initfunc, jacfunc, res, jacres cannot share the same name")
 
-  if (!is.null(dllname) | class(func) == "CFunc" | class(res) == "CFunc")  {
+  if (!is.null(dllname) | inherits(func, "CFunc") | inherits(res, "CFunc"))  {
 
-    if (class(initfunc) == "CFunc")
+    if (inherits(initfunc, "CFunc"))
       ModelInit <- body(initfunc)[[2]]
     else if (is.character(initfunc))  # to allow absence of initfunc
      if (is.loaded(initfunc, PACKAGE = dllname, type = "") ||
@@ -192,13 +192,13 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
 
   ## If res or func is a character vector,  make sure it describes
   ## a function in a loaded dll
-  if (is.character(res) || is.character(func) || class(res) == "CFunc" || class(func) == "CFunc") {
+  if (is.character(res) || is.character(func) || inherits(res, "CFunc") || inherits(func, "CFunc")) {
     if (is.character(res)){
       resname <- res
       if (is.loaded(resname, PACKAGE = dllname)) {
         Res <- getNativeSymbolInfo(resname, PACKAGE = dllname)$address
       } else stop(paste("cannot integrate: res function not loaded",resname))
-    } else if (class(res) == "CFunc") {
+    } else if (inherits(res, "CFunc")) {
       Res <- body(res)[[2]]
     } else if (is.character(func)) {
       funtype <- 2
@@ -207,7 +207,7 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
         Res <- getNativeSymbolInfo(resname, PACKAGE = dllname)$address
       } else stop(paste("cannot integrate: derivs function not loaded",resname))
       if (!is.null(mass)) funtype <- 3
-    } else if (class(func) == "CFunc") {
+    } else if (inherits(func, "CFunc")) {
       funtype <- 2
       Res <- body(func)[[2]]
       if (!is.null(mass)) funtype <- 3
@@ -216,10 +216,10 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
 #        if (is.null(kryltype))
 #        {
      if (!is.null(jacres) )   {
-       if (!is.character(jacres) & class(jacres) != "CFunc" )
+       if (!is.character(jacres) & !inherits(jacres, "CFunc" ))
           stop("If 'res' is dynloaded, so must 'jacres' be")
        jacname <- jacres
-       if (class(jacres) == "CFunc")
+       if (inherits(jacres, "CFunc"))
           JacRes <- body(jacres)[[2]]
 
        else if (is.loaded(jacname, PACKAGE = dllname)) {
@@ -229,9 +229,9 @@ daspk   <- function(y, times, func=NULL, parms, nind = c(length(y), 0, 0),
      }
 
      if (!is.null(psolfunc)) {
-        if (!is.character(psolfunc)& class(psolfunc) != "CFunc" )
+        if (!is.character(psolfunc)& !inherits(psolfunc, "CFunc" ))
             stop("If 'res' is dynloaded, so must 'psolfunc' be")
-       if (class(psolfunc) == "CFunc")
+       if (inherits(psolfunc, "CFunc"))
           PsolFunc <- body(psolfunc)[[2]]
         if (is.loaded(psolfunc, PACKAGE = dllname)) {
           PsolFunc <- getNativeSymbolInfo(psolfunc, PACKAGE = dllname)$address

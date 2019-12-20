@@ -54,7 +54,7 @@ rk4 <- function(y, times, func, parms, verbose = FALSE, ynames = TRUE,
     Nstates <- length(y) # assume length of states is correct
 
     ## Model as shared object (DLL)?
-    if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
+    if (is.character(func) | inherits(func, "CFunc")) {   # function specified in a DLL or inline compiled
       DLL <- checkDLL(func, NULL, dllname,
                initfunc, verbose, nout, outnames)
       Initfunc <- DLL$ModelInit

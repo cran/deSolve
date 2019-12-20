@@ -15,55 +15,55 @@
   global R variables 
 ============================================================================*/
 
-double *timesteps; /* see also: R_init_deSolve.c */
+extern double *timesteps; /* see also: R_init_deSolve.c */
 
-SEXP YOUT, YOUT2, ISTATE, RWORK, IROOT;    /* returned to R */
-SEXP Y, YPRIME , Rin;
+extern SEXP YOUT, YOUT2, ISTATE, RWORK, IROOT;    /* returned to R */
+extern SEXP Y, YPRIME , Rin;
 
-int     n_eq; 
+extern int     n_eq; 
 
 
 /* use in daspk */
-long int nrowpd;
+extern long int nrowpd;
 
 /* output in DLL globals */
-int  isOut, *ipar;
-double *out;
+extern int  isOut, *ipar;
+extern double *out;
 
 /* forcings  */
-long int nforc;  /* the number of forcings */
-double *tvec;
-double *fvec;
-int    *ivec;
-int    fmethod;
+extern long int nforc;  /* the number of forcings */
+extern double *tvec;
+extern double *fvec;
+extern int    *ivec;
+extern int    fmethod;
 
-int    *findex;
-double *intpol;
-int    *maxindex;
+extern int    *findex;
+extern double *intpol;
+extern int    *maxindex;
 
-double *forcings;
+extern double *forcings;
 
 /* events */
-double tEvent;
-int iEvent, nEvent, typeevent, rootevent, Rootsave;
-double *troot, *valroot;
-int *nrroot, *termroot;
+extern double tEvent;
+extern int iEvent, nEvent, typeevent, rootevent, Rootsave;
+extern double *troot, *valroot;
+extern int *nrroot, *termroot;
 
-double *timeevent, *valueevent;
-int *svarevent, *methodevent;
+extern double *timeevent, *valueevent;
+extern int *svarevent, *methodevent;
 
 /* time delays */
-int interpolMethod;  /* for time-delays : 1 = hermite; 2=dense */
+extern int interpolMethod;  /* for time-delays : 1 = hermite; 2=dense */
 
 /*============================================================================
  type definitions for C functions
 ============================================================================*/
 typedef void C_deriv_func_type(int*, double*, double*, double*, double*, int*);
-C_deriv_func_type* DLL_deriv_func;
+extern C_deriv_func_type* DLL_deriv_func;
 
 typedef void C_res_func_type(double*, double*, double*, double*, double*,
                              int*, double*, int*);
-C_res_func_type* DLL_res_func;
+extern C_res_func_type* DLL_res_func;
 
 
 /* this is for use in compiled code */
@@ -162,9 +162,9 @@ double interpolate(int i, int k, double t0, double t1, double t,
   Global variables for history arrays
 ==========================================*/
 
-int indexhist, indexlag, endreached, starthist;
-double *histvar, *histdvar, *histtime, *histhh, *histsave;
-int    *histord;
-int    histsize, offset;
-int    initialisehist, lyh, lhh, lo;
+extern int indexhist, indexlag, endreached, starthist;
+extern double *histvar, *histdvar, *histtime, *histhh, *histsave;
+extern int    *histord;
+extern int    histsize, offset;
+extern int    initialisehist, lyh, lhh, lo;
 

@@ -98,15 +98,15 @@ lsodar <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   if (jt == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
 
-  if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
+  if (is.character(func) | inherits(func, "CFunc")) {   # function specified in a DLL or inline compiled
     DLL <- checkDLL(func,jacfunc,dllname,
                     initfunc,verbose,nout, outnames)
     ## Is there a root function?
     if (!is.null(rootfunc)) {
-      if (!is.character(rootfunc) & class(rootfunc) != "CFunc")
+      if (!is.character(rootfunc) & !inherits(rootfunc, "CFunc"))
         stop("If 'func' is dynloaded, so must 'rootfunc' be")
       rootfuncname <- rootfunc
-      if (class(rootfunc) == "CFunc")
+      if (inherits(rootfunc, "CFunc"))
         RootFunc <- body(rootfunc)[[2]]
       
       else if (is.loaded(rootfuncname, PACKAGE = dllname))  {

@@ -169,16 +169,16 @@ lsodes <- function(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   events <- checkevents(events, times, Ynames, dllname,TRUE)
   if (! is.null(events$newTimes)) times <- events$newTimes  
 
-  if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
+  if (is.character(func) | inherits(func, "CFunc")) {   # function specified in a DLL or inline compiled
     DLL <- checkDLL(func,jacvec,dllname,
                     initfunc,verbose,nout, outnames, JT=2)
 
     ## Is there a root function?
     if (!is.null(rootfunc)) {
-      if (!is.character(rootfunc) & class(rootfunc) != "CFunc")
+      if (!is.character(rootfunc) & !inherits(rootfunc, "CFunc"))
         stop("If 'func' is dynloaded, so must 'rootfunc' be")
       rootfuncname <- rootfunc
-      if (class(rootfunc) == "CFunc")
+      if (inherits(rootfunc, "CFunc"))
         RootFunc <- body(rootfunc)[[2]]
 
       else if (is.loaded(rootfuncname, PACKAGE = dllname))  {

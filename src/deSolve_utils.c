@@ -31,22 +31,22 @@ void unlock_solver(void) {
 
 
 /* Globals :*/
-SEXP R_deriv_func;
-SEXP R_jac_func;
-SEXP R_jac_vec;
-SEXP R_root_func;
-SEXP R_event_func;
+// SEXP R_deriv_func;
+// SEXP R_jac_func;
+// SEXP R_jac_vec;
+// SEXP R_root_func;
+// SEXP R_event_func;
 
-SEXP R_envir;
-SEXP odesolve_gparms;
+// SEXP R_envir;
+// SEXP odesolve_gparms;
 
-SEXP R_res_func;
-SEXP R_daejac_func;
-SEXP R_psol_func;
+// SEXP R_res_func;
+// SEXP R_daejac_func;
+// SEXP R_psol_func;
 
-SEXP R_mas_func;
+// SEXP R_mas_func;
 
-SEXP de_gparms;
+// SEXP de_gparms;
 
 
 /*======================================================

@@ -2516,7 +2516,8 @@ c  mdp -- purge inactive elements and do mass elimination
 c***********************************************************************
       integer  ek, tail,  v(*), l(*),  head(*), last(*), next(*),
      *   mark(*),  tag, free, li,vi,lvi,evi, s,ls,es, ilp,ilpmax
-c
+c karline initialised free to avoid warning
+      free = 1
 c----initialize tag
       tag = mark(ek)
 c
@@ -4038,6 +4039,9 @@ C          except to load MITER following a method switch.)
 C          MITER may be reset by DSTODA.
 C N      = the number of first-order differential equations.
 C-----------------------------------------------------------------------
+C KARLINE: INITIALISED IREDO, RH TO AVOID COMPILER WARNING - SHOULD HAVE NO EFFECT
+      IREDO = 0
+      RH = 1.D0
       KFLAG = 0
       TOLD = TN
       NCF = 0
@@ -5385,7 +5389,9 @@ C-----------------------------------------------------------------------
       INTEGER I, I1, IREDO, IRET, J, JB, M, NCF, NEWQ
       DOUBLE PRECISION DCON, DDN, DEL, DELP, DSM, DUP, EXDN, EXSM, EXUP,
      1   R, RH, RHDN, RHSM, RHUP, TOLD, DVNORM
-C
+C KARLINE: INITIALISED IREDO, RH TO AVOID COMPILER WARNING - SHOULD HAVE NO EFFECT
+      IREDO = 0
+      RH = 1.D0
       KFLAG = 0
       TOLD = TN
       NCF = 0
@@ -6138,7 +6144,8 @@ C
 C-----------------------------------------------------------------------
       INTEGER I, IER, INFO, J, K, LL, LM1
       DOUBLE PRECISION BNRM, BNRM0, PROD, RHO, SNORMW, DNRM2, TEM
-C
+C karline: initialised RHO to avoid warning
+      RHO = 0.D0
       IFLAG = 0
       LIOM = 0
       NPSL = 0
@@ -6588,7 +6595,8 @@ C
 C-----------------------------------------------------------------------
       INTEGER I, IER, INFO, IP1, I2, J, K, LL, LLP1
       DOUBLE PRECISION BNRM,BNRM0,C,DLNRM,PROD,RHO,S,SNORMW,DNRM2,TEM
-C
+C Karline: Initialised RHO to avoid warning
+      RHO = 0.D0
       IFLAG = 0
       LGMR = 0
       NPSL = 0

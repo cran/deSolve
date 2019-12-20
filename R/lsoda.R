@@ -99,7 +99,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   if (jt == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
 
-  if (is.character(func) | class(func) == "CFunc") {   # function specified in a DLL or inline compiled
+  if (is.character(func) | inherits(func, "CFunc")) {   # function specified in a DLL or inline compiled
     DLL <- checkDLL(func, jacfunc, dllname,
                     initfunc, verbose, nout, outnames)
 

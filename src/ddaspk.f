@@ -1383,7 +1383,11 @@ C Karline: the index of each variable
       DO I = 1, 3
         NIND(I) = INFO(20+I) 
       ENDDO
-
+C Karline: initialised some variables to avoid compiler warnings - should have no effect
+      LENRW = 0
+      LENIW = 0
+      LENPD = 0
+C Karline      
       IF(INFO(1).NE.0) GO TO 100
 C
 C-----------------------------------------------------------------------
@@ -2787,6 +2791,10 @@ C-----------------------------------------------------------------------
 C
 C     Initializations for all calls
 C
+      TERKM1 = 0.D0 ! KARLINE: INITIALISED TO AVOID WARNING
+      KNEW = 1      ! INITIALISED
+      ERKM1 = 1.D0  ! INITIALISED
+      EST = 0.D0    ! INITIALISED - should have no effect 
       XOLD=X
       NCF=0
       NEF=0
@@ -5589,11 +5597,12 @@ C
 C
 C     Verify that this is the correct subroutine.
 C
+      IRES = 0    ! Karline-added that to avoid warning
       IERTYP = 0
       IF (NTYPE .NE. 1) THEN
          IERTYP = 1
          GO TO 380
-         ENDIF
+      ENDIF
 C
 C     If this is the first step, perform initializations.
 C
@@ -6190,6 +6199,8 @@ C
       DOUBLE PRECISION RNRM,C,DLNRM,PROD,RHO,S,SNORMW,DNRM2,TEM
       EXTERNAL  RES, PSOL
 C
+! KARLINE: INITIALISED RHO TO AVOID A WARNING - should have no effect
+      RHO = 0.D0
       IER = 0
       IFLAG = 0
       LGMR = 0
@@ -6595,7 +6606,8 @@ C-----------------------------------------------------------------------
 C Set VTEM = D * V.
 C-----------------------------------------------------------------------
       DO 10 I = 1,NEQ
- 10     VTEM(I) = V(I)/WGHT(I)
+        VTEM(I) = V(I)/WGHT(I)
+ 10   CONTINUE
       IER = 0
 C-----------------------------------------------------------------------
 C Store Y in Z and increment Z by VTEM.
@@ -6603,7 +6615,8 @@ C Store YPRIME in YPTEM and increment YPTEM by VTEM*CJ.
 C-----------------------------------------------------------------------
       DO 20 I = 1,NEQ
         YPTEM(I) = YPRIME(I) + VTEM(I)*CJ
- 20     Z(I) = Y(I) + VTEM(I)
+        Z(I) = Y(I) + VTEM(I)
+20    CONTINUE
 C-----------------------------------------------------------------------
 C Call RES with incremented Y, YPRIME arguments
 C stored in Z, YPTEM.  VTEM is overwritten with new residual.
@@ -6617,7 +6630,8 @@ C Set Z = (dF/dY) * VBAR using difference quotient.
 C (VBAR is old value of VTEM before calling RES)
 C-----------------------------------------------------------------------
       DO 70 I = 1,NEQ
- 70     Z(I) = VTEM(I) - SAVR(I)
+        Z(I) = VTEM(I) - SAVR(I)
+ 70   CONTINUE
 C-----------------------------------------------------------------------
 C Apply inverse of left preconditioner to Z.
 C-----------------------------------------------------------------------
@@ -6629,7 +6643,8 @@ C-----------------------------------------------------------------------
 C Apply D-inverse to Z and return.
 C-----------------------------------------------------------------------
       DO 90 I = 1,NEQ
- 90     Z(I) = Z(I)*WGHT(I)
+        Z(I) = Z(I)*WGHT(I)
+ 90   CONTINUE
       RETURN
 C
 C------END OF SUBROUTINE DATVPK-------------------------------------------

@@ -40,7 +40,7 @@ iteration <- function(y, times, func, parms, hini = NULL,
     flist    <-list(fmat = 0, tmat = 0, imat = 0, ModelForc = NULL)
     Nstates <- length(y) # assume length of states is correct
 
-    if (is.character(func) | class(func) == "CFunc")  {
+    if (is.character(func) | inherits(func, "CFunc"))  {
       DLL <- checkDLL(func, NULL, dllname,
                     initfunc, verbose, nout, outnames)
 
