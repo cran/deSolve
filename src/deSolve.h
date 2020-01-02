@@ -15,55 +15,59 @@
   global R variables 
 ============================================================================*/
 
-extern double *timesteps; /* see also: R_init_deSolve.c */
+#ifndef EXTERN
+# define EXTERN extern
+#endif
 
-extern SEXP YOUT, YOUT2, ISTATE, RWORK, IROOT;    /* returned to R */
-extern SEXP Y, YPRIME , Rin;
+EXTERN double *timesteps; /* see also: R_init_deSolve.c */
 
-extern int     n_eq; 
+EXTERN SEXP YOUT, YOUT2, ISTATE, RWORK, IROOT;    /* returned to R */
+EXTERN SEXP Y, YPRIME , Rin;
+
+EXTERN int     n_eq; 
 
 
 /* use in daspk */
-extern long int nrowpd;
+EXTERN long int nrowpd;
 
 /* output in DLL globals */
-extern int  isOut, *ipar;
-extern double *out;
+EXTERN int  isOut, *ipar;
+EXTERN double *out;
 
 /* forcings  */
-extern long int nforc;  /* the number of forcings */
-extern double *tvec;
-extern double *fvec;
-extern int    *ivec;
-extern int    fmethod;
+EXTERN long int nforc;  /* the number of forcings */
+EXTERN double *tvec;
+EXTERN double *fvec;
+EXTERN int    *ivec;
+EXTERN int    fmethod;
 
-extern int    *findex;
-extern double *intpol;
-extern int    *maxindex;
+EXTERN int    *findex;
+EXTERN double *intpol;
+EXTERN int    *maxindex;
 
-extern double *forcings;
+EXTERN double *forcings;
 
 /* events */
-extern double tEvent;
-extern int iEvent, nEvent, typeevent, rootevent, Rootsave;
-extern double *troot, *valroot;
-extern int *nrroot, *termroot;
+EXTERN double tEvent;
+EXTERN int iEvent, nEvent, typeevent, rootevent, Rootsave;
+EXTERN double *troot, *valroot;
+EXTERN int *nrroot, *termroot;
 
-extern double *timeevent, *valueevent;
-extern int *svarevent, *methodevent;
+EXTERN double *timeevent, *valueevent;
+EXTERN int *svarevent, *methodevent;
 
 /* time delays */
-extern int interpolMethod;  /* for time-delays : 1 = hermite; 2=dense */
+EXTERN int interpolMethod;  /* for time-delays : 1 = hermite; 2=dense */
 
 /*============================================================================
  type definitions for C functions
 ============================================================================*/
 typedef void C_deriv_func_type(int*, double*, double*, double*, double*, int*);
-extern C_deriv_func_type* DLL_deriv_func;
+EXTERN C_deriv_func_type* DLL_deriv_func;
 
 typedef void C_res_func_type(double*, double*, double*, double*, double*,
                              int*, double*, int*);
-extern C_res_func_type* DLL_res_func;
+EXTERN C_res_func_type* DLL_res_func;
 
 
 /* this is for use in compiled code */
@@ -72,20 +76,20 @@ typedef void init_func_type (void (*)(int*, double*));
 /*============================================================================
   solver R- global functions 
 ============================================================================*/
-extern SEXP R_deriv_func;
-extern SEXP R_jac_func;
-extern SEXP R_jac_vec;
-extern SEXP R_root_func;
-extern SEXP R_event_func;
-extern SEXP R_envir;
+EXTERN SEXP R_deriv_func;
+EXTERN SEXP R_jac_func;
+EXTERN SEXP R_jac_vec;
+EXTERN SEXP R_root_func;
+EXTERN SEXP R_event_func;
+EXTERN SEXP R_envir;
 
 /* DAE globals */
-extern SEXP R_res_func;
-extern SEXP R_daejac_func;
-extern SEXP R_psol_func;
-extern SEXP R_mas_func;
+EXTERN SEXP R_res_func;
+EXTERN SEXP R_daejac_func;
+EXTERN SEXP R_psol_func;
+EXTERN SEXP R_mas_func;
 
-extern SEXP de_gparms;
+EXTERN SEXP de_gparms;
 SEXP getListElement(SEXP list, const char* str);
 
 SEXP getTimestep();
@@ -162,9 +166,10 @@ double interpolate(int i, int k, double t0, double t1, double t,
   Global variables for history arrays
 ==========================================*/
 
-extern int indexhist, indexlag, endreached, starthist;
-extern double *histvar, *histdvar, *histtime, *histhh, *histsave;
-extern int    *histord;
-extern int    histsize, offset;
-extern int    initialisehist, lyh, lhh, lo;
+EXTERN int indexhist, indexlag, endreached, starthist;
+EXTERN double *histvar, *histdvar, *histtime, *histhh, *histsave;
+EXTERN int    *histord;
+EXTERN int    histsize, offset;
+EXTERN int    initialisehist, lyh, lhh, lo;
 
+#undef EXTERN

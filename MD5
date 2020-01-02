@@ -1,4 +1,4 @@
-60dbb224541ce5bb2132541da440c3cc *DESCRIPTION
+7e98da0103838e1271ce3c3b5e1a7b54 *DESCRIPTION
 316262d3be55a7fcb10ac5ceebfd7658 *NAMESPACE
 5709d46332e63c4f51709cbd5d0576e3 *NEWS
 4df6c896706646b5793cc6357b15574a *R/Aquaphy.R
@@ -29,7 +29,7 @@ d3bcd9e29d24a57f2db46c635351814d *R/rkMethod.R
 00a93dc2aa00eb62b90e9db0182c8883 *R/vode.R
 1fd4fa28ad703b00b7e788b3440d04c1 *R/zvode.R
 c0a191c6ca9886e02b9c05bbfcb028e5 *build/vignette.rds
-448b5935bdbce4cfdd04b01970112315 *data/ccl4data.rda
+dabe93829ba05ad25c0d274189d13f56 *data/ccl4data.rda
 be157a942988018a45e577923b2b66e6 *demo/00Index
 c0c0293b16490375a893937ef11f398b *demo/CCL4model.R
 5b936a490bc9ea9aebc3f80cb6ce1fa5 *demo/odedim.R
@@ -135,7 +135,7 @@ c613fdac13889bfeb433678d2d529aa8 *man/rkMethod.Rd
 88ecf456ed7f62f4d09e5afd5489d5a2 *man/zvode.Rd
 5e046dd1f7cc192a6c3d5d1a47b2dbec *src/DLLutil.c
 8290d2e9740414e315237f0d5d4024bb *src/Makevars
-4caee86e60d06979c2ca1496bc5f7c97 *src/R_init_deSolve.c
+6e94483efda3b51ad773e5cc0502cfc7 *src/R_init_deSolve.c
 cf4b58246d69335dd7eb21173b338752 *src/brent.c
 c17cd63fb084095b6d9740d9c9e3db04 *src/call_daspk.c
 4f1f107d001710fad9bf5d435b1dab4b *src/call_euler.c
@@ -149,7 +149,7 @@ c537d39ee2fd1deab5062aa9acf8328e *src/call_rkImplicit.c
 0cb257a7af87c36ab4ce3177b5140768 *src/call_zvode.c
 aa27f87ba8e60746a8d2f0219479dc41 *src/daux.f
 f035a7d513f35deaafb690b97586c741 *src/ddaspk.f
-eb0e797ecdc2043ba67d2249c8db8db8 *src/deSolve.h
+67a1a5027bfe48de42fc67b93a7d35e9 *src/deSolve.h
 617d987035b061e8b74b2d2aeae873ae *src/deSolve_utils.c
 8dd1bab6bbe783797bb34b492be08942 *src/dintdy2.f
 d184e0c347d70040ea832e3420fbce70 *src/dlinpk.f
