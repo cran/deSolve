@@ -1,3 +1,12 @@
+Changes version 1.28
+================================
+   o minor: avoid an implicit type conversion at the C level
+
+Changes version 1.27.1
+================================
+  o C level change to fix symbol clash on MacOS
+    solution kindly provided by Brian Ripley
+
 Changes version 1.27
 ================================
   o C level changes to ensure compatibility with gcc 10
@@ -7,7 +16,7 @@ Changes version 1.26
 ================================
   o fix outdated class checks to ensure R 4.0.0 compatibility
     (Karline, Thomas)
-  o Fortran modernization: initialization ov variables (Karline)
+  o Fortran modernization: initialization of variables (Karline)
 
 Changes version 1.25
 ================================

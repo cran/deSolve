@@ -79,13 +79,13 @@ SEXP call_rkAuto(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   PROTECT(R_densetype = getListElement(Method, "densetype")); nprot++;
   if (length(R_densetype)) densetype = INTEGER(R_densetype)[0];
 
-  double  qerr = REAL(getListElement(Method, "Qerr"))[0];
+  int  qerr = (int)REAL(getListElement(Method, "Qerr"))[0];
   double  beta = 0;      /* 0.4/qerr; */
 
   PROTECT(Beta = getListElement(Method, "beta")); nprot++;
   if (length(Beta)) beta = REAL(Beta)[0];
 
-  double  alpha = 1/qerr - 0.75 * beta;
+  double  alpha = 1.0/(double)qerr - 0.75 * beta;
   PROTECT(Alpha = getListElement(Method, "alpha")); nprot++;
   if (length(Alpha)) alpha = REAL(Alpha)[0];
 

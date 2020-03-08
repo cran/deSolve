@@ -753,7 +753,9 @@ C***FIRST EXECUTABLE STATEMENT  DSTODE
       IERSL = 0
       JCUR = 0
       ICF = 0
+      IREDO = 0
       DELP = 0.0D0
+      RH = 0.0D0
       IF (JSTART .GT. 0) GO TO 200
       IF (JSTART .EQ. -1) GO TO 100
       IF (JSTART .EQ. -2) GO TO 160

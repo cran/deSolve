@@ -6,8 +6,9 @@ C
 
       subroutine rprintd1(msg, d1)
       character (len=*) msg
-      double precision d1
-        call dblepr(msg, -1, d1, 1)
+      double precision DBL(1), d1
+        DBL(1) = d1
+        call dblepr(msg, -1, DBL, 1)
       end subroutine 
 
       subroutine rprintd2(msg, d1, d2)
@@ -20,8 +21,9 @@ C
 
       subroutine rprinti1(msg, i1)
       character (len=*) msg
-      integer i1
-        call intpr(msg, -1, i1, 1)
+      integer I(1), i1
+        I(1) = i1
+        call intpr(msg, -1, I, 1)
       end subroutine 
 
 

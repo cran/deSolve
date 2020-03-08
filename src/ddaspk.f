@@ -1387,6 +1387,7 @@ C Karline: initialised some variables to avoid compiler warnings - should have n
       LENRW = 0
       LENIW = 0
       LENPD = 0
+      LENWP = 0
 C Karline      
       IF(INFO(1).NE.0) GO TO 100
 C

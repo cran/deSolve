@@ -94,7 +94,7 @@ DLLfunc(y = yini, dllname = "deSolve", func = "derivsccl4",
 
 ## ==========================================================================
 ## ex. 2
-## SCOC model, in fortran  - to see the FORTRAN code:
+## SCOC model
 ## ==========================================================================
 
 ## Forcing function "data"

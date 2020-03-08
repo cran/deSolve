@@ -1269,6 +1269,7 @@ C If ISTATE = 1 and TOUT = T, return immediately.
 C-----------------------------------------------------------------------
 C KARLINE: INITIALISED IHIT TO AVOID COMPILER WARNINGS - SHOULD HAVE NO EFFEXT
       IHIT = .TRUE.
+      LENWM = 0
 C***FIRST EXECUTABLE STATEMENT  DLSODE
       IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601
       IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602
@@ -6752,9 +6753,10 @@ C If ISTATE .gt. 1 but the flag INIT shows that initialization has
 C not yet been done, an error return occurs.
 C If ISTATE = 1 and TOUT = T, return immediately.
 C-----------------------------------------------------------------------
-C KARLINE: INITIALISED IHIT LEN1S TO AVOID COMPILER WARNINGS - SHOULD HAVE NO EFFEXT
+C KARLINE: INITIALISED IHIT LEN1S TO AVOID COMPILER WARNINGS - SHOULD HAVE NO EFFECT
       IHIT = .TRUE.
       LEN1S = 0
+      LENWM = 0
       IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601
       IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602
       ITASKC = ITASK

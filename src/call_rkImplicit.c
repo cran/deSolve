@@ -55,7 +55,7 @@ SEXP call_rkImplicit(SEXP Xstart, SEXP Times, SEXP Func, SEXP Initfunc,
   PROTECT(R_C = getListElement(Method, "c")); nprot++;
   if (length(R_C)) cc = REAL(R_C);
 
-    double  qerr  = REAL(getListElement(Method, "Qerr"))[0];
+  int  qerr  = (int)REAL(getListElement(Method, "Qerr"))[0];
 
   PROTECT(Times = AS_NUMERIC(Times)); nprot++;
   tt = NUMERIC_POINTER(Times);
