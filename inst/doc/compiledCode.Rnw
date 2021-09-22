@@ -57,19 +57,18 @@ performance, FORTRAN, C}
   Royal Netherlands Institute of Sea Research (NIOZ)\\
   4401 NT Yerseke, Netherlands \\
   E-mail: \email{karline.soetaert@nioz.nl}\\
-  URL: \url{http://www.nioz.nl}\\
+  URL: \url{https://www.nioz.nl}\\
   \\
   Thomas Petzoldt\\
   Institut f\"ur Hydrobiologie\\
   Technische Universit\"at Dresden\\
   01062 Dresden, Germany\\
   E-mail: \email{thomas.petzoldt@tu-dresden.de}\\
-  URL: \url{http://tu-dresden.de/Members/thomas.petzoldt/}\\
+  URL: \url{https://tu-dresden.de/Members/thomas.petzoldt/}\\
    \\
   R. Woodrow Setzer\\
   National Center for Computational Toxicology\\
-  US Environmental Protection Agency\\
-  URL: \url{http://www.epa.gov/comptox}
+  US Environmental Protection Agency
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% R/Sweave specific LaTeX commands.
@@ -231,10 +230,10 @@ In order to create compiled models (.DLL = dynamic link libraries on
 Windows or .so = shared objects on other systems) you must have a
 recent version of the GNU compiler suite installed, which is quite
 standard for Linux. Windows users find all the required tools on
-\url{http://www.murdoch-sutherland.com/Rtools/}.  Getting DLLs
+\url{https://cran.r-project.org/bin/windows/Rtools/}.  Getting DLLs
 produced by other compilers to communicate with R is much more
 complicated and therefore not recommended. More details can be found
-on \url{http://cran.r-project.org/doc/manuals/R-admin.html}.
+on \url{https://cran.r-project.org/doc/manuals/R-admin.html}.
 
 The call to the derivative and Jacobian function is more complex for
 compiled code compared to \proglang{R}-code, because it has to comply

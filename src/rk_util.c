@@ -15,9 +15,7 @@
 # define LDOUBLE double
 #endif
 
-
 #include "externalptr.h"
-
 
 /*============================================================================*/
 /*   DLL specific functions                                                   */
@@ -139,14 +137,27 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
     PROTECT(R_t = ScalarReal(t));
     PROTECT(R_y = allocVector(REALSXP, neq));
     yy = REAL(R_y);
-    for (i=0; i< neq; i++) yy[i] = y[i];
+    for (i=0; i < neq; i++) yy[i] = y[i];
 
     PROTECT(R_fcall = lang4(Func, R_t, R_y, Parms));
     PROTECT(Val = eval(R_fcall, Rho));
 
     /* extract the states from first list element of "Val" */
+
+    /* original version up to deSolve 1.28
     if (j >= 0)
       for (i = 0; i < neq; i++)  ydot[i + neq * j] = REAL(VECTOR_ELT(Val, 0))[i];
+    */
+
+    /* allow states to be integer (useful for discrete models) deSolve 1.29 */
+    if (j >= 0) {
+      PROTECT(rVal = coerceVector(VECTOR_ELT(Val, 0), REALSXP));
+      for (i = 0; i < neq; i++)  {
+        ydot[i + neq * j] = REAL(rVal)[i];
+      }
+      UNPROTECT(1);
+    }
+
 
     /* extract outputs from second and following list elements */
     /* this is essentially an unlist for non-nested numeric lists */
@@ -157,7 +168,6 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
         if (ii == l) {
 	        ii = 0; elt++;
 	      }
-        //yout[i] = REAL(VECTOR_ELT(Val, elt))[ii];
         // thpe 2012-08-04: make sure the return value is double and not int
         PROTECT(rVal = coerceVector(VECTOR_ELT(Val, elt), REALSXP));
         yout[i] = REAL(rVal)[ii];

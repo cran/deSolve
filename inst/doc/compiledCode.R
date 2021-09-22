@@ -65,7 +65,7 @@ out   <- ode(Y, times, model, parms = parms, jacfunc = jac)
 
 
 ###################################################
-### code chunk number 7: compiledCode.Rnw:725-767
+### code chunk number 7: compiledCode.Rnw:724-766
 ###################################################
 caraxisfun <- function(t, y, parms) {
   with(as.list(c(y, parms)), {
@@ -124,7 +124,7 @@ plot(out, which = 1:4, type = "l", lwd = 2)
 
 
 ###################################################
-### code chunk number 10: compiledCode.Rnw:950-979
+### code chunk number 10: compiledCode.Rnw:949-978
 ###################################################
 ## the model, 5 state variables
 f1 <- function  (t, y, parms) {
@@ -158,7 +158,7 @@ out  <- lsode(yini, times, f1, parms = 0, jactype = "bandusr",
 
 
 ###################################################
-### code chunk number 11: compiledCode.Rnw:1062-1073
+### code chunk number 11: compiledCode.Rnw:1061-1072
 ###################################################
 ## Parameter values and initial conditions
 Parms <- c(0.182, 4.0, 4.0, 0.08, 0.04, 0.74, 0.05, 0.15, 0.32,
@@ -174,7 +174,7 @@ DLLfunc(y = yini, dllname = "deSolve", func = "derivsccl4",
 
 
 ###################################################
-### code chunk number 12: compiledCode.Rnw:1084-1100
+### code chunk number 12: compiledCode.Rnw:1083-1099
 ###################################################
 pars <- c(K = 1, ka   = 1e6, r    = 1)
 
@@ -195,7 +195,7 @@ DLLres(y=y,dy=dy,times=5,res="chemres",
 
 
 ###################################################
-### code chunk number 13: compiledCode.Rnw:1268-1276
+### code chunk number 13: compiledCode.Rnw:1267-1275
 ###################################################
 Flux <- matrix(ncol=2,byrow=TRUE,data=c(
   1, 0.654, 11, 0.167,   21, 0.060, 41, 0.070, 73,0.277, 83,0.186,
@@ -208,20 +208,20 @@ head(Flux)
 
 
 ###################################################
-### code chunk number 14: compiledCode.Rnw:1281-1282
+### code chunk number 14: compiledCode.Rnw:1280-1281
 ###################################################
 parms <- 0.01
 
 
 ###################################################
-### code chunk number 15: compiledCode.Rnw:1288-1290
+### code chunk number 15: compiledCode.Rnw:1287-1289
 ###################################################
 meanDepo <- mean(approx(Flux[,1],Flux[,2], xout=seq(1,365,by=1))$y)
 Yini <- c(y=meanDepo/parms)
 
 
 ###################################################
-### code chunk number 16: compiledCode.Rnw:1306-1313
+### code chunk number 16: compiledCode.Rnw:1305-1312
 ###################################################
 times <- 1:365
 out <- ode(y=Yini, times, func = "scocder",
@@ -233,7 +233,7 @@ head(out)
 
 
 ###################################################
-### code chunk number 17: compiledCode.Rnw:1319-1325
+### code chunk number 17: compiledCode.Rnw:1318-1324
 ###################################################
 fcontrol <- list(method="constant")
 out2 <- ode(y=Yini, times, func = "scocder",
@@ -272,7 +272,7 @@ lines(out2[,"time"], out2[,"Mineralisation"], lwd=2, col="blue")
 
 
 ###################################################
-### code chunk number 20: compiledCode.Rnw:1360-1392
+### code chunk number 20: compiledCode.Rnw:1359-1391
 ###################################################
 SPCmod <- function(t, x, parms, input)  {
   with(as.list(c(parms, x)), {
@@ -321,7 +321,7 @@ plot(out)
 
 
 ###################################################
-### code chunk number 23: compiledCode.Rnw:1511-1514
+### code chunk number 23: compiledCode.Rnw:1510-1513
 ###################################################
 eventdata <- data.frame(var=rep("C",10),time=seq(10,100,10),value=rep(0.5,10),
   method=rep("multiply",10))
@@ -329,7 +329,7 @@ eventdata
 
 
 ###################################################
-### code chunk number 24: compiledCode.Rnw:1601-1619
+### code chunk number 24: compiledCode.Rnw:1600-1618
 ###################################################
 derivs <- function(t, y, parms) {
   with(as.list(c(y, parms)), {

@@ -331,7 +331,7 @@ plot(out, out2, out3)
   of Variable Step-Size Multistep Formulas for Stiff ODEs.  ACM
   Trans. Math. Software, 6, pp. 295-318.
   
-  Netlib: \url{http://www.netlib.org}
+  Netlib: \url{https://www.netlib.org}
 }
 \details{
 

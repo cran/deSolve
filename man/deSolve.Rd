@@ -42,7 +42,7 @@
     \item Writing Code in Compiled Languages
       (\href{../doc/compiledCode.pdf}{pdf}, \href{../doc/compiledCode.R}{R code})
     \item Examples in R (\url{../doc/examples}), and in Fortran or C (\url{../doc/dynload}, \url{../doc/dynload-dede})
-    \item deSolve homepage: \url{http://desolve.r-forge.r-project.org} (Papers, Books, PDFs)
+    \item deSolve homepage: \url{https://desolve.r-forge.r-project.org} (Papers, Books, PDFs)
     \item Mailing list: \url{mailto:r-sig-dynamic-models@r-project.org}
    }
 

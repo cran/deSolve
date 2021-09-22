@@ -90,19 +90,18 @@ initial value problems, R}
   Royal Netherlands Institute of Sea Research (NIOZ)\\
   4401 NT Yerseke, Netherlands \\
   E-mail: \email{karline.soetaert@nioz.nl}\\
-  URL: \url{http://www.nioz.nl}\\
+  URL: \url{https://www.nioz.nl}\\
   \\
   Thomas Petzoldt\\
   Institut f\"ur Hydrobiologie\\
   Technische Universit\"at Dresden\\
   01062 Dresden, Germany\\
   E-mail: \email{thomas.petzoldt@tu-dresden.de}\\
-  URL: \url{http://tu-dresden.de/Members/thomas.petzoldt/}\\
+  URL: \url{https://tu-dresden.de/Members/thomas.petzoldt/}\\
    \\
   R. Woodrow Setzer\\
   National Center for Computational Toxicology\\
-  US Environmental Protection Agency\\
-  URL: \url{http://www.epa.gov/comptox}
+  US Environmental Protection Agency
 }
 
 
@@ -1279,7 +1278,7 @@ different scenarios, e.g from the same model but with different sets of paramete
 or initial values, with one single call to \code{plot}.
 
 As an example we implement the simple combustion model, which can be found on
-\url{http://www.scholarpedia.org/article/Stiff_systems}:
+\url{https://www.scholarpedia.org/article/Stiff_systems}:
 
 \[
 y' = y^2 \cdot (1-y)

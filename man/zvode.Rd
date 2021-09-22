@@ -294,7 +294,7 @@ tail(cbind(out[,2], analytical[,1]))
   of Variable Step-Size Multistep Formulas for Stiff ODEs.  ACM
   Trans. Math. Software, 6, pp. 295-318.
   
-  Netlib: \url{http://www.netlib.org}
+  Netlib: \url{https://www.netlib.org}
 }
 \details{
     see \code{\link{vode}}, the double precision version, for details.

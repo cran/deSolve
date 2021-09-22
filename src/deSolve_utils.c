@@ -60,8 +60,7 @@ void Initdeparms(int *N, double *parms) {
   if ((*N) != Nparms) {
     warning("Number of parameters passed to solver, %i; number in DLL, %i\n",
       Nparms, *N);
-    PROBLEM "Confusion over the length of parms"
-    ERROR;
+    Rf_error("Confusion over the length of parms.");
   } else {
     for (i = 0; i < *N; i++) parms[i] = REAL(de_gparms)[i];
   }

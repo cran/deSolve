@@ -1,3 +1,8 @@
+Changes version 1.29
+================================
+   o replace legacy S macros PROBLEM and ERROR in C code with Rf_error()
+   o replace http:// with https:// if possible
+
 Changes version 1.28
 ================================
    o minor: avoid an implicit type conversion at the C level

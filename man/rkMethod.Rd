@@ -198,7 +198,7 @@ rkMethod(method = NULL, ...)
   Differentialgleichungen, Z. Math. Phys. \bold{46}, 435--453.
 
   Octave-Forge - Extra Packages for GNU Octave, Package OdePkg.
-  \url{http://octave.sourceforge.io}
+  \url{https://octave.sourceforge.io}
 
   Prince, P. J.  and Dormand, J. R. (1981) High order embedded
   Runge-Kutta formulae, J. Comput. Appl. Math. \bold{7}(1), 67--75.
@@ -207,7 +207,7 @@ rkMethod(method = NULL, ...)
   Differentialgleichungen, Math. Ann. \bold{46}, 167--178.
 
   MATLAB (R) is a registed property of The Mathworks
-  Inc. \url{http://www.mathworks.com/} }
+  Inc. \url{https://www.mathworks.com/} }
 
 \author{Thomas Petzoldt \email{thomas.petzoldt@tu-dresden.de}}
 

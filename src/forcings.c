@@ -91,8 +91,7 @@ void Initdeforc(int *N, double *forc) {
   int i, ii;
   if ((*N) != nforc) {
     warning("Number of forcings passed to solver, %i; number in DLL, %i\n",nforc, *N);
-    PROBLEM "Confusion over the length of forc"
-    ERROR;
+    Rf_error("Confusion over the length of forc.");
   }
 
   /* for each forcing function: index to current position of data,

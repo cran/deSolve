@@ -343,7 +343,7 @@ plot(out, type = "l", lwd = 2, main = "lsodar with event")
   Kathie L. Hiebert and Lawrence F. Shampine, Implicitly Defined Output
   Points for Solutions of ODEs, Sandia Report SAND80-0180, February 1980.
     
- Netlib: \url{http://www.netlib.org}
+ Netlib: \url{https://www.netlib.org}
  
 }
 \details{

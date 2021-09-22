@@ -12,7 +12,7 @@ citEntry(entry="Article",
   year     = "2010",
   CODEN    =	"JSSOBK",
   ISSN     = "1548-7660",
-  URL      = "http://www.jstatsoft.org/v33/i09",
+  URL      = "https://www.jstatsoft.org/v33/i09",
   DOI      = "10.18637/jss.v033.i09",
   keywords =	"ordinary differential equations, partial differential
     equations, differential algebraic equations, initial value problems,

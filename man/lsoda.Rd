@@ -360,7 +360,7 @@ diagnostics(outJ) # shows what lsoda did internally
   Stiff and Nonstiff Systems of Ordinary Differential Equations.
   \emph{Siam J. Sci. Stat. Comput.} \bold{4}, 136--148.
 
-  Netlib: \url{http://www.netlib.org}
+  Netlib: \url{https://www.netlib.org}
 }
 \details{
   All the hard work is done by the FORTRAN subroutine \code{lsoda},

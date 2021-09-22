@@ -508,7 +508,7 @@ plot(ODE_dll, which = c("Prod", "D"), xlab = "time",
   Systems, LLNL Report UCRL-JC-122175, August 1995; submitted to
   SIAM J. Sci. Comp.
   
-  Netlib: \url{http://www.netlib.org}
+  Netlib: \url{https://www.netlib.org}
 }
 \details{
   The daspk solver uses the backward differentiation formulas of orders

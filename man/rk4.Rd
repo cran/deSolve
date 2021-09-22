@@ -146,7 +146,7 @@ euler.1D(y, times, func, parms, nspec = NULL, dimens = NULL,
   See help pages of \code{\link{rk}} and \code{\link{rkMethod}}
   for details.
 
-  Function \code{euler.1D} essentially calls function\code{euler} but
+  Function \code{euler.1D} essentially calls function \code{euler} but
   contains additional code to support plotting of 1D models, see
   \code{\link{ode.1D}} and \code{\link{plot.1D}} for details.
 }
