@@ -183,6 +183,7 @@ rkMethod(method = NULL, ...)
   Cash, J. R. and Karp A. H., 1990. A variable order Runge-Kutta method
   for initial value problems with rapidly varying right-hand sides,
   ACM Transactions on Mathematical Software \bold{16}, 201--222.
+  \doi{10.1145/79505.79507}
 
   Dormand, J. R. and Prince, P. J. (1980) A family of embedded
   Runge-Kutta formulae, J. Comput. Appl. Math. \bold{6}(1), 19--26.
@@ -202,6 +203,7 @@ rkMethod(method = NULL, ...)
 
   Prince, P. J.  and Dormand, J. R. (1981) High order embedded
   Runge-Kutta formulae, J. Comput. Appl. Math. \bold{7}(1), 67--75.
+  \doi{10.1016/0771-050X(81)90010-3}
 
   Runge, C. (1895) Ueber die numerische Aufloesung von
   Differentialgleichungen, Math. Ann. \bold{46}, 167--178.

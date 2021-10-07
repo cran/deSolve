@@ -339,6 +339,7 @@ plot(out, type = "l", lwd = 2, main = "lsodar with event")
   Linda R. Petzold, Automatic Selection of Methods for Solving Stiff and
   Nonstiff Systems of Ordinary Differential Equations, Siam
   J. Sci. Stat. Comput. 4 (1983), pp. 136-148.
+  \doi{10.1137/0904010}
 
   Kathie L. Hiebert and Lawrence F. Shampine, Implicitly Defined Output
   Points for Solutions of ODEs, Sandia Report SAND80-0180, February 1980.

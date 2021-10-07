@@ -498,10 +498,12 @@ plot(ODE_dll, which = c("Prod", "D"), xlab = "time",
   P. N. Brown and A. C. Hindmarsh, Reduced Storage Matrix Methods
   in Stiff ODE Systems, J. Applied Mathematics and Computation,
   31 (1989), pp. 40-91.
+  \doi{10.1016/0096-3003(89)90110-0}
 
   P. N. Brown, A. C. Hindmarsh, and L. R. Petzold, Using Krylov
   Methods in the Solution of Large-Scale Differential-Algebraic
   Systems, SIAM J. Sci. Comp., 15 (1994), pp. 1467-1488.
+  \doi{10.1137/0915088}
 
   P. N. Brown, A. C. Hindmarsh, and L. R. Petzold, Consistent
   Initial Condition Calculation for Differential-Algebraic

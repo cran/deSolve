@@ -359,6 +359,7 @@ diagnostics(outJ) # shows what lsoda did internally
   Petzold, Linda R. (1983) Automatic Selection of Methods for Solving
   Stiff and Nonstiff Systems of Ordinary Differential Equations.
   \emph{Siam J. Sci. Stat. Comput.} \bold{4}, 136--148.
+  \doi{10.1137/0904010}
 
   Netlib: \url{https://www.netlib.org}
 }

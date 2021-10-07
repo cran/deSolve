@@ -54,11 +54,11 @@
 
   Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010):  Solving
   Differential Equations in R: Package deSolve Journal of Statistical
-  Software, 33(9), 1--25.  \url{https://www.jstatsoft.org/v33/i09/}
+  Software, 33(9), 1--25.  \doi{10.18637/jss.v033.i09}
 
   Karline Soetaert, Thomas Petzoldt, R. Woodrow Setzer (2010): Solving
   differential equations in R. The R Journal 2(2), 5-15.
-  \href{https://journal.r-project.org/archive/2010-2/RJournal_2010-2_Soetaert~et~al.pdf}{pdf}
+  \doi{10.32614/RJ-2010-013}
 
   Karline Soetaert, Thomas Petzoldt (2011): Solving ODEs, DAEs, DDEs and
   PDEs in R. Journal of Numerical Analysis, Industrial and Applied
@@ -78,6 +78,7 @@
 
   P. N. Brown, G. D. Byrne, A. C. Hindmarsh (1989):  VODE: A Variable
   Coefficient ODE Solver, SIAM J. Sci. Stat. Comput., 10, pp. 1038-1051.
+  \doi{10.1137/0910062}
 
   See also the references given on the specific help pages of the
   different methods.

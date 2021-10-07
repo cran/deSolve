@@ -273,10 +273,12 @@ tail(cbind(out[,2], analytical[,1]))
   P. N. Brown, G. D. Byrne, and A. C. Hindmarsh, 1989.  VODE: A Variable
   Coefficient ODE Solver, SIAM J. Sci. Stat. Comput., 10, pp. 1038-1051.
   \cr Also, LLNL Report UCRL-98412, June 1988.
+  \doi{10.1137/0910062}
 
   G. D. Byrne and A. C. Hindmarsh, 1975. A Polyalgorithm for the
   Numerical Solution of Ordinary Differential Equations.  ACM
   Trans. Math. Software, 1, pp. 71-96.
+  \doi{10.1145/355626.355636}
 
   A. C. Hindmarsh and G. D. Byrne, 1977. EPISODE: An Effective Package
   for the Integration of Systems of Ordinary Differential
@@ -293,6 +295,7 @@ tail(cbind(out[,2], analytical[,1]))
   K. R. Jackson and R. Sacks-Davis, 1980. An Alternative Implementation
   of Variable Step-Size Multistep Formulas for Stiff ODEs.  ACM
   Trans. Math. Software, 6, pp. 295-318.
+  \doi{10.1145/355900.355903}
   
   Netlib: \url{https://www.netlib.org}
 }
