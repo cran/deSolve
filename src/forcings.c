@@ -1,4 +1,5 @@
 /* deals with forcing functions and events;  Karline Soetaert */
+/* deals with forcing functions and events;  Karline Soetaert */
 
 #include "deSolve.h"
 #include "externalptr.h"
@@ -222,7 +223,7 @@ int initEvents(SEXP elist, SEXP eventfunc, int nroot) {
      for (j = 0; j < i; j++) timeevent[j] = REAL(Time)[j];
      /* cap the event timer with an event that can't possibly be reached */
      //timeevent[i] = timeevent[0] - 1; // J. Stott
-     timeevent[i] = DOUBLE_XMIN;        // thpe
+     timeevent[i] = DBL_MIN;        // thpe
      if (typeevent == 1) {
        /* specified in a data.frame */
        SVar = getListElement(elist,"SVar");

@@ -1,3 +1,7 @@
+Changes version 1.31
+================================
+   o replace deprecated S constant DOUBLE_XMAX by DBL_MAX
+
 Changes version 1.30
 ================================
    o add doi to references
