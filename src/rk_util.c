@@ -3,6 +3,11 @@
 /* Definitions and Utilities needed by Runge-Kutta Solvers                  */
 /*==========================================================================*/
 
+/* USE_FC_LEN_T to ensure compatibility with Fortran BLAS/LAPACK */
+#ifndef USE_FC_LEN_T
+# define USE_FC_LEN_T
+#endif
+
 /* Load headers needed by the R interface */
 #include <R_ext/Rdynload.h>
 #include <R_ext/Applic.h> /* for dgemm */
@@ -62,17 +67,16 @@ SEXP getInputs(SEXP symbol, SEXP Rho) {
 /*----------------------------------------------------------------------------*/
 
 void blas_matprod1(double *x, int nrx, int ncx,
-		    double *y, int nry, int ncy, double *z)
-{
+      double *y, int nry, int ncy, double *z) {
     const char *transa = "N", *transb = "N";
     int i;
     double one = 1.0, zero = 0.0;
 
     if (nrx > 0 && ncx > 0 && nry > 0 && ncy > 0) {
-	    F77_CALL(dgemm)(transa, transb, &nrx, &ncy, &ncx, &one,
-			    x, &nrx, y, &nry, &zero, z, &nrx);
+      F77_CALL(dgemm)(transa, transb, &nrx, &ncy, &ncx, &one,
+          x, &nrx, y, &nry, &zero, z, &nrx FCONE FCONE);
     } else /* zero-extent operations should return zeroes */
-    	for(i = 0; i < nrx*ncy; i++) z[i] = 0;
+      for(i = 0; i < nrx*ncy; i++) z[i] = 0;
 }
 
 
@@ -81,10 +85,10 @@ void matprod(int m, int n, int o, double* a, double* b, double* c) {
   int i, j, k;
   for (i = 0; i < m; i++) {
     for (j = 0; j < o; j++) {
-    	c[i + m * j] = 0;
-    	for (k = 0; k < n; k++) {
-    	  c[i + m * j] += a[i + m * k] * b[k + n * j];
-    	}
+      c[i + m * j] = 0;
+      for (k = 0; k < n; k++) {
+        c[i + m * j] += a[i + m * k] * b[k + n * j];
+      }
     }
   }
 }
@@ -110,7 +114,7 @@ double maxerr(double *y0, double *y1, double *y2, double *Atol, double *Rtol, in
 /*   CALL TO THE MODEL FUNCTION                                             */
 /*==========================================================================*/
 void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
-	    double *ydot, double *yout, int j, int neq, int *ipar, int isDll,
+      double *ydot, double *yout, int j, int neq, int *ipar, int isDll,
             int isForcing) {
   SEXP Val, rVal, R_fcall;
   SEXP R_t;
@@ -166,8 +170,8 @@ void derivs(SEXP Func, double t, double* y, SEXP Parms, SEXP Rho,
       for (i = 0; i < nout; i++)  {
         l = LENGTH(VECTOR_ELT(Val, elt));
         if (ii == l) {
-	        ii = 0; elt++;
-	      }
+          ii = 0; elt++;
+        }
         // thpe 2012-08-04: make sure the return value is double and not int
         PROTECT(rVal = coerceVector(VECTOR_ELT(Val, elt), REALSXP));
         yout[i] = REAL(rVal)[ii];

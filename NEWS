@@ -1,3 +1,8 @@
+Changes version 1.32
+================================
+   o USE_FC_LEN_T for Fortran BLAS/LAPACK routines
+     to ensure compatibility with R > 4.2
+
 Changes version 1.31
 ================================
    o replace deprecated S constant DOUBLE_XMAX by DBL_MAX

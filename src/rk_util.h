@@ -3,6 +3,11 @@
 /* Definitions and Utilities needed by Runge-Kutta Solvers                  */
 /*==========================================================================*/
 
+/* USE_FC_LEN_T to ensure compatibility with Fortran BLAS/LAPACK */
+#ifndef USE_FC_LEN_T
+# define USE_FC_LEN_T
+#endif
+
 /* Load headers needed by the R interface */
 
 #include <R_ext/Rdynload.h>
