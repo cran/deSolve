@@ -1,5 +1,5 @@
 Package: deSolve
-Version: 1.32
+Version: 1.33
 Title: Solvers for Initial Value Problems of Differential Equations
         ('ODE', 'DAE', 'DDE')
 Authors@R: c(person("Karline","Soetaert", role = c("aut"), 
@@ -41,7 +41,7 @@ Author: Karline Soetaert [aut] (<https://orcid.org/0000-0003-4603-7100>),
   Youcef Saad [ctb] (file dsparsk.f),
   Clement W. Ulrich [ctb] (file ddaspk.f)
 Maintainer: Thomas Petzoldt <thomas.petzoldt@tu-dresden.de>
-Depends: R (>= 4.0.0)
+Depends: R (>= 3.3.0)
 Imports: methods, graphics, grDevices, stats
 Suggests: scatterplot3d, FME
 Description: Functions that solve initial value problems of a system
@@ -60,6 +60,6 @@ License: GPL (>= 2)
 URL: http://desolve.r-forge.r-project.org/
 LazyData: yes
 NeedsCompilation: yes
-Packaged: 2022-04-14 05:49:47 UTC; thpe
+Packaged: 2022-07-16 09:57:03 UTC; thpe
 Repository: CRAN
-Date/Publication: 2022-04-14 10:32:30 UTC
+Date/Publication: 2022-07-16 11:10:02 UTC

@@ -14,6 +14,12 @@
 #include <R_ext/Boolean.h>
 #include "deSolve.h"
 
+/* For backwards compatibility with <= R 3.6.2 */
+/* where FCONE wasn't defined by R yet */
+#ifndef FCONE
+# define FCONE
+#endif
+
 #ifdef HAVE_LONG_DOUBLE
 # define LDOUBLE long double
 #else

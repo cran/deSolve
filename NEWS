@@ -1,15 +1,20 @@
+Changes version 1.33
+================================
+  o back-compatibility with R <= 3.6.2
+    (patch provided by Davis Vaughan) 
+
 Changes version 1.32
 ================================
-   o USE_FC_LEN_T for Fortran BLAS/LAPACK routines
-     to ensure compatibility with R > 4.2
+  o USE_FC_LEN_T for Fortran BLAS/LAPACK routines
+    to ensure compatibility with R > 4.2
 
 Changes version 1.31
 ================================
-   o replace deprecated S constant DOUBLE_XMAX by DBL_MAX
+  o replace deprecated S constant DOUBLE_XMAX by DBL_MAX
 
 Changes version 1.30
 ================================
-   o add doi to references
+  o add doi to references
 
 Changes version 1.29
 ================================
@@ -18,7 +23,7 @@ Changes version 1.29
 
 Changes version 1.28
 ================================
-   o minor: avoid an implicit type conversion at the C level
+  o minor: avoid an implicit type conversion at the C level
 
 Changes version 1.27.1
 ================================
