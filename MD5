@@ -1,6 +1,6 @@
-2df8bec06b536ab9561102cb034e6065 *DESCRIPTION
+3947ec291ecf43abd2309dd8bc576c0e *DESCRIPTION
 316262d3be55a7fcb10ac5ceebfd7658 *NAMESPACE
-55ab6d236f025a8fc859d91266ad7e37 *NEWS
+e2df4bcbcffa123f4c4111439bd86179 *NEWS
 4df6c896706646b5793cc6357b15574a *R/Aquaphy.R
 75b53acdcea2f0de92203a153b956f89 *R/DLLfunc.R
 31be22a79645487f5441d15c21de881d *R/SCOC.R
@@ -37,10 +37,10 @@ c0c0293b16490375a893937ef11f398b *demo/CCL4model.R
 506f97dcf20a87685fedc74135d79570 *inst/CITATION
 803b9ada2c0b88d2877828f0b4b52b56 *inst/doc/compiledCode.R
 133d3be6961bf71187e0cb4c605d0019 *inst/doc/compiledCode.Rnw
-769b9586cff744ea7811e0bd8a7f13cf *inst/doc/compiledCode.pdf
+4ece0ce1c6ec10f8c7e821122f40501d *inst/doc/compiledCode.pdf
 422530948f2a821f1c930a067c1f6125 *inst/doc/deSolve.R
 77ddaa02311a01be341630cd17335926 *inst/doc/deSolve.Rnw
-5515067e7884fc2c3f01eaf1ff18e3f7 *inst/doc/deSolve.pdf
+879dc419deb9fe1c439ccd31035d8a1e *inst/doc/deSolve.pdf
 90cff72b5d4f433507d4a3194ac2b4c5 *inst/doc/dynload-dede/dedeUtils.c
 32adc37ff9cfdae64133e2f0905ca68c *inst/doc/dynload-dede/dede_lv.R
 0554dd66581cbd412e50455977167143 *inst/doc/dynload-dede/dede_lv.c
@@ -109,7 +109,7 @@ dced93270fdf192134620a73a6bcf075 *inst/doc/source/opkdmain.f.gz
 a079d71b38857de60b0b33c87b5ba5d3 *man/ccl4data.Rd
 6040dc07121c92d3fa1bc86332b07d55 *man/ccl4model.Rd
 6ea0ea45545acf07498f337fcdef75b3 *man/cleanEventTimes.Rd
-fde7c5da161dbb5cdce16da76b1ae26c *man/daspk.Rd
+69148a63d176c50472b7b7c258accc05 *man/daspk.Rd
 9f4d51956e88cadb78088e438eaa3ba7 *man/deSolve-internal.Rd
 42306ab993ae1d3b94fe037afbb8b0db *man/deSolve.Rd
 7efa38b374dd3bc47661ad9e34aed899 *man/dede.Rd
@@ -117,8 +117,8 @@ fde7c5da161dbb5cdce16da76b1ae26c *man/daspk.Rd
 c9cbad59d0970aeb3fbdd0ee5b02d5d6 *man/diagnostics.deSolve.Rd
 c1a2635c37d832b339c67ffbff33f1ed *man/events.Rd
 e41906e4c2bcc40fcebab691945e5922 *man/forcings.Rd
-e0dd04a10eab4cb8fd6eeee7c47872d4 *man/lsoda.Rd
-95aec3e5af0b8a28bf50c4e0bb1702b9 *man/lsodar.Rd
+6bf3b509248aa05f6e22e85e32285554 *man/lsoda.Rd
+0840c62620c2fcc14ffadcd5906a9b5b *man/lsodar.Rd
 82bfa9ee34e0dbd063542a22b7d34a87 *man/lsode.Rd
 8ac5d007d816f7acbf70b1cca65a33b9 *man/lsodes.Rd
 8d4d38aeb64a534a58c7704c35b95574 *man/ode.1D.Rd
@@ -132,11 +132,11 @@ ea0ab68f69725505316965b6924865b9 *man/radau.Rd
 3278179f5b7ab83b7d5dfa9bcd60f9fd *man/rk4.Rd
 70613f5cb753a05561c62fd2f3b6f717 *man/rkMethod.Rd
 6418431865799b3674dd0730affa8818 *man/timelags.Rd
-9a28e034a8530e1e75be81b386462027 *man/vode.Rd
-72018ab5c10be2137ba4c40f6710a0dc *man/zvode.Rd
+a25dfc6261b63b13bba2b90f0c8d0e1a *man/vode.Rd
+7f5f142bb12e7023534286ddedda2658 *man/zvode.Rd
 5e046dd1f7cc192a6c3d5d1a47b2dbec *src/DLLutil.c
 8290d2e9740414e315237f0d5d4024bb *src/Makevars
-6e94483efda3b51ad773e5cc0502cfc7 *src/R_init_deSolve.c
+592b846ff5ad78cd36b197ee402b44e4 *src/R_init_deSolve.c
 cf4b58246d69335dd7eb21173b338752 *src/brent.c
 c17cd63fb084095b6d9740d9c9e3db04 *src/call_daspk.c
 4f1f107d001710fad9bf5d435b1dab4b *src/call_euler.c
@@ -150,8 +150,8 @@ c17cd63fb084095b6d9740d9c9e3db04 *src/call_daspk.c
 0cb257a7af87c36ab4ce3177b5140768 *src/call_zvode.c
 aa27f87ba8e60746a8d2f0219479dc41 *src/daux.f
 12c6f85a397e678e4f3c7db8726161d3 *src/ddaspk.f
-67a1a5027bfe48de42fc67b93a7d35e9 *src/deSolve.h
-94e44b2657fed9387c171bde68727ad7 *src/deSolve_utils.c
+9f8174c313285bda45425900f2b6f604 *src/deSolve.h
+0099ac09eb34956400cc822fcbabc945 *src/deSolve_utils.c
 8dd1bab6bbe783797bb34b492be08942 *src/dintdy2.f
 d184e0c347d70040ea832e3420fbce70 *src/dlinpk.f
 54dc7b4c506e38769b3e52a590e0ec4b *src/dlsoder.f
@@ -159,7 +159,7 @@ d184e0c347d70040ea832e3420fbce70 *src/dlinpk.f
 d7898e4c512f38a4dffdcee1bb2e6992 *src/dvode.f
 869a2638e3692647ef9c8601f38e7a7c *src/errmsg.f
 10a5fda2ed498a58743c1886a13d61da *src/ex_Aquaphy.c
-586850d15e2be94fbe27eb7df0898ce8 *src/ex_CCL4model.c
+499e14b9842de368259629575cf1f655 *src/ex_CCL4model.c
 ce974c6cfe3334a319ff9ff519d599dd *src/ex_ChemicalDAE.c
 1815d64fc1a6e9032baeadcfc0d4da01 *src/ex_SCOC.c
 5841fc95b46e14b4b8f6ef69f255d496 *src/externalptr.h

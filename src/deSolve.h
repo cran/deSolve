@@ -92,7 +92,7 @@ EXTERN SEXP R_mas_func;
 EXTERN SEXP de_gparms;
 SEXP getListElement(SEXP list, const char* str);
 
-SEXP getTimestep();
+SEXP getTimestep(void);
 
 /*============================================================================ 
   C- utilities, functions 

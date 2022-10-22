@@ -334,7 +334,7 @@ plot(out, out2, out3)
   Trans. Math. Software, 6, pp. 295-318.
   \doi{10.1145/355900.355903} 
   
-  Netlib: \url{https://www.netlib.org}
+  Netlib: \url{https://netlib.org}
 }
 \details{
 

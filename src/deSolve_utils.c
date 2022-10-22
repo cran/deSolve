@@ -73,7 +73,7 @@ SEXP get_deSolve_gparms(void) {
 /*===========================================================================
   C-equivalent of R-function timestep: gets the past and new time step
   =========================================================================== */
-SEXP getTimestep() {
+SEXP getTimestep(void) {
   SEXP value;
   PROTECT(value = NEW_NUMERIC(2));
   if (timesteps == NULL) {         /* integration not yet started... */

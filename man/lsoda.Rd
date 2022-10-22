@@ -361,7 +361,7 @@ diagnostics(outJ) # shows what lsoda did internally
   \emph{Siam J. Sci. Stat. Comput.} \bold{4}, 136--148.
   \doi{10.1137/0904010}
 
-  Netlib: \url{https://www.netlib.org}
+  Netlib: \url{https://netlib.org}
 }
 \details{
   All the hard work is done by the FORTRAN subroutine \code{lsoda},

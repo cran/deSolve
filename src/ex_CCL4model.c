@@ -48,7 +48,7 @@ c=======================================================================
 
 void initccl4(void (* odeparms)(int *, double *))
 {
-    void derived();
+    void derived(void);
     
     int N=21;
     odeparms(&N, parms);
@@ -71,7 +71,7 @@ c Calculate derived parameters from primary parameters
 c=======================================================================
 */
 
-void derived ()
+void derived(void)
 {
 //     Fraction viscera (kg/(kg BW))
       VTC = 0.91 - (VLC+VFC+VMC);

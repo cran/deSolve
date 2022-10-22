@@ -22,7 +22,7 @@
 */
 
 /* .C calls */
-extern void unlock_solver();
+extern void unlock_solver(void);
 
 /* Examples (manually added) */
 extern void initccl4(void (* odeparms)(int *, double *));
@@ -57,7 +57,7 @@ extern SEXP call_rkImplicit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP
 extern SEXP call_zvode(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP getLagDeriv(SEXP, SEXP);
 extern SEXP getLagValue(SEXP, SEXP);
-extern SEXP getTimestep();
+extern SEXP getTimestep(void);
 
 
 static const R_CMethodDef CEntries[] = {
