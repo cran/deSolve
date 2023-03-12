@@ -28,7 +28,7 @@ checkforcings <- function (forcings, times, dllname,
   #1 check if each forcing function consists of a 2-columned matrix
   for (i in 1:nf) {
     if (ncol(forcings[[i]]) != 2)
-      stop("forcing function data sets should consist of two-colum matrix")
+      stop("forcing function data sets should consist of two-column matrix")
   }
 
 ## Check the control elements (see optim code)

@@ -5,14 +5,14 @@
   Switching Automatically Between Stiff and Non-stiff Methods
 }
 \description{
-  
+
   Solving initial value problems for stiff or non-stiff systems of
   first-order ordinary differential equations (ODEs).
-  
+
   The \R function \code{lsoda} provides an interface to the FORTRAN ODE
   solver of the same name, written by Linda R. Petzold and Alan
   C. Hindmarsh.
-  
+
   The system of ODE's is written as an \R function (which may, of
   course, use \code{\link{.C}}, \code{\link{.Fortran}},
   \code{\link{.Call}}, etc., to call foreign code) or be defined in
@@ -22,7 +22,7 @@
   appropriate modeling tool for non-linear models in \R such as
   \code{\link{optim}}, \code{\link{nls}}, \code{\link{nlm}} or
   \code{\link[nlme]{nlme}}
-    
+
   \code{lsoda} differs from the other integrators (except \code{lsodar})
   in that it switches automatically between stiff and nonstiff methods.
   This means that the user does not have to determine whether the
@@ -51,7 +51,8 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{func }{either an \R-function that computes the values of the
     derivatives in the ODE system (the \emph{model definition}) at time
     t, or a character string giving the name of a compiled function in a
-    dynamically loaded shared library.
+    dynamically loaded shared library, or a list of symbols returned by
+    \code{\link{checkDLL}}.
 
     If \code{func} is an \R-function, it must be defined as:
      \code{func <- function(t, y, parms,...)}.  \code{t} is the current
@@ -72,6 +73,13 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     before \code{lsoda()} is called. See package vignette
     \code{"compiledCode"} for more
     details.
+
+    \code{func} can also be a list of symbols returned by \code{\link{checkDLL}}
+    to avoid overhead from repeated internal calls to this function. It
+    is an experimental feature for special situations, when a small compiled
+    model with a low number of integration steps is repeatedly called. It is
+    currently only available for the \code{lsoda} solver, see
+    \href{../doc/dynload-fastlsoda}{example}.
   }
   \item{parms }{vector or list of parameters used in \code{func} or
     \code{jacfunc}.
@@ -83,12 +91,12 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     long as \code{y}. See details.
   }
   \item{jacfunc }{if not \code{NULL}, an \R function, that computes the
-    Jacobian of the system of differential equations 
+    Jacobian of the system of differential equations
     \eqn{\partial\dot{y}_i/\partial y_j}{dydot(i)/dy(j)}, or
     a string giving the name of a function or subroutine in
     \file{dllname} that computes the Jacobian (see vignette
     \code{"compiledCode"} for more about this option).
-    
+
     In some circumstances, supplying
     \code{jacfunc} can speed up the computations, if the system is
     stiff.  The \R calling sequence for \code{jacfunc} is identical to
@@ -98,7 +106,7 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
     matrix \eqn{\partial\dot{y}/\partial y}{dydot/dy}, where the ith row contains the derivative of
     \eqn{dy_i/dt} with respect to \eqn{y_j}, or a vector containing the
     matrix elements by columns (the way \R and FORTRAN store matrices).
-    
+
     If the Jacobian is banded, \code{jacfunc} should return a matrix
     containing only the nonzero bands of the Jacobian, rotated
     row-wise. See first example of \link{lsode}.
@@ -213,11 +221,11 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   \item{fcontrol }{A list of control parameters for the forcing functions.
     See \link{forcings} or vignette \code{compiledCode}.
   }
-  \item{events }{A matrix or data frame that specifies events, i.e. when the value of a 
+  \item{events }{A matrix or data frame that specifies events, i.e. when the value of a
    state variable is suddenly changed. See \link{events} for more information.
   }
-  \item{lags }{A list that specifies timelags, i.e. the number of steps 
-   that has to be kept. To be used for delay differential equations. 
+  \item{lags }{A list that specifies timelags, i.e. the number of steps
+   that has to be kept. To be used for delay differential equations.
    See \link{timelags}, \link{dede} for more information.
   }
   \item{... }{additional arguments passed to \code{func} and
@@ -232,7 +240,7 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
   for each element in \code{times} unless the FORTRAN routine `lsoda'
   returns with an unrecoverable error. If \code{y} has a names
   attribute, it will be used to label the columns of the output value.
-    
+
 }
 \author{R. Woodrow Setzer <setzer.woodrow@epa.gov>}
 \examples{
@@ -240,7 +248,7 @@ lsoda(y, times, func, parms, rtol = 1e-6, atol = 1e-6,
 ## Example 1:
 ##   A simple resource limited Lotka-Volterra-Model
 ##
-## Note: 
+## Note:
 ## 1. parameter and state variable names made
 ##    accessible via "with" function
 ## 2. function sigimp accessible through lexical scoping
@@ -258,7 +266,7 @@ SPCmod <- function(t, x, parms) {
   })
 }
 
-## Parameters 
+## Parameters
 parms  <- c(b = 0.0, c = 0.1, d = 0.1, e = 0.1, f = 0.1, g = 0.0)
 
 ## vector of timesteps
@@ -277,7 +285,7 @@ sigimp <- approxfun(signal$times, signal$import, rule = 2)
 y <- xstart <- c(S = 1, P = 1, C = 1)
 
 ## Solving
-out <-  lsoda(xstart, times, SPCmod, parms) 
+out <-  lsoda(xstart, times, SPCmod, parms)
 
 ## Plotting
 mf <- par("mfrow")
@@ -311,13 +319,13 @@ exampjac <- function(t, y, p) {
           p["k2"]*y[2],  -p["k2"]*y[2],  0
           ), 3, 3)
 }
-  
+
 
 ## measure speed (here and below)
-system.time( 
+system.time(
   out <- lsoda(c(1, 0, 0), times, lsexamp, parms, rtol = 1e-4,
            atol = my.atol, hmax = Inf)
-)  
+)
 out
 
 ## This is what the authors of lsoda got for the example:
@@ -340,11 +348,11 @@ out
 
 ## Using the analytic Jacobian speeds up execution a little :
 
-system.time( 
+system.time(
   outJ <- lsoda(c(1, 0, 0), times, lsexamp, parms, rtol = 1e-4,
             atol = my.atol, jacfunc = exampjac, jactype = "fullusr", hmax = Inf)
 )
-  
+
 all.equal(as.data.frame(out), as.data.frame(outJ)) # TRUE
 diagnostics(out)
 diagnostics(outJ) # shows what lsoda did internally
@@ -373,8 +381,8 @@ diagnostics(outJ) # shows what lsoda did internally
   methods.  This means that the user does not have to determine whether
   the problem is stiff or not, and the solver will automatically choose
   the appropriate method.  It always starts with the nonstiff method.
-    
-  
+
+
   The form of the \bold{Jacobian} can be specified by \code{jactype} which can
   take the following values:
   \describe{
@@ -387,11 +395,11 @@ diagnostics(outJ) # shows what lsoda did internally
   }
   If \code{jactype} = "fullusr" or "bandusr" then the user must supply a
   subroutine \code{jacfunc}.
-    
+
   The following description of \bold{error control} is adapted from the
   documentation of the lsoda source code
   (input arguments \code{rtol} and \code{atol}, above):
-    
+
   The input parameters \code{rtol}, and \code{atol} determine the error
   control performed by the solver.  The solver will control the vector
   \bold{e} of estimated local errors in \bold{y}, according to an
@@ -399,10 +407,10 @@ diagnostics(outJ) # shows what lsoda did internally
   <= } 1, where \bold{ewt} is a vector of positive error weights.  The
   values of \code{rtol} and \code{atol} should all be non-negative.  The
   form of \bold{ewt} is:
-  
+
   \deqn{\mathbf{rtol} \times \mathrm{abs}(\mathbf{y}) +
   \mathbf{atol}}{\bold{rtol} * abs(\bold{y}) + \bold{atol}}
-  
+
   where multiplication of two vectors is element-by-element.
 
   If the request for precision exceeds the capabilities of the machine,
@@ -427,7 +435,7 @@ diagnostics(outJ) # shows what lsoda did internally
 
   Examples in both C and FORTRAN are in the \file{dynload} subdirectory
   of the \code{deSolve} package directory.
-  
+
 
     }
 \seealso{

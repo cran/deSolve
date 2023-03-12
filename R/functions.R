@@ -202,8 +202,11 @@ checkDLL <- function (func, jacfunc, dllname,
       Nmtot$lengthvar <- c(NA,
         sapply (unames, FUN = function(x) length(which(cnames == x))))
 
-   return(list(ModelInit = ModelInit, Func = Func, JacFunc = JacFunc,
-     Nglobal = Nglobal, Nmtot = Nmtot))
+    ## thpe: set extra class to be checked by solvers
+    ret <- list(ModelInit = ModelInit, Func = Func, JacFunc = JacFunc,
+                Nglobal = Nglobal, Nmtot = Nmtot)
+    class(ret) <- c("deSolve.symbols", "list")
+   return(ret)
 }
 
 ## =============================================================================

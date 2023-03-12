@@ -1,4 +1,4 @@
-# ks 21-12-09: Func <- unlist() ... output variables now set in C-code
+## tpetzoldt, based on code from the deSolve package, 2022-11-16
 
 ### ============================================================================
 ### lsoda -- solves ordinary differential equation systems
@@ -7,6 +7,9 @@
 ### This means that the user does not have to determine whether the
 ### problem is stiff or not, and the solver will automatically choose the
 ### appropriate method.  It always starts with the nonstiff method.
+### 2023-02-11 thpe:
+## patched version for compiled models with pre-identified
+## symbols (.e. pointers) of the DLL functions.
 ### ============================================================================
 
 lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
@@ -17,6 +20,20 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   dllname=NULL, initfunc=dllname, initpar=parms, rpar=NULL,
   ipar=NULL, nout=0, outnames=NULL, forcings=NULL,
   initforc = NULL, fcontrol = NULL, events = NULL, lags=NULL, ...)   {
+
+### patch to support pre-indentified symbols
+  if (inherits(func, "deSolve.symbols")) {
+    if (! is.null(rootfunc))
+      stop("rootfunc for call with pre-defined symbols not supported")
+    symbols <- func
+
+    ## thpe: the following dummies are still needed by called functions
+    ## todo: improve this and allow NULL or NA
+    func <- initfunc <- dllname <- ""
+  } else {
+    ## standard procedure
+    symbols <- NULL
+  }
 
 ### check input
   if (! is.null(rootfunc))
@@ -52,9 +69,16 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
      func <- func$func
   }
 
-
-  hmax <- checkInput (y, times, func, rtol, atol,
-    jacfunc, tcrit, hmin, hmax, hini, dllname)
+  if (!inherits(func, "deSolve.symbols")) {
+    hmax <- checkInput (y, times, func, rtol, atol,
+      jacfunc, tcrit, hmin, hmax, hini, dllname)
+  } else {
+    if (is.null(hmax))
+      hmax <- if (is.null(times)) 0 else max(abs(diff(times)))
+    if (!is.numeric(hmax))   stop("`hmax' must be numeric")
+    if (hmax < 0)            stop("`hmax' must be a non-negative value")
+    if (hmax == Inf)  hmax <- 0
+  }
 
   n <- length(y)
 
@@ -99,9 +123,13 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
   if (jt == 4 && banddown>0)
     erow<-matrix(data=0, ncol=n, nrow=banddown) else erow<-NULL
 
-  if (is.character(func) | inherits(func, "CFunc")) {   # function specified in a DLL or inline compiled
-    DLL <- checkDLL(func, jacfunc, dllname,
-                    initfunc, verbose, nout, outnames)
+  # function specified in a DLL or inline compiled
+  if (is.character(func) | inherits(func, "CFunc") | !is.null(symbols)) {
+    if (is.null(symbols)) {
+      DLL <- checkDLL(func, jacfunc, dllname, initfunc, verbose, nout, outnames)
+    } else {
+      DLL <- symbols
+   }
 
     ModelInit <- DLL$ModelInit
     Func    <- DLL$Func
@@ -237,7 +265,7 @@ lsoda <- function(y, times, func, parms, rtol=1e-6, atol=1e-6,
 
 ### saving results
   out <- saveOut(out, y, n, Nglobal, Nmtot, func, Func2,
-                 iin=c(1,12:21), iout=c(1:3,14,5:9,15:16), nr = 5)
+           iin=c(1,12:21), iout=c(1:3,14,5:9,15:16), nr = 5)
 
   attr(out, "type") <- "lsoda"
   if (verbose) diagnostics(out)

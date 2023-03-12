@@ -15,7 +15,7 @@
 
   The functions provide an interface to the FORTRAN functions lsoda,
   lsodar, lsode, lsodes of the ODEPACK collection,
-  to the FORTRAN functions dvode, zvode and daspk and a C-implementation of
+  to the FORTRAN functions dvode, zvode and daspk, and a C-implementation of
   solvers of the Runge-Kutta family with fixed or variable time steps.
 
   The package contains routines designed for solving ODEs
@@ -41,7 +41,7 @@
       (\href{../doc/deSolve.pdf}{pdf}, \href{../doc/deSolve.R}{R code})
     \item Writing Code in Compiled Languages
       (\href{../doc/compiledCode.pdf}{pdf}, \href{../doc/compiledCode.R}{R code})
-    \item Examples in R (\url{../doc/examples}), and in Fortran or C (\url{../doc/dynload}, \url{../doc/dynload-dede})
+    \item Examples in R (\href{../doc/examples}{code}), and in Fortran or C (\href{../doc/dynload}{doc/dynload}, \href{../doc/dynload-dede}{doc/dynload-dede})
     \item deSolve homepage: \url{https://desolve.r-forge.r-project.org} (Papers, Books, PDFs)
     \item Mailing list: \url{mailto:r-sig-dynamic-models@r-project.org}
    }

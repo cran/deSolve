@@ -9,6 +9,8 @@ export(rk, rk4, euler, euler.1D, rkMethod, lagvalue, lagderiv, dede)
 
 export(timestep, nearestEvent, cleanEventTimes, plot.1D, matplot.0D, matplot.1D, matplot.deSolve)
 
+export(checkDLL)
+
 exportPattern("^diagnostics.*")
 
 export(DLLfunc, DLLres)

@@ -1,10 +1,11 @@
 citHeader("To cite package 'deSolve' in publications use:")
 
-citEntry(entry="Article",
+bibentry(
+  bibtype = "Article",
   title = "Solving Differential Equations in {R}: Package de{S}olve",
-  author = personList(as.person("Karline Soetaert"),
-                      as.person("Thomas Petzoldt"),
-                      as.person("R. Woodrow Setzer")),
+  author = c(person("Karline Soetaert"),
+             person("Thomas Petzoldt"),
+             person("R. Woodrow Setzer")),
   journal  =	"Journal of Statistical Software",
   volume   =	"33",
   number   =	"9",
