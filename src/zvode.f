@@ -4185,9 +4185,10 @@ C Thomas:  removed function definitions for dreal and dimag,
 C          they were already existing.
 C     We may consider to use 'real' and 'imag' consistently for
 C        future versions.
+C Thomas 2023: recent standard is aimag
       double precision function cabs1(zdum)
       complex (kind = 8), intent (in) :: zdum
-        cabs1 = dabs(dreal(zdum)) + dabs(dimag(zdum))
+        cabs1 = dabs(real(zdum)) + dabs(aimag(zdum))
       end function 
 C KARLINE: end new functions
 
