@@ -334,7 +334,7 @@ plot(out, log = "x", type = "l", lwd = 2)
 ## release 2.4. Department
 ## of Mathematics, University of Bari and INdAM, Research Unit of Bari,
 ## February 2008.
-## Available at http://www.dm.uniba.it/~testset.
+## Available from https://archimede.uniba.it/~testset/
 ## =============================================================================
 
 ## Problem is written as M*y' = f(t,y,p).

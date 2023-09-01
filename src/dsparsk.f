@@ -18,7 +18,7 @@ c amudia :   Computes     C = A* Diag                                  c
 c aplsca :   Computes     A:= A + s I    (s = scalar)                  c
 c----------------------------------------------------------------------c
       subroutine diamua (nrow,job, a, ja, ia, diag, b, jb, ib)
-      real(kind=8) a(*), b(*), diag(nrow), scal
+      real(kind=kind(0.0d0)) a(*), b(*), diag(nrow), scal
       integer ja(*),jb(*), ia(nrow+1),ib(nrow+1)
 c-----------------------------------------------------------------------
 c performs the matrix by matrix product B = Diag * A  (in place)
@@ -106,7 +106,7 @@ c           format (linpack style).                                    c
 c----------------------------------------------------------------------c
       subroutine csrcsc (n,job,ipos,a,ja,ia,ao,jao,iao)
       integer ia(n+1),iao(n+1),ja(*),jao(*)
-      real(kind=8)  a(*),ao(*)
+      real(kind=kind(0.0d0))  a(*),ao(*)
 c-----------------------------------------------------------------------
 c Compressed Sparse Row     to      Compressed Sparse Column
 c
@@ -147,7 +147,7 @@ c-----------------------------------------------------------------------
       end
       subroutine csrcsc2 (n,n2,job,ipos,a,ja,ia,ao,jao,iao)
       integer ia(n+1),iao(n2+1),ja(*),jao(*)
-      real(kind=8)  a(*),ao(*)
+      real(kind=kind(0.0d0))  a(*),ao(*)
 c-----------------------------------------------------------------------
 c Compressed Sparse Row     to      Compressed Sparse Column
 c
@@ -239,7 +239,7 @@ c roscal : scales the rows of a matrix by their norms.                 c
 c----------------------------------------------------------------------c
       subroutine rperm (nrow,a,ja,ia,ao,jao,iao,perm,job)
       integer nrow,ja(*),ia(nrow+1),jao(*),iao(nrow+1),perm(nrow),job
-      real(kind=8) a(*),ao(*)
+      real(kind=kind(0.0d0)) a(*),ao(*)
 c-----------------------------------------------------------------------
 c this subroutine permutes the rows of a matrix in CSR format.
 c rperm  computes B = P A  where P is a permutation matrix.
@@ -311,7 +311,7 @@ c-----------------------------------------------------------------------
       end
       subroutine cperm (nrow,a,ja,ia,ao,jao,iao,perm,job)
       integer nrow,ja(*),ia(nrow+1),jao(*),iao(nrow+1),perm(*), job
-      real(kind=8) a(*), ao(*)
+      real(kind=kind(0.0d0)) a(*), ao(*)
 c-----------------------------------------------------------------------
 c this subroutine permutes the columns of a matrix a, ja, ia.
 c the result is written in the output matrix  ao, jao, iao.
@@ -440,7 +440,7 @@ c       mu = max ( (j-i)  s.t. a(i,j) .ne. 0  )
 c----------------------------------------------------------------------c
 c Y. Saad, Sep. 21 1989                                                c
 c----------------------------------------------------------------------c
-      real(kind=8) a(*)
+      real(kind=kind(0.0d0)) a(*)
       integer ja(*),ia(n+1),ml,mu,ldist,i,k
       ml = - n
       mu = - n
@@ -505,7 +505,7 @@ c------end-of-infdia ---------------------------------------------------
 c-----------------------------------------------------------------------
       end
       subroutine rnrms   (nrow, nrm, a, ja, ia, diag)
-      real(kind=8) a(*), diag(nrow), scal
+      real(kind=kind(0.0d0)) a(*), diag(nrow), scal
       integer ja(*), ia(nrow+1)
 c-----------------------------------------------------------------------
 c gets the norms of each row of A. (choice of three norms)
@@ -566,7 +566,7 @@ c QSPLIT  : quick split routine used by ilut to sort out the k largest c
 c           elements in absolute value                                 c
 c----------------------------------------------------------------------c
         subroutine qsplit(a,ind,n,ncut)
-        real(kind=8) a(n)
+        real(kind=kind(0.0d0)) a(n)
         integer ind(n), n, ncut
 c-----------------------------------------------------------------------
 c     does a quick-sort split of a real array.
@@ -578,7 +578,7 @@ c     abs(a(i)) .le. abs(a(ncut)) for i .gt. ncut
 c
 c     ind(1:n) is an integer array which permuted in the same way as a(*).
 c-----------------------------------------------------------------------
-        real(kind=8) tmp, abskey
+        real(kind=kind(0.0d0)) tmp, abskey
         integer itmp, first, last
 c-----
         first = 1

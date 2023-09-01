@@ -1,3 +1,13 @@
+Changes version 1.37
+================================
+* remove GNU extensions and improve compatibility by 
+  replacing KIND=8 with KIND=0.0d0 in Fortran code
+
+Changes version 1.36
+================================
+* remove GNU extensions to improve Fortran compatibility
+  for complex numbers in file zvode.f 
+
 Changes version 1.35
 ================================
 * speedup of multiple `lsoda` solver calls with a pre-identified

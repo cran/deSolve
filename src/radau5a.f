@@ -14,7 +14,7 @@ C ******************************************
 C
       SUBROUTINE DECOMR(N,FJAC,LDJAC,FMAS,LDMAS,MLMAS,MUMAS,
      &            M1,M2,NM1,FAC1,E1,LDE1,IP1,IER,IJOB,CALHES,IPHES)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),E1(LDE1,NM1),
      &          IP1(NM1),IPHES(N)
       LOGICAL CALHES
@@ -249,7 +249,7 @@ C ***********************************************************
 C
       SUBROUTINE DECOMC(N,FJAC,LDJAC,FMAS,LDMAS,MLMAS,MUMAS,
      &            M1,M2,NM1,ALPHN,BETAN,E2R,E2I,LDE1,IP2,IER,IJOB)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),
      &          E2R(LDE1,NM1),E2I(LDE1,NM1),IP2(NM1)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
@@ -526,7 +526,7 @@ C ***********************************************************
 C
       SUBROUTINE SLVRAR(N,FJAC,LDJAC,MLJAC,MUJAC,FMAS,LDMAS,MLMAS,MUMAS,
      &          M1,M2,NM1,FAC1,E1,LDE1,Z1,F1,IP1,IPHES,IER,IJOB)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),E1(LDE1,NM1),
      &          IP1(NM1),IPHES(N),Z1(N),F1(N)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
@@ -763,7 +763,7 @@ C
       SUBROUTINE SLVRAI(N,FJAC,LDJAC,MLJAC,MUJAC,FMAS,LDMAS,MLMAS,MUMAS,
      &          M1,M2,NM1,ALPHN,BETAN,E2R,E2I,LDE1,Z2,Z3,
      &          F2,F3,CONT,IP2,IPHES,IER,IJOB)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),
      &          IP2(NM1),IPHES(N),Z2(N),Z3(N),F2(N),F3(N)
       DIMENSION E2R(LDE1,NM1),E2I(LDE1,NM1)
@@ -1070,7 +1070,7 @@ C
       SUBROUTINE SLVRAD(N,FJAC,LDJAC,MLJAC,MUJAC,FMAS,LDMAS,MLMAS,MUMAS,
      &          M1,M2,NM1,FAC1,ALPHN,BETAN,E1,E2R,E2I,LDE1,Z1,Z2,Z3,
      &          F1,F2,F3,CONT,IP1,IP2,IPHES,IER,IJOB)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),E1(LDE1,NM1),
      &          E2R(LDE1,NM1),E2I(LDE1,NM1),IP1(NM1),IP2(NM1),
      &          IPHES(N),Z1(N),Z2(N),Z3(N),F1(N),F2(N),F3(N)
@@ -1799,7 +1799,7 @@ C
      &          H,DD,FCN,NFCN,Y0,Y,IJOB,X,M1,M2,NM1,NS,NNS,
      &          E1,LDE1,ZZ,CONT,FF,IP1,IPHES,SCAL,ERR,
      &          FIRST,REJECT,FAC1,RPAR,IPAR)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),E1(LDE1,NM1),IP1(NM1),
      &     SCAL(N),IPHES(N),ZZ(NNS),FF(NNS),Y0(N),Y(N)
       DIMENSION DD(NS),CONT(N),RPAR(1),IPAR(1)
@@ -2225,7 +2225,7 @@ C ***********************************************************
 C
       SUBROUTINE SLVROD(N,FJAC,LDJAC,MLJAC,MUJAC,FMAS,LDMAS,MLMAS,MUMAS,
      &          M1,M2,NM1,FAC1,E,LDE,IP,DY,AK,FX,YNEW,HD,IJOB,STAGE1)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),E(LDE,NM1),
      &          IP(NM1),DY(N),AK(N),FX(N),YNEW(N)
       LOGICAL STAGE1
@@ -2464,7 +2464,7 @@ C ***********************************************************
 C
       SUBROUTINE SLVSEU(N,FJAC,LDJAC,MLJAC,MUJAC,FMAS,LDMAS,MLMAS,MUMAS,
      &          M1,M2,NM1,FAC1,E,LDE,IP,IPHES,DEL,IJOB)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION FJAC(LDJAC,N),FMAS(LDMAS,NM1),E(LDE,NM1),DEL(N)
       DIMENSION IP(NM1),IPHES(N)
       COMMON/LINAL/MLE,MUE,MBJAC,MBB,MDIAG,MDIFF,MBDIAG
@@ -2818,7 +2818,7 @@ C----------------------- END OF SUBROUTINE SOLH ------------------------
 C
       SUBROUTINE DECC (N, NDIM, AR, AI, IP, IER)
 C VERSION COMPLEX DOUBLE PRECISION
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       INTEGER N,NDIM,IP,IER,NM1,K,KP1,M,I,J
       DIMENSION AR(NDIM,N), AI(NDIM,N), IP(N)
 C-----------------------------------------------------------------------
@@ -2924,7 +2924,7 @@ C
 C
       SUBROUTINE SOLC (N, NDIM, AR, AI, BR, BI, IP)
 C VERSION COMPLEX DOUBLE PRECISION
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       INTEGER N,NDIM,IP,NM1,K,KP1,M,I,KB,KM1
       DIMENSION AR(NDIM,N), AI(NDIM,N), BR(N), BI(N), IP(N)
 C-----------------------------------------------------------------------
@@ -2987,7 +2987,7 @@ C
 C
       SUBROUTINE DECHC (N, NDIM, AR, AI, LB, IP, IER)
 C VERSION COMPLEX DOUBLE PRECISION
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       INTEGER N,NDIM,IP,IER,NM1,K,KP1,M,I,J
       DIMENSION AR(NDIM,N), AI(NDIM,N), IP(N)
 C-----------------------------------------------------------------------
@@ -3096,7 +3096,7 @@ C
 C
       SUBROUTINE SOLHC (N, NDIM, AR, AI, LB, BR, BI, IP)
 C VERSION COMPLEX DOUBLE PRECISION
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       INTEGER N,NDIM,IP,NM1,K,KP1,M,I,KB,KM1
       DIMENSION AR(NDIM,N), AI(NDIM,N), BR(N), BI(N), IP(N)
 C-----------------------------------------------------------------------
@@ -3160,7 +3160,7 @@ C----------------------- END OF SUBROUTINE SOLHC -----------------------
       END
 C
       SUBROUTINE DECradB (N, NDIM, A, ML, MU, IP, IER)
-      REAL(KIND=8) A,T
+      REAL(KIND=KIND(0.0d0)) A,T
       DIMENSION A(NDIM,N), IP(N)
 C-----------------------------------------------------------------------
 C  MATRIX TRIANGULARIZATION BY GAUSSIAN ELIMINATION OF A BANDED
@@ -3255,7 +3255,7 @@ C----------------------- END OF SUBROUTINE DECradB ------------------------
 C
 C
       SUBROUTINE SOLradB (N, NDIM, A, ML, MU, B, IP)
-      REAL(KIND=8) A,B,T
+      REAL(KIND=KIND(0.0d0)) A,B,T
       DIMENSION A(NDIM,N), B(N), IP(N)
 C-----------------------------------------------------------------------
 C  SOLUTION OF LINEAR SYSTEM, A*X = B .
@@ -3306,7 +3306,7 @@ C----------------------- END OF SUBROUTINE SOLradB ------------------------
       END
 C
       SUBROUTINE DECBC (N, NDIM, AR, AI, ML, MU, IP, IER)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION AR(NDIM,N), AI(NDIM,N), IP(N)
 C-----------------------------------------------------------------------
 C  MATRIX TRIANGULARIZATION BY GAUSSIAN ELIMINATION OF A BANDED COMPLEX
@@ -3437,7 +3437,7 @@ C----------------------- END OF SUBROUTINE DECBC ------------------------
 C
 C
       SUBROUTINE SOLBC (N, NDIM, AR, AI, ML, MU, BR, BI, IP)
-      IMPLICIT REAL(KIND=8) (A-H,O-Z)
+      IMPLICIT REAL(KIND=KIND(0.0d0)) (A-H,O-Z)
       DIMENSION AR(NDIM,N), AI(NDIM,N), BR(N), BI(N), IP(N)
 C-----------------------------------------------------------------------
 C  SOLUTION OF LINEAR SYSTEM, A*X = B ,
@@ -3511,9 +3511,9 @@ C
       subroutine elmhes(nm,n,low,igh,a,int)
 C
       integer i,j,m,n,la,nm,igh,kp1,low,mm1,mp1
-      real(kind=8) a(nm,n)
-      real(kind=8) x,y
-      real(kind=8) dabs
+      real(kind=kind(0.0d0)) a(nm,n)
+      real(kind=kind(0.0d0)) x,y
+      real(kind=kind(0.0d0)) dabs
       integer int(igh)
 C
 C     this subroutine is a translation of the algol procedure elmhes,
