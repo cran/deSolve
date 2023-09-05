@@ -30,6 +30,7 @@
 #include <float.h>
 #include <math.h>
 #include <R_ext/Applic.h>
+#include <R_ext/BLAS.h>
 
 #define EPSILON DBL_EPSILON
 

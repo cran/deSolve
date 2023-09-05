@@ -1,4 +1,4 @@
-9a0aeec7ea17fb00b940b67338c4b070 *DESCRIPTION
+f1e71c27389b0062b6c317e7fce01c19 *DESCRIPTION
 33b54ad840cddc3f9c8f0a5a7297ed22 *NAMESPACE
 8497f55a5f5e4fc2e0bf7de16cc5f824 *NEWS.md
 4df6c896706646b5793cc6357b15574a *R/Aquaphy.R
@@ -37,10 +37,10 @@ c0c0293b16490375a893937ef11f398b *demo/CCL4model.R
 8e305f440839f308792d2ac09fa20128 *inst/CITATION
 d667d16baebc48463d0a042aa810caae *inst/doc/compiledCode.R
 133d3be6961bf71187e0cb4c605d0019 *inst/doc/compiledCode.Rnw
-9039026472f1822350d20b3a241acd17 *inst/doc/compiledCode.pdf
+a5eea5f76dd56a3abd71deea76ddde90 *inst/doc/compiledCode.pdf
 cc10191ba9b20b40f3fa1a11b61c7902 *inst/doc/deSolve.R
 77ddaa02311a01be341630cd17335926 *inst/doc/deSolve.Rnw
-e213ba2c071d0f4c8f87a176ac440a50 *inst/doc/deSolve.pdf
+4acbf794671898a70c3f09ed158a9781 *inst/doc/deSolve.pdf
 90cff72b5d4f433507d4a3194ac2b4c5 *inst/doc/dynload-dede/dedeUtils.c
 32adc37ff9cfdae64133e2f0905ca68c *inst/doc/dynload-dede/dede_lv.R
 0554dd66581cbd412e50455977167143 *inst/doc/dynload-dede/dede_lv.c
@@ -139,7 +139,7 @@ a25dfc6261b63b13bba2b90f0c8d0e1a *man/vode.Rd
 5e046dd1f7cc192a6c3d5d1a47b2dbec *src/DLLutil.c
 8290d2e9740414e315237f0d5d4024bb *src/Makevars
 592b846ff5ad78cd36b197ee402b44e4 *src/R_init_deSolve.c
-cf4b58246d69335dd7eb21173b338752 *src/brent.c
+f14967532556db135a8c123f14175e2e *src/brent.c
 c17cd63fb084095b6d9740d9c9e3db04 *src/call_daspk.c
 4f1f107d001710fad9bf5d435b1dab4b *src/call_euler.c
 6bf3f1b2a85624383e1cd27262702306 *src/call_iteration.c
@@ -153,7 +153,7 @@ c17cd63fb084095b6d9740d9c9e3db04 *src/call_daspk.c
 aa27f87ba8e60746a8d2f0219479dc41 *src/daux.f
 12c6f85a397e678e4f3c7db8726161d3 *src/ddaspk.f
 9f8174c313285bda45425900f2b6f604 *src/deSolve.h
-0099ac09eb34956400cc822fcbabc945 *src/deSolve_utils.c
+6ce01391e2e3ecc3b9c81be9221a640a *src/deSolve_utils.c
 8dd1bab6bbe783797bb34b492be08942 *src/dintdy2.f
 d184e0c347d70040ea832e3420fbce70 *src/dlinpk.f
 54dc7b4c506e38769b3e52a590e0ec4b *src/dlsoder.f
@@ -174,10 +174,10 @@ f6c3c5141eba327ae959e9044168045e *src/radau5.f
 476e682c316d6fe0e48026c342dbd5a8 *src/rk_auto.c
 ae76af78b7033fdddab7a46de04f827a *src/rk_fixed.c
 3e2b2e9255308415aad542f82d654538 *src/rk_implicit.c
-a64ad82d35a32de69beb9dfe3e73c55f *src/rk_util.c
-cb75997f4efdbb38352351ced6ea15e4 *src/rk_util.h
+c716848a9eb2dfb2e5c86a9098c69894 *src/rk_util.c
+de7f81bb370225834a835c8485715a1f *src/rk_util.h
 a89e76d3229e6feb282b99dbe9fb390c *src/rprintf.c
-fa1db7b8006e5a4a0c397af62d5b80d0 *src/twoDmap.c
+2e0257d0a609058b33a04dc4f6972db7 *src/twoDmap.c
 68da439d6063d800ff44ac3faab62ebb *src/zvode.f
 d0f36e39e8f68d89df2a00cd0e0a144d *src/zvode.h
 0b5c5eb86441a7b7a33c354493935d8d *vignettes/aphid.png

@@ -8,6 +8,7 @@
 #endif
 
 #include <R_ext/Applic.h>
+#include <R_ext/BLAS.h>
 #include <R_ext/Rdynload.h>
 #include "deSolve.h"
 #include "externalptr.h"
