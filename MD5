@@ -1,6 +1,6 @@
-f1e71c27389b0062b6c317e7fce01c19 *DESCRIPTION
+648b87ffbfd6b927f84ecc2b9971a144 *DESCRIPTION
 33b54ad840cddc3f9c8f0a5a7297ed22 *NAMESPACE
-8497f55a5f5e4fc2e0bf7de16cc5f824 *NEWS.md
+37515f280b1d6ec3b5101f3c735a3c86 *NEWS.md
 4df6c896706646b5793cc6357b15574a *R/Aquaphy.R
 75b53acdcea2f0de92203a153b956f89 *R/DLLfunc.R
 31be22a79645487f5441d15c21de881d *R/SCOC.R
@@ -37,10 +37,10 @@ c0c0293b16490375a893937ef11f398b *demo/CCL4model.R
 8e305f440839f308792d2ac09fa20128 *inst/CITATION
 d667d16baebc48463d0a042aa810caae *inst/doc/compiledCode.R
 133d3be6961bf71187e0cb4c605d0019 *inst/doc/compiledCode.Rnw
-a5eea5f76dd56a3abd71deea76ddde90 *inst/doc/compiledCode.pdf
+16923d019c9ae753682e7d06d491bade *inst/doc/compiledCode.pdf
 cc10191ba9b20b40f3fa1a11b61c7902 *inst/doc/deSolve.R
 77ddaa02311a01be341630cd17335926 *inst/doc/deSolve.Rnw
-4acbf794671898a70c3f09ed158a9781 *inst/doc/deSolve.pdf
+46eae16f1ae3e29ff3515ac348f9b735 *inst/doc/deSolve.pdf
 90cff72b5d4f433507d4a3194ac2b4c5 *inst/doc/dynload-dede/dedeUtils.c
 32adc37ff9cfdae64133e2f0905ca68c *inst/doc/dynload-dede/dede_lv.R
 0554dd66581cbd412e50455977167143 *inst/doc/dynload-dede/dede_lv.c
@@ -117,7 +117,7 @@ a079d71b38857de60b0b33c87b5ba5d3 *man/ccl4data.Rd
 7efa38b374dd3bc47661ad9e34aed899 *man/dede.Rd
 96ce499ae3f2afa326764086c3cf4919 *man/diagnostics.Rd
 c9cbad59d0970aeb3fbdd0ee5b02d5d6 *man/diagnostics.deSolve.Rd
-c1a2635c37d832b339c67ffbff33f1ed *man/events.Rd
+52a89e6bf01c05fbea32d83c618bbb49 *man/events.Rd
 e41906e4c2bcc40fcebab691945e5922 *man/forcings.Rd
 833a966839209db0febadccc5ea3fd19 *man/lsoda.Rd
 0840c62620c2fcc14ffadcd5906a9b5b *man/lsodar.Rd
@@ -165,7 +165,7 @@ d7898e4c512f38a4dffdcee1bb2e6992 *src/dvode.f
 ce974c6cfe3334a319ff9ff519d599dd *src/ex_ChemicalDAE.c
 1815d64fc1a6e9032baeadcfc0d4da01 *src/ex_SCOC.c
 5841fc95b46e14b4b8f6ef69f255d496 *src/externalptr.h
-dbea8fc073657b1b007394e48139e81d *src/forcings.c
+6c9eee5eab99eb8f241725f59eecc63c *src/forcings.c
 42cfb695406fb104233b284b6cda0c42 *src/lags.c
 745c68df821c37fd9b3f3b9696d3b2fe *src/opkda1.f
 8b452dcf0497fece0ce02947b194cbb6 *src/opkdmain.f
@@ -176,7 +176,7 @@ ae76af78b7033fdddab7a46de04f827a *src/rk_fixed.c
 3e2b2e9255308415aad542f82d654538 *src/rk_implicit.c
 c716848a9eb2dfb2e5c86a9098c69894 *src/rk_util.c
 de7f81bb370225834a835c8485715a1f *src/rk_util.h
-a89e76d3229e6feb282b99dbe9fb390c *src/rprintf.c
+5a66f87c4dc03abe52bee561b7ac887b *src/rprintf.c
 2e0257d0a609058b33a04dc4f6972db7 *src/twoDmap.c
 68da439d6063d800ff44ac3faab62ebb *src/zvode.f
 d0f36e39e8f68d89df2a00cd0e0a144d *src/zvode.h

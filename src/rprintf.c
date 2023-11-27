@@ -10,7 +10,7 @@
 
 
 void F77_SUB(rprintf)(const char* msg FCLEN) {
-   Rprintf(msg);
+   Rprintf("%s", msg);
    Rprintf("\n");
 }
 

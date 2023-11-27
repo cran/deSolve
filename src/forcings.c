@@ -91,7 +91,7 @@ int initForcings(SEXP flist) {
 void Initdeforc(int *N, double *forc) {
   int i, ii;
   if ((*N) != nforc) {
-    warning("Number of forcings passed to solver, %i; number in DLL, %i\n",nforc, *N);
+    warning("Number of forcings passed to solver, %ld; number in DLL, %i\n", nforc, *N);
     Rf_error("Confusion over the length of forc.");
   }
 

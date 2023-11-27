@@ -1,3 +1,18 @@
+Changes version 1.40
+================================
+* compacted vignettes
+
+Changes version 1.39
+================================
+* small documentation fix
+* printf fixes in forcings.c and rprintf.c
+
+Changes version 1.37
+================================
+* changed encoding of DESCIPTION to UTF-8
+* fixed also a NOTE about documentation, 
+* format of citations
+
 Changes version 1.37
 ================================
 * remove GNU extensions and improve compatibility by 

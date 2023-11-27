@@ -23,7 +23,7 @@
 
   \code{events} should be a list that contains one of the following:
 
-  \enumerate{
+  \describe{
     \item{func: }{an R-function or the name of a function in compiled
       code that specifies the event,
     }
@@ -46,7 +46,7 @@
     \item{root: }{when events are specified by a function and triggered
       by a root, this logical should be set equal to \code{TRUE}
     }
-    \item{terminalroot }{when events are triggered by a root, the default is
+    \item{terminalroot: }{when events are triggered by a root, the default is
       that the simulation continues after the event is executed. In
       \code{terminalroot}, we can specify which roots should terminate the
       simulation.
@@ -95,13 +95,13 @@
    If the events are specified by a \bold{data frame}
    (argument \code{events$data}), this should
    contain the following columns (and in that order):
-  \enumerate{
-    \item{var }{the state variable \emph{name} or \emph{number} that is affected
+  \describe{
+    \item{var: }{the state variable \emph{name} or \emph{number} that is affected
       by the event}
-    \item{time }{the time at which the event is to take place; the solvers will
+    \item{time: }{the time at which the event is to take place; the solvers will
       check if the time is embraced by the simulation time}
-    \item{value }{the value, magnitude of the event}
-    \item{method }{which event is to take place; should be one of ("replace",
+    \item{value: }{the value, magnitude of the event}
+    \item{method: }{which event is to take place; should be one of ("replace",
       "add", "multiply"); also allowed is to specify the number
       (1 = replace, 2 = add, 3 = multiply)
     }
